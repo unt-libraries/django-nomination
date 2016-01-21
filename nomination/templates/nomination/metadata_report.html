@@ -1,0 +1,23 @@
+{% extends "nomination/index.html" %}
+{% load nomination_tags %}
+{% block title %}Nomination Tool: Metadata Report{% endblock %}
+{% block main_nav %}{% endblock %}
+{% block content %}
+<div class="field-wrapper">
+    <h2>Values for metadata field {{ field|replaceunderscores }}:</h2>
+    <div class="instruction">Select a value below to see its associated URLs.</div>
+    {% if not namelist %}
+    {% for name,cnt in valdic %}
+    {% ifnotequal name '' %}
+    <a href="{% url 'value_report' project.project_slug field name %}">{{ name }}</a> - {{ cnt }} <br />
+    {% endifnotequal %}
+    {% endfor %}
+    {% else %}
+    {% for fullname,cnt,name in namelist %}
+    {% ifnotequal name '' %}
+    <a href="{% url 'value_report' project.project_slug field name %}">{{ fullname }}</a> - {{ cnt }} <br />
+    {% endifnotequal %}
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

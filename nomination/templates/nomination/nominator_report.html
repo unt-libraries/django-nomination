@@ -1,0 +1,15 @@
+{% extends "nomination/index.html" %}
+
+{% block title %}Nomination Tool: {{ field|capfirst }} Report{% endblock %}
+
+{% block main_nav %}{% endblock %}
+
+{% block content %}
+         <div class="field-wrapper">
+            <h2>{{ field|capfirst }}s:</h2>
+            <div class="instruction">Select a nominator below to see its associated URLs.</div>
+            {% for name,cnt,nomid in valdic %}
+                <a href="{% url 'nominator_url_report' project.project_slug field nomid %}">{{ name }}</a> - {{ cnt }} <br />
+            {% endfor %}
+         </div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "nomination/index.html" %}
+{% load staticfiles %}
+
+{% block title %}Nomination Tool: Project URL Nomination{% endblock %}
+
+{% block extra_header %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'nomination/scripts/jquery.treeview.pack.js' %}"></script>
+<script type="text/javascript" src="{% static 'nomination/scripts/jquery.treeview.async.js' %}"></script>
+<!--
+<script type="text/javascript">
+    $(document).ready(function() {
+            $("#browse-list").treeview({
+                url: "{# url 'browse_json' project.project_slug,"surt" #}",
+                collapsed: true
+            });
+            $("#search-url-value").focus();
+
+    });
+</script>
+-->
+{% endblock %}
+
+{% block main_nav %}{% endblock %}
+
+{% block content %}
+    <div id="gen-nom-stats">
+        <ul>
+            <li>
+                <a href="{% url 'url_report' project.project_slug  %}">
+                    Number of URLs Nominated:
+                </a>
+                 {{ url_count }}
+            </li>
+            <li>
+                <a href="{% url 'nominator_report' project.project_slug "nominator" %}">
+                    Number of Nominators:
+                </a>
+                {{ nominator_count }}
+            </li>
+        </ul>
+    </div>
+	<div id="search-url-field" class="field-wrapper">
+		    <h2>Search by URL</h2>
+
+	    <form method="post" action="{% url 'url_lookup' project.project_slug %}">{% csrf_token %}
+			    <input type="text" name="search-url-value" id="search-url-value" value="http://" />
+                    <input type="submit" value="submit" class="prettier-button" />
+                <div class="instruction">Search for an existing URL in the system.</div>
+                <div class="instruction"><input type="checkbox" name="partial-search" value="true"><span class="form-choice"> Allow partial matches</span></div>
+            </form>
+         </div>
+
+         <div class="field-wrapper">
+            <h2>Browse URLs</h2><br/>
+
+            <div class="browse">
+            {% for top_domain,domain_list in browse_tup %}
+                <h3>
+                    <a href="/nomination/{{ project.project_slug }}/surt/http://({{ top_domain }}/">
+                        {{ top_domain }}
+                    </a>
+                </h3>
+                <ul>
+                    {% for surt_tuple in domain_list %}
+                        {% ifequal surt_tuple.0 "A" %}<br/>{% endifequal %}
+                        <li>{% if surt_tuple.1 %}
+                            <a href="/nomination/{{ project.project_slug }}/surt/{{ surt_tuple.1 }}/">
+                                {{ surt_tuple.0 }}
+                            </a>
+                            {% else %}
+                                {{ surt_tuple.0 }}
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+            </div>
+
+         </div><br/>
+<!--
+         <div class="field-wrapper">
+                <h2>Browse by SURT</h2>
+
+                <ul id="browse-list">
+                </ul>
+
+         </div>
+-->
+{% endblock %}

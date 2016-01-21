@@ -1,0 +1,97 @@
+{% load staticfiles %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+<title>{% block title %}{% endblock %}</title>
+
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'nomination/images/favicon.ico' %}" />
+<link rel="stylesheet" href="http://yui.yahooapis.com/2.5.1/build/reset-fonts-grids/reset-fonts-grids.css" type="text/css" />
+<link rel="stylesheet" href="{% static 'nomination/styles/local.css' %}" type="text/css" />
+{% if project %}
+<link rel="alternate" type="application/rss+xml" title="Newly Added URLs" href="{% url 'url_feed' project.project_slug %}" />
+<link rel="alternate" type="application/rss+xml" title="Recent Nominations" href="{% url 'nomination_feed' project.project_slug %}" />
+{% endif %}
+
+<!--[if lt IE 7]>
+<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE7.js" type="text/javascript"></script>
+<![endif]-->
+<meta name="robots" content="noindex" />
+
+<script type="text/javascript" src="{% static 'nomination/scripts/jquery-1.2.6.pack.js' %}"></script>
+<script type="text/javascript" src="{% static 'nomination/scripts/jquery.dimensions.pack.js' %}"></script>
+<script type="text/javascript" src="{% static 'nomination/scripts/local.js' %}"></script>
+
+{% block extra_header %}
+<script type="text/javascript">
+    $(document).ready(function() {
+            if ($(window).height() > $(document).height()) {
+                $('#bd').css({
+                height: $('#bd').height() +
+                ($(window).height() -
+                $(document).height()) + 'px'
+            });
+     }
+
+    });
+</script>
+{% endblock %}
+
+</head>
+
+{% block body %}
+    <body id="nomination-tool" class="{% block body_classes %}start-page{% endblock %}">
+        <div id="doc" class="yui-t7">
+        {% block project_nav %}
+            <div id="hd"><h1>{{ project.project_name }}</h1>
+            <p id="other-projects"><a href="{% url 'project_listing' %}">Other Projects</a> | <a href="{% url 'nomination_help' %}">Help</a></p>
+            <ul id="navigation">
+                <li><a href="{% url 'project_urls' project.project_slug %}">Project Home</a></li>
+                <li><a href="{% url 'project_about' project.project_slug %}">About this Project</a></li>
+                <li><a href="{% url 'reports_view' project.project_slug %}">Project Reports</a></li>
+                {% if not project.nomination_message %}
+                    <li class="add-url"><a href="{% url 'url_add' project.project_slug %}" title="Add a Site" rel="no-follow">Add a URL</a></li>
+                {% endif %}
+            </ul>
+            </div>
+        {% endblock %}
+        {% block main_nav %}
+            <div id="hd"><h1>Nomination Tool</h1>
+            <p id="other-projects"><a href="{% url 'project_listing' %}">Other Projects</a> | <a href="{% url nomination_help %}">Help</a></p>
+            <ul id="navigation">
+                <li><a href="{% url 'project_listing' %}">Home</a></li>
+                <li><a href="{% url 'nomination_about' %}">About this Tool</a></li>
+            </ul>
+            </div>
+        {% endblock %}
+        <div id="bd">
+        <div id="yui-main">
+        <div class="yui-b" style="min-height:450px;"><div class="{% block content_classes %}yui-g{% endblock %}">
+    {% if maintenance_message %}
+        <div class="alert">{{maintenance_message}}</div>
+    {% endif %}
+    {% block content %}{% endblock %}
+    </div>
+    </div>
+    </div>
+
+    </div>
+    {% block footer %}
+        <div id="ft">
+
+          <div>Hosted by <a href="http://www.library.unt.edu">The University of North Texas Libraries</a></div>
+
+          <div>UNT and State of Texas: <a href="http://www.unt.edu/" title="University of North Texas">UNT</a> | <a href="http://www.unt.edu/search/">UNT Search</a> | <a href="http://www.unt.edu/newsandevents.htm">UNT News and Events</a> | <a href="http://www.state.tx.us/">State of Texas</a> | <a href="http://www.tsl.state.tx.us/trail/">State-wide Search</a> </div>
+
+          <div>Policies: <a href="http://www.unt.edu/policy/UNT_Policy/volume2/5_1.html">UNT Web Accessibility Policy</a> | <a href="http://www.unt.edu/aaeoeada.html">AA/EOE/ADA</a> | <a href="http://www.unt.edu/unt_ps.html">Privacy Statement</a> | <a href="http://www.unt.edu/disclaimer.htm">Disclaimer</a> </div>
+
+
+
+        </div>
+    {% endblock %}
+{% endblock %}
+
+
+
+</body>
+</html>

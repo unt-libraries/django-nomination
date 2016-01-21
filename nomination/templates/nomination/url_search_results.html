@@ -1,0 +1,18 @@
+{% extends "nomination/index.html" %}
+
+{% block title %}Nomination Tool{% endblock %}
+
+{% block main_nav %}{% endblock %}
+
+{% block content %}
+
+        <div class="field-wrapper">
+        {% if url_list %}
+            <h2>URL</h2>
+            {% for url_item in url_list %}
+                <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity }}/">{{ url_item.entity }}</a><br/>
+            {% endfor %}
+        {% endif %}
+        </div>
+
+{% endblock %}

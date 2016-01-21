@@ -1,0 +1,222 @@
+{% extends "nomination/index.html" %}
+{% load staticfiles %}
+{% load nomination_tags %}
+
+{% block title %}Nomination Tool: Add/Edit a Site{% endblock %}
+
+{% block extra_header %}
+{{ block.super }}
+
+<script type="text/javascript">
+    var json_data = {{ json_data|safe }};
+    var form_types = {{ form_types|safe }};
+</script>
+
+<!--
+<script type="text/javascript" src="{% static 'nomination/scripts/jquery-1.2.6.pack.js' %}"></script>
+<script type="text/javascript" src="{% static 'nomination/scripts/jquery.dimensions.js' %}"></script>
+-->
+
+<script type="text/javascript" src="{% static 'nomination/scripts/jquery.cookie.pack.js' %}"></script>
+<script type="text/javascript" src="{% static 'nomination/scripts/core.js' %}"></script>
+<script type="text/javascript" src="{% static 'nomination/scripts/RelatedObjectLookups.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'nomination/scripts/DateTimeShortcuts.js' %}"></script>
+<script type="text/javascript" src="{% static 'nomination/scripts/calendar.js' %}"></script>
+
+<link rel="stylesheet" href="{% static 'nomination/styles/jquery-ui.css' %}" type="text/css" media="all" />
+<script src="{% static 'nomination/scripts/jquery/jquery.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'nomination/scripts/jquery/jquery-ui.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'nomination/scripts/jquery/jquery.bgiframe-2.1.1.js' %}" type="text/javascript"></script>
+<script src="{% static 'nomination/scripts/jquery/jquery-ui-i18n.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript" src="{% static 'nomination/scripts/nominationform.js' %}"></script>
+
+<!--<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAiMxCv9HXrrInCAfSSpXWKRQFqlgjNlaZiz660GnjlAsHHd7dexRFxgdthjYu5L_NmdkGMwSomxrsnA"
+      type="text/javascript"></script>-->
+
+<script type="text/javascript">
+    $(document).ready(initForm);
+</script>
+
+
+<script type="text/javascript">
+    $.noConflict();
+    jQuery(document).ready(function($){
+        $('#institution-value').autocomplete({
+            source: {{ institutions|safe }},
+            delay: 0,
+         });
+    });
+</script>
+
+{% endblock %}
+
+{% block body_classes %}edit-form{% endblock %}
+
+{% block main_nav %}{% endblock %}
+
+{% block content %}
+
+    {% if url_not_found %}
+        <div id="brief-instructions">
+            <span class="nomination-message">The requested URL was not in the system. Please nominate this URL.</span>
+        </div>
+    {% endif %}
+
+    {% if not project.nomination_message %}
+        <h2>Add a Site/URL</h2>
+
+            {% if form_errors %}
+                <div id="brief-instructions">
+                    <span class="required"><b>Please resolve the errors indicated below.</b></span>
+                </div>
+            {% endif %}
+            {% if summary_list %}
+                <div id="brief-instructions">
+                    <span class="nomination-message"><b>Thank you for your nomination.</b></span><br/>
+{% comment %}
+                    {% for summary in summary_list %}
+                        {{ summary }}<br/>
+                    {% endfor %}
+{% endcomment %}
+                <a href="/nomination/{{ project.project_slug }}/url/{{ url_entity|urlencode }}/">View metadata entry for {{ url_entity }}.</a><br/>
+                </div>
+            {% endif %}
+
+        <form method="post" action="{% url 'url_add' project.project_slug %}">{% csrf_token %}
+
+           <h2>Capture the Following Site <span class="required" title="Required Field">(Required)</span></h2>
+           <div id="url-field" class="field-wrapper">
+                <label for="title-value">Website URL:</label>
+                <div class="element-wrapper">
+                {% if form_errors.url_value %}
+                    <span class="required" title="Required Field">{{form_errors.url_value}}</span><br/>
+                {% endif %}
+                {{ form.url_value }}<a id="preview-url" href="#" title='view URL in new tab'> view<img src="{% static 'nomination/images/external-link.gif' %}"/></a>
+                </div>
+
+                <div class="instruction">The URL you wish to nominate for capture</div>
+             </div>
+
+            {% if metadata_vals %}
+                <h2>Metadata</h2>
+                <div id="proj-field" class="field-wrapper">
+                    {% for met,vals in metadata_vals %}
+                        {% ifequal met.required 0 %}
+                            <label for="{{ met.metadata.name }}">{{ met.description }}:</label>
+                        {% else %}
+                            <label for="{{ met.metadata.name }}">{{ met.description }}<span class="required" title="Required Field"> (Required)</span>:</label>
+                        {% endifequal %}
+                        <div class="element-wrapper">
+                {% if met.metadata.name in form_errors %}
+                    <span class="required" title="Required Field">{{ form_errors|get_item:met.metadata.name }}</span><br/>
+                {% endif %}
+
+                        {% ifequal met.form_type "text" %}
+                                <input type="text" name="{{ met.metadata.name }}" id="{{ met.metadata.name }}"><br />
+                            <div class="instruction">{{ met.help }}</div>
+                        {% endifequal %}
+
+                        {% ifequal met.form_type "radio" %}
+                            <div class="instruction">{{ met.help }}</div>
+                            {% for val in vals %}
+                                {% ifnotequal val.key 'other_specify' %}
+                                    <input type="radio" name="{{ met.metadata.name }}" value="{{ val.key }}"> {{ val.value }}<br />
+                                {% else %}
+                                    <input type="radio" name="{{ met.metadata.name }}" value="{{ val.key }}"> {{ val.value }} <input type="text" name="{{ met.metadata.name }}_other" id="{{ met.metadata.name }}_other" style="width: 125px"/><br />
+                                {% endifnotequal %}
+                            {% endfor %}
+                        {% endifequal %}
+
+                        {% ifequal met.form_type "checkbox" %}
+                            <div class="instruction">{{ met.help }}</div>
+                            <input type=button value="Select All" name="{{ met.metadata.name }}" onClick="this.value=checkAll(this.name)" class="prettier-button"><br /><br />
+                            {% for val in vals %}
+                                {% ifnotequal val.key 'other_specify' %}
+                                    <input type="checkbox" name="{{ met.metadata.name }}" value="{{ val.key }}"><span class="form-choice"> {{ val.value }}</span><br />
+                                {% else %}
+                                    <input type="checkbox" name="{{ met.metadata.name }}" value="{{ val.key  }}"><span class="form-choice"> {{ val.value }}</span> <input type="text" name="{{ met.metadata.name }}_other" id="{{ met.metadata.name }}_other" style="width: 125px"/><br />
+                                {% endifnotequal%}
+                            {% endfor %}
+                        {% endifequal %}
+
+                        {% ifequal met.form_type "select" %}
+                            <select multiple size="6" class="selectauto" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                            {% for val in vals %}
+                                <option value="{{ val.key }}">{{ val.value }}</option>
+                            {% endfor %}
+                            </select>
+                            <div class="instruction">{{ met.help }}</div>
+                        {% endifequal %}
+
+                        {% ifequal met.form_type "selectsingle" %}
+                            <select size="6" class="selectauto" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                            {% for val in vals %}
+                                <option value="{{ val.key }}">{{ val.value }}</option>
+                            {% endfor %}
+                            </select>
+                            <div class="instruction">{{ met.help }}</div>
+                        {% endifequal %}
+
+                        {% ifequal met.form_type "textarea" %}
+                                <textarea name="{{ met.metadata.name }}" rows="10" cols="50" id="{{ met.metadata.name }}"></textarea><br />
+                            <div class="instruction">{{ met.help }}</div>
+                        {% endifequal %}
+                        {% ifequal met.form_type "date"  %}
+                            <input type="text" class="vDateField" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}" value="{{ vals|first }}"/>
+                            <div class="instruction">{{ met.help }}</div>
+                        {% endifequal %}
+                        </div>
+                    {% endfor %}
+                </div>
+    {% endif %}
+
+           <h2>Information About You
+                {% if project.registration_required %}
+                     <span class="required" title="Required Field">(Required)</span>
+                {% endif %}
+           </h2>
+           <div id="your-info" class="field-wrapper">
+                <label for="your-name-value">Your Name</label>
+                <div class="element-wrapper">
+                {% if form_errors.nominator_name %}
+                    <span class="required" title="Required Field">{{form_errors.nominator_name}}</span><br/>
+                {% endif %}
+                {{ form.nominator_name }}
+                </div>
+                <div class="instruction">Please provide your name</div>
+
+                <label for="institution-value">Institution:</label>
+                <div class="element-wrapper">
+                {% if form_errors.nominator_institution %}
+                    <span class="required" title="Required Field">{{form_errors.nominator_institution}}</span><br/>
+                {% endif %}
+                {{ form.nominator_institution }}
+                </div>
+                <div class="instruction">Please provide your institutional affiliation</div>
+
+                <label for="email-value">Your E-Mail Address:</label>
+                <div class="element-wrapper">
+                {% if form_errors.nominator_email %}
+                    <span class="required" title="Required Field">{{form_errors.nominator_email}}</span><br/>
+                {% endif %}
+                {{ form.nominator_email }}
+                </div>
+                <div class="instruction">Please provide an email address in order to identify your nominations in the system</div>
+
+             </div>
+             <div class="submit-wrapper">
+                  <input type="submit" value="submit" class="prettier-button" />
+             </div>
+       </form>
+       {% else %}
+            <div id="brief-instructions">
+                <span class="nomination-message">{{ project.nomination_message }}</span>
+            </div>
+       {% endif %}
+       {% if json_data %}
+           <script type="text/javascript">
+               repopulateForm();
+           </script>
+       {% endif %}
+{% endblock %}

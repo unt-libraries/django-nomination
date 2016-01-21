@@ -1,0 +1,8 @@
+*.pyc
+*.egg-info
+*.swp
+dist/
+build/
+.tox/
+*.sqlite3
+.cache

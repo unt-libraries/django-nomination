@@ -1,0 +1,59 @@
+{% extends "nomination/index.html" %}
+{% load markup %}
+{% block title %}Nomination Tool: About Project{% endblock %}
+
+{% block body_classes %}about-project{% endblock %}
+
+{% block main_nav %}{% endblock %}
+
+{% block content_classes %}yui-gc{% endblock %}
+
+{% block content %}
+
+	  <div id="about-this-project" class="yui-gc first">
+              <h2>Project Description</h2>
+              <p>{{ project.project_description|markdown }}</p>
+              {% if show_bookmarklets %}
+              <div id="bookmarklet-info">
+                  <h2>Project Bookmarklet</h2>&nbsp;
+                  <p>A bookmarklet is a brief javascript program that can be stored as a bookmark or favorite in your browser. By following the instructions below you may add a bookmarklet to your toolbar that allows you to easily nominate URLs to this project while you browse the Web.</p>
+                  <div class="browser-div">
+                      <span class="browser-heading">Firefox</span>
+                      <p class="browser-p">If your Bookmarks Toolbar is not visible, navigate to menu View-&gt;Toolbars, and select "Bookmarks Toolbar." Drag this link <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">{{project.project_slug}} Nominator</a> to the Bookmarks Toolbar.</p>
+                      <span class="browser-heading">Google Chrome</span>
+                      <p class="browser-p">If your Bookmarks Bar is not visible, use the keyboard command Shift+Ctrl+B to make it so, or navigate to menu Tools and select "Always Show Bookmarks Bar." Drag this link <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">{{project.project_slug}} Nominator</a> to the Bookmarks Toolbar.</p>
+                      <span class="browser-heading">Internet Explorer</span>
+                      <p class="browser-p">If your Links Toolbar is not visible, right click on the menu bar and select "Links." Right click on this link <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">{{project.project_slug}} Nominator</a>, and select "Add to Favorites..." For the "Create in" field, select "Links" then click "Add."</p>
+                  </div>
+              </div>
+              {% endif %} 
+          </div>
+          
+          <div id="about-project-details" class="yui-g">
+              <h3>Project Name:</h3>
+              <p>{{ project.project_name}}</p>
+              <h3>Project Abbreviation:</h3>
+              <p>{{ project.project_slug}}</p>
+              <h3>Project Starting Date:</h3>
+              <p>{{ project.project_start|date:"M d, Y"}}</p>
+              <h3>Project Ending Date:</h3>
+              <p>{{ project.project_end|date:"M d, Y"}}</p>
+              <h3>Nomination Starting Date:</h3>
+              <p>{{ project.nomination_start|date:"M d, Y"}}</p>
+              <h3>Nomination Ending Date:</h3>
+              <p>{{ project.nomination_end|date:"M d, Y"}}</p>
+              <h3>Number of URLs Nominated:</h3>
+              <p>{{ url_count }}</p>
+              <h3>Number of Nominators:</h3>
+              <p>{{ nominator_count }}</p>
+              <h3>Admin Name:</h3>
+              <p>{{ project.admin_name}}</p>
+              <h3>Admin E-mail:</h3>
+              <p>{{ project.admin_email}}</p>
+              <h3>Project URL:</h3>
+              <p>{{ project.project_url}}</p>
+              <h3>Registration Required for Project:</h3>
+              <p>{{ project.registration_required|yesno:"Yes,No" }}</p>
+          </div>
+
+{% endblock %}

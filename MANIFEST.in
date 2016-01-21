@@ -1,0 +1,6 @@
+include LICENSE.txt
+include README.md
+include CHANGELOG.md
+recursive-include nomination/templates *
+recursive-include nomination/static *
+recursive-include nomination/fixtures *.py
