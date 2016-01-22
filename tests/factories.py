@@ -5,6 +5,7 @@ from factory import fuzzy
 
 from nomination import models
 
+
 class ValueFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Value
