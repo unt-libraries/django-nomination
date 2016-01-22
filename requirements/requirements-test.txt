@@ -2,3 +2,4 @@ tox>=2.1.1
 pytest>=2.8.2
 pytest-django>=2.9.0
 factory_boy>=2.6.0
+pytest-cov>=2.2.0
