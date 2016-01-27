@@ -2,6 +2,7 @@ Django Nomination
 =================
 
 [![Build Status](https://travis-ci.org/unt-libraries/django-nomination.svg?branch=master)](https://travis-ci.org/unt-libraries/django-nomination)
+[![codecov.io](https://codecov.io/github/unt-libraries/django-nomination/coverage.svg?branch=master)](https://codecov.io/github/unt-libraries/django-nomination?branch=master)
 
 
 About
