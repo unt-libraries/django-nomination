@@ -115,3 +115,8 @@ class URLFactory(factory.django.DjangoModelFactory):
 class NominatedURLFactory(URLFactory):
     attribute = 'nomination'
     value = fuzzy.FuzzyChoice(['-1', '1'])
+
+
+class SURTFactory(URLFactory):
+    attribute = 'surt'
+    value = fuzzy.FuzzyText(length=5, prefix='http://(com,', suffix=',www,)')
