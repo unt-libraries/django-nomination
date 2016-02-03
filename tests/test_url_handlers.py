@@ -1,4 +1,6 @@
 import re
+from string import digits, uppercase, capwords
+import itertools
 
 from django import http
 from django.conf import settings
@@ -10,10 +12,40 @@ import factories
 
 
 pytestmark = pytest.mark.django_db
+alnum_list = sorted(digits + uppercase)
 
 
 def test_alphabetical_browse():
-    pass
+    surts = {
+        'A': ('http://(org,alpha,)', 'http://(org,a'),
+        'A': ('http://(org,alarm,)', 'http://(org,a'),
+        'C': ('http://(org,charlie,)', 'http://(org,c'),
+        '1': ('http://(org,123,)', 'http://(org,1')
+    }
+    project = factories.ProjectFactory()
+    # Create the surts we're expecting to see represented in the returned dict.
+    [factories.SURTFactory(url_project=project, value=surts[key][0]) for key in iter(surts)]
+    expected = {'org': [(x, surts[x][1] if surts.get(x) else None) for x in alnum_list]}
+    # Create another unrelated SURT to make sure we aren't grabbing everything.
+    factories.SURTFactory()
+    returned = url_handler.alphabetical_browse(project)
+
+    assert returned == expected
+
+
+@pytest.mark.parametrize(
+    'surt,expected',
+    [
+        ('http://(,)', {}),
+        ('http://(org,)', {'org': [(x, None) for x in alnum_list]})
+    ]
+)
+def test_alphabetical_browse_domains_not_found(surt, expected):
+    project = factories.ProjectFactory()
+    factories.SURTFactory(url_project=project, value=surt)
+    returned = url_handler.alphabetical_browse(project)
+
+    assert returned == expected
 
 
 def test_alphabetical_browse_fake_project():
@@ -23,6 +55,10 @@ def test_alphabetical_browse_fake_project():
 
 
 def test_get_metadata():
+    pass
+
+
+def test_get_metadata_with_valueset():
     pass
 
 
@@ -79,16 +115,15 @@ def test_check_url(url, expected):
 
 def test_get_nominator_when_nominator_exists():
     nominator = factories.NominatorFactory()
-    form_data = {'nominator_email':nominator.nominator_email}
-
+    form_data = {'nominator_email': nominator.nominator_email}
     assert url_handler.get_nominator(form_data) == nominator
 
 
 def test_get_nominator_when_nominator_does_not_exist():
     form_data = {
-        'nominator_email':'somebody@some_email.com',
-        'nominator_name':'John Smith',
-        'nominator_institution':'UNT'
+        'nominator_email': 'somebody@some_email.com',
+        'nominator_name': 'John Smith',
+        'nominator_institution': 'UNT'
     }
 
     assert len(models.Nominator.objects.all()) == 1
@@ -100,13 +135,13 @@ def test_get_nominator_when_nominator_does_not_exist():
 
 def test_get_nominator_when_nominator_cannot_be_created():
     form_data = {
-        'nominator_email':'somebody@some_email.com',
-        'nominator_name':None,
-        'nominator_institution':None
+        'nominator_email': 'somebody@some_email.com',
+        'nominator_name': None,
+        'nominator_institution': None
     }
-
     new_nominator = url_handler.get_nominator(form_data)
-    assert new_nominator == False
+
+    assert new_nominator is False
 
 
 def test_nominate_url():
@@ -117,15 +152,54 @@ def test_add_other_attribute():
     pass
 
 
-def test_save_attribute():
+def test_add_other_attribute_with_no_attributes():
     pass
+
+
+def test_add_other_attribute_with_several_attributes():
+    pass
+
+
+def test_save_attribute():
+    returned = url_handler.save_attribute(
+        factories.ProjectFactory(),
+        factories.NominatorFactory(),
+        {'url_value': 'www.example.com'},
+        [],
+        'Language',
+        'English'
+    )
+
+    assert 'You have successfully added' in returned[0]
+    assert models.URL.objects.all().count() == 1
+
+
+@pytest.mark.xfail(reason='Search for existing URL object with same atts is broken.')
+def test_save_attribute_url_with_attribute_already_exists():
+    url = factories.URLFactory()
+    returned = url_handler.save_attribute(
+        url.url_project,
+        url.url_nominator,
+        {'url_value': url.entity},
+        [],
+        url.attribute,
+        url.value
+    )
+
+    assert 'You have already added' in returned[0]
+    assert models.URL.objects.all().count() == 1
+
+
+def test_save_attribute_url_with_attribute_cannot_be_saved():
+    with pytest.raises(http.Http404):
+        url_handler.save_attribute(None, None, {'url_value': ''}, [], '', '',)
+    assert models.URL.objects.all().count() == 0
 
 
 def test_surt_exists_when_surt_exists():
     system_nominator = models.Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
-    url = factories.URLFactory(attribute='surt')
-
-    assert url_handler.surt_exists(url.url_project, system_nominator, url.entity) == True
+    url = factories.SURTFactory()
+    assert url_handler.surt_exists(url.url_project, system_nominator, url.entity) is True
 
 
 def test_surt_exists_when_surt_does_not_exist():
@@ -134,7 +208,7 @@ def test_surt_exists_when_surt_does_not_exist():
     url = 'http://example.com'
 
     assert len(models.URL.objects.all()) == 0
-    assert url_handler.surt_exists(project, system_nominator, url) == True
+    assert url_handler.surt_exists(project, system_nominator, url) is True
     assert len(models.URL.objects.all()) == 1
 
 
@@ -158,8 +232,24 @@ def test_url_formatter(url, expected):
     assert url_handler.url_formatter(url) == expected
 
 
-def test_surtize():
-    pass
+@pytest.mark.parametrize(
+    'url,preserveCase,expected',
+    [
+        # Documentation on SURTs is incosistent about whether comma
+        # should come before the port or not. The assumption here is
+        # that it should.
+        ('http://userinfo@domain.tld:80/path?query#fragment', False,
+         'http://(tld,domain,:80@userinfo)/path?query#fragment'),
+        ('http://www.example.com', False, 'http://(com,example,www,)'),
+        ('https://www.example.com', False, 'http://(com,example,www,)'),
+        ('www.example.com', False, 'http://(com,example,www,)'),
+        ('http://www.eXaMple.cOm', True, 'http://(cOm,eXaMple,www,)'),
+        ('Not a URL.', False, ''),
+        ('1.2.3.4:80/examples', False, 'http://(1.2.3.4:80)/examples'),
+    ]
+)
+def test_surtize(url, preserveCase, expected):
+    assert url_handler.surtize(url, preserveCase=preserveCase) == expected
 
 
 def test_appendToSurt():
@@ -193,8 +283,8 @@ def test_create_json_search_project_found():
     project = factories.ProjectFactory()
     expected_urls = factories.URLFactory.create_batch(10, url_project=project)
     other_urls = factories.URLFactory.create_batch(10)
-
     json_url_list = url_handler.create_json_search(project.project_slug)
+
     for url in expected_urls:
         assert url.entity in json_url_list
 
@@ -208,7 +298,41 @@ def test_create_json_search_project_not_found():
 
 
 def test_create_url_list():
-    pass
+    project = factories.ProjectFactory()
+    url = 'www.example.com'
+    surt = 'http://(com,example,www,)'
+    domain_surt = 'http://(com,example,'
+    rand_metadata = factories.URLFactory.create_batch(5, url_project=project, entity=url)
+    nominations = factories.NominatedURLFactory.create_batch(5, url_project=project, entity=url)
+    score = 0
+    for nomination in nominations:
+        score += int(nomination.value)
+    factories.SURTFactory(url_project=project, entity=url, value=surt)
+    returned = url_handler.create_url_list(project, models.URL.objects.filter(entity__iexact=url))
+
+    assert returned['entity'] == url
+    for each in nominations:
+        assert '{0} - {1}'.format(
+            each.url_nominator.nominator_name,
+            each.url_nominator.nominator_institution
+        ) in returned['nomination_list']
+    assert returned['nomination_count'] == 5
+    assert returned['nomination_score'] == score
+    assert returned['surt'] == domain_surt
+    for each in rand_metadata:
+        assert each.value in returned['attribute_dict'][capwords(each.attribute.replace('_', ' '))]
+
+
+def test_create_url_list_with_associated_project_metadata_values():
+    project = factories.ProjectFactory()
+    metadata = factories.MetadataFactory()
+    factories.ProjectMetadataFactory(project=project, metadata=metadata)
+    value = 'one'
+    met_value = factories.MetadataValuesFactory(metadata=metadata, value__key=value).value
+    url = factories.URLFactory(url_project=project, attribute=metadata.name, value=value)
+    returned = url_handler.create_url_list(project, [url])
+
+    assert returned['attribute_dict'][capwords(url.attribute.replace('_', ' '))] == [met_value]
 
 
 def test_create_url_dump():
@@ -230,9 +354,9 @@ def test_create_surt_dict(surt_root, expected_letter):
         surt_root + '/nothing',
         surt_root
     ]
-    urls = [factories.URLFactory(url_project=project, attribute='surt', value=surt) for surt in surts]
-
+    urls = [factories.SURTFactory(url_project=project, value=surt) for surt in surts]
     surt_dict = url_handler.create_surt_dict(project, surt_root)
+
     assert len(surt_dict['url_list']) == len(surts)
     for url in surt_dict['url_list']:
         assert url in urls
@@ -254,5 +378,4 @@ def test_get_domain_surt(surt, expected):
 def test_fix_http_double_slash():
     url = 'http:/www.example.com'
     expected = 'http://www.example.com'
-
     assert url_handler.fix_http_double_slash(url) == expected
