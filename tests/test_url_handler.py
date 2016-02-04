@@ -1,6 +1,5 @@
 import re
 from string import digits, uppercase, capwords
-import itertools
 
 from django import http
 from django.conf import settings
@@ -55,15 +54,61 @@ def test_alphabetical_browse_fake_project():
 
 
 def test_get_metadata():
-    pass
+    project = factories.ProjectFactory()
+    vals = [x.metadata for x in factories.MetadataValuesFactory.create_batch(3)]
+    metadata = [factories.ProjectMetadataFactory(project=project, metadata=x) for x in vals]
+    expected = [(x, [models.Metadata_Values.objects.get(metadata=x).value]) for x in metadata]
+    returned = url_handler.get_metadata(project)
+
+    for each in returned:
+        assert str(each) in str(expected)
 
 
 def test_get_metadata_with_valueset():
-    pass
+    project = factories.ProjectFactory()
+    valset = factories.ValuesetFactory()
+    vals = [factories.ValuesetValuesFactory(valueset=valset).value for i in range(3)]
+    metadata = factories.MetadataFactory(value_sets=[valset])
+    factories.ProjectMetadataFactory(project=project, metadata=metadata)
+    returned = url_handler.get_metadata(project)
+
+    for _, value_iter in returned:
+        for value in value_iter:
+            assert value in vals
 
 
-def test_handle_metadata():
-    pass
+def test_handle_metadata(rf):
+    request = rf.post(
+        '/',
+        {
+            'color': ['blue', 'other_specify'],
+            'group': ['alpha', 'other_specify'],
+            'name': ['Dan', 'Sara'],
+            'title': ['other_specify'],
+            'job': ['other_specify'],
+        }
+    )
+    posted_data = {
+        'color': ['blue', 'other_specify'],
+        'color_other': 'magenta',
+        'group': ['alpha', 'other_specify'],
+        'name': ['Dan', 'Sara'],
+        'title': 'other_specify',
+        'title_other': 'Monsieur',
+        'job': 'other_specify',
+    }
+    expected = {
+        'color': ['blue', 'magenta'],
+        'color_other': 'magenta',
+        'group': ['alpha'],
+        'name': ['Dan', 'Sara'],
+        'title': 'Monsieur',
+        'title_other': 'Monsieur',
+        # Is this really what we want returned if the 'other' attribute isn't set?
+        'job': 'other_specify',
+    }
+
+    assert url_handler.handle_metadata(request, posted_data) == expected
 
 
 @pytest.mark.parametrize(
@@ -92,11 +137,82 @@ def test_validate_date_with_invalid_date():
 
 
 def test_add_url():
-    pass
+    project, metadata = factories.project_with_metadata()
+    attribute_names = [x.name for x in metadata]
+    value = 'some_value'
+    form_data = {
+        'url_value': 'http://www.example.com',
+        'nominator_email': 'somebody@someplace.com',
+        'nominator_name': 'John Lambda',
+        'nominator_institution': 'UNT',
+        attribute_names[0]: value
+    }
+    expected = [
+        'You have successfully nominated {0}'.format(form_data['url_value']),
+        'You have successfully added the {0} "{1}" for {2}'.format(
+            attribute_names[0], value, form_data['url_value'])
+    ]
+
+    for each in url_handler.add_url(project, form_data):
+        assert each in expected
+
+
+def test_add_url_cannot_get_system_nominator():
+    form_data = {'url_value': 'http://www.example.com'}
+    project = factories.ProjectFactory()
+    models.Nominator.objects.get().delete()
+
+    with pytest.raises(http.Http404):
+        url_handler.add_url(project, form_data)
+
+@pytest.mark.xfail(reason='Called function surt_exists raises 404, does not return Falsy value.')
+def test_add_url_cannot_get_or_create_surt():
+    form_data = {'url_value': 'http://www.example.com'}
+    project = None
+    with pytest.raises(http.Http404):
+        url_handler.add_url(project, form_data)
+
+
+def test_add_url_cannot_get_or_create_nominator():
+    form_data = {
+        'url_value': 'http://www.example.com',
+        'nominator_email': None,
+        'nominator_name': None,
+        'nominator_institution': None
+    }
+    project = factories.ProjectFactory()
+
+    with pytest.raises(http.Http404):
+        url_handler.add_url(project, form_data)
 
 
 def test_add_metadata():
-    pass
+    project, metadata = factories.project_with_metadata()
+    nominator = factories.NominatorFactory()
+    attribute_names = [x.name for x in metadata]
+    value = 'some_value'
+    form_data = {
+        'nominator_email': nominator.nominator_email,
+        'scope': '1',
+        'url_value': 'http://www.example.com',
+        attribute_names[0]: value
+    }
+    expected = [
+        'You have successfully nominated {0}'.format(form_data['url_value']),
+        'You have successfully added the {0} "{1}" for {2}'.format(
+            attribute_names[0], value, form_data['url_value'])
+    ]
+
+    for each in  url_handler.add_metadata(project, form_data):
+        assert each in expected
+
+
+def test_add_metadata_nominator_does_not_exist_in_project():
+    project = factories.ProjectFactory()
+    form_data = {'nominator_email': 'someone@someplace.com'}
+
+    with pytest.raises(http.Http404):
+        url_handler.add_metadata(project, form_data)
 
 
 @pytest.mark.parametrize(
@@ -144,27 +260,99 @@ def test_get_nominator_when_nominator_cannot_be_created():
     assert new_nominator is False
 
 
-def test_nominate_url():
-    pass
+@pytest.mark.parametrize(
+    'scope_value,expected',
+    [
+        ('1', 'You have already declared {} as "In Scope"'),
+        ('0', 'You have already declared {} as "Out of Scope"')
+    ]
+)
+def test_nominate_url_nomination_exists(scope_value, expected):
+    project = factories.ProjectFactory()
+    nominator = factories.NominatorFactory()
+    form_data = {'url_value': 'http://www.example.com'}
+    factories.NominatedURLFactory(
+        url_nominator=nominator,
+        url_project=project,
+        entity=form_data['url_value'],
+        value=scope_value
+    )
+
+    assert (url_handler.nominate_url(project, nominator, form_data, scope_value) ==
+        [expected.format(form_data['url_value'])])
 
 
-def test_add_other_attribute():
-    pass
+@pytest.mark.parametrize(
+    'scope_value,expected',
+    [
+        ('1', 'You have successfully declared {} as "In Scope"'),
+        ('0', 'You have successfully declared {} as "Out of Scope"')
+    ]
+)
+def test_nominate_url_nomination_modified(scope_value, expected):
+    project = factories.ProjectFactory()
+    nominator = factories.NominatorFactory()
+    form_data = {'url_value': 'http://www.example.com'}
+    factories.NominatedURLFactory(
+        url_nominator=nominator,
+        url_project=project,
+        entity=form_data['url_value'],
+        value='1' if scope_value == '0' else '0'
+    )
+
+    assert (url_handler.nominate_url(project, nominator, form_data, scope_value) ==
+        [expected.format(form_data['url_value'])])
 
 
-def test_add_other_attribute_with_no_attributes():
-    pass
+def test_nominate_url_new_nomination():
+    project = factories.ProjectFactory()
+    nominator = factories.NominatorFactory()
+    form_data = {'url_value': 'http://www.example.com'}
+    scope_value = 1
+    expected = ['You have successfully nominated {0}'.format(form_data['url_value'])]
+
+    assert url_handler.nominate_url(project, nominator, form_data, scope_value) == expected
 
 
-def test_add_other_attribute_with_several_attributes():
-    pass
+def test_nominate_url_cannot_create_nomination():
+    project = None
+    nominator = None
+    form_data = {}
+    scope_value = None
+
+    with pytest.raises(http.Http404):
+        url_handler.nominate_url(project, nominator, form_data, scope_value)
+
+
+@pytest.mark.parametrize(
+    'attr_value',
+    [
+        ['some_value', ],
+        ['some_value', 'some_other_value']
+    ]
+)
+def test_add_other_attribute(attr_value):
+    nominator = factories.NominatorFactory()
+    project, metadata = factories.project_with_metadata()
+    form_data = {'url_value': 'http://www.example.com'}
+    expected = []
+    for metadata_att in [x.name for x in metadata]:
+        form_data[metadata_att] = attr_value if len(attr_value) > 1 else attr_value[0]
+        for value in attr_value:
+            expected.append('You have successfully added the {0} "{1}" for {2}'.format(
+                metadata_att, value, form_data['url_value']))
+    summary_list = []
+    returned = url_handler.add_other_attribute(project, nominator, form_data, summary_list)
+
+    for each in returned:
+        assert each in expected
 
 
 def test_save_attribute():
     returned = url_handler.save_attribute(
         factories.ProjectFactory(),
         factories.NominatorFactory(),
-        {'url_value': 'www.example.com'},
+        {'url_value': 'http://www.example.com'},
         [],
         'Language',
         'English'
@@ -361,6 +549,11 @@ def test_create_surt_dict(surt_root, expected_letter):
     for url in surt_dict['url_list']:
         assert url in urls
     assert surt_dict['letter'] == expected_letter
+
+
+def test_create_surt_dict_exception_caught():
+    surt_dict = url_handler.create_surt_dict('', 'http://(com,example,)')
+    assert surt_dict['url_list'] is None
 
 
 @pytest.mark.parametrize(
