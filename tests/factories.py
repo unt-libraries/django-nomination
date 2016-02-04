@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import cycle
 
 import factory
 from factory import fuzzy
@@ -120,3 +121,36 @@ class NominatedURLFactory(URLFactory):
 class SURTFactory(URLFactory):
     attribute = 'surt'
     value = fuzzy.FuzzyText(length=5, prefix='http://(com,', suffix=',www,)')
+
+
+def metadata_with_values(num_vals=3):
+    """Creates a metadata object that has linked values."""
+    metadata = MetadataFactory()
+    metadata_values = MetadataValuesFactory.create_batch(3, metadata=metadata)
+    values = [x.value for x in metadata_values]
+    return (metadata, values)
+
+
+def metadata_with_valueset(num_valsets=1, vals_per_valset=3):
+    """Creates a metadata object that has linked valuesets."""
+    valuesets = []
+    for i in range(num_valsets):
+        valuesets.append(ValuesetFactory())
+        ValuesetValuesFactory.create_batch(vals_per_valset, valueset=valuesets[i])
+    metadata = MetadataFactory(value_sets=valuesets)
+    return (metadata, valuesets)
+
+
+def project_with_metadata():
+    """Creates a project that has linked metadatas.
+
+    The project is created with 2 linked metadata objects. The first
+    will be a simple metadata object with 3 linked values. The second
+    is a metadata object with a linked valueset which has 3 values.
+    """
+    project = ProjectFactory()
+    met_values, _ = metadata_with_values()
+    met_valueset, _ = metadata_with_valueset()
+    ProjectMetadataFactory(project=project, metadata=met_values)
+    ProjectMetadataFactory(project=project, metadata=met_valueset)
+    return (project, [met_values, met_valueset])
