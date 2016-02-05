@@ -523,8 +523,75 @@ def test_create_url_list_with_associated_project_metadata_values():
     assert returned['attribute_dict'][capwords(url.attribute.replace('_', ' '))] == [met_value]
 
 
-def test_create_url_dump():
-    pass
+def test_create_url_dump_url_nomination():
+    project = factories.ProjectFactory()
+    url = factories.NominatedURLFactory(url_project=project)
+    nominator = url.url_nominator
+    returned = url_handler.create_url_dump(project)
+
+    assert returned == {
+        url.entity: {
+            'nominators': ['{0} - {1}'.format(
+                nominator.nominator_name,
+                nominator.nominator_institution
+            )],
+            'nomination_count': 1,
+            'nomination_score': int(url.value),
+            'attributes': {}
+        }
+    }
+
+
+def test_create_url_dump_url_surt():
+    project = factories.ProjectFactory()
+    surt = 'http://(com,example,www)'
+    domain_surt = 'http://(com,example,'
+    url = factories.SURTFactory(url_project=project, value=surt)
+    returned = url_handler.create_url_dump(project)
+
+    assert returned == {
+        url.entity: {
+            'nominators': [],
+            'nomination_count': 0,
+            'nomination_score': 0,
+            'attributes': {},
+            'surt': surt,
+            'domain_surt': domain_surt
+        }
+    }
+
+
+def test_create_url_dump_url_attribute():
+    project, metadata = factories.project_with_metadata()
+    attribute = metadata[0].name
+    value = models.Metadata_Values.objects.filter(metadata__name__iexact=attribute)[0].value
+    url = factories.URLFactory(url_project=project, attribute=attribute, value=value.key)
+    returned = url_handler.create_url_dump(project)
+
+    assert returned == {
+        url.entity: {
+            'nominators': [],
+            'nomination_count': 0,
+            'nomination_score': 0,
+            'attributes': {attribute: [value.value]},
+        }
+    }
+
+
+def test_create_url_dump_url_attribute_new_value():
+    project, metadata = factories.project_with_metadata()
+    attribute = metadata[0].name
+    url = factories.URLFactory(url_project=project, attribute=attribute)
+    returned = url_handler.create_url_dump(project)
+
+    assert returned == {
+        url.entity: {
+            'nominators': [],
+            'nomination_count': 0,
+            'nomination_score': 0,
+            'attributes': {attribute: [url.value]},
+        }
+    }
 
 
 @pytest.mark.parametrize(
