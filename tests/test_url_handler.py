@@ -488,6 +488,48 @@ def test_create_json_browse(root, text, id):
     assert json.loads(returned) == expected
 
 
+def test_create_json_browse_no_children():
+    project = factories.ProjectFactory()
+    factories.SURTFactory(
+        url_project=project,
+        entity='http://www.example.com',
+        value='http://(com,example,www)'
+    )
+    root = 'com,example,'
+    expected = [{
+        'id': 'com,example,www,',
+        'text': '<a href="surt/http://(com,example,www">com,example,www</a>'
+    }]
+    returned = url_handler.create_json_browse(project.project_slug, None, root)
+
+    assert json.loads(returned) == expected
+
+
+@pytest.mark.parametrize(
+    'root,text,id',
+    [
+        ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
+        ('', 'com', 'com,'),
+    ]
+)
+def test_create_json_browse_does_not_show_duplicates(root, text, id):
+    project = factories.ProjectFactory()
+    factories.SURTFactory.create_batch(
+        2,
+        url_project=project,
+        entity='http://www.example.com',
+        value='http://(com,example,www)'
+    )
+    expected = [{
+        'hasChildren': True,
+        'id': id,
+        'text': text
+    }]
+    returned = url_handler.create_json_browse(project.project_slug, None, root)
+
+    assert json.loads(returned) == expected
+
+
 def test_create_json_browse_valid_root_many_urls():
     project = factories.ProjectFactory()
     urls = factories.SURTFactory.create_batch(101, url_project=project)
