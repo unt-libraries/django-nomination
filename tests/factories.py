@@ -1,5 +1,4 @@
 from datetime import datetime
-from itertools import cycle
 
 import factory
 from factory import fuzzy
