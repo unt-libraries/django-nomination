@@ -1,4 +1,5 @@
 import re
+import json
 from string import digits, uppercase, capwords
 
 from django import http
@@ -165,6 +166,7 @@ def test_add_url_cannot_get_system_nominator():
     with pytest.raises(http.Http404):
         url_handler.add_url(project, form_data)
 
+
 @pytest.mark.xfail(reason='Called function surt_exists raises 404, does not return Falsy value.')
 def test_add_url_cannot_get_or_create_surt():
     form_data = {'url_value': 'http://www.example.com'}
@@ -203,7 +205,7 @@ def test_add_metadata():
             attribute_names[0], value, form_data['url_value'])
     ]
 
-    for each in  url_handler.add_metadata(project, form_data):
+    for each in url_handler.add_metadata(project, form_data):
         assert each in expected
 
 
@@ -279,7 +281,7 @@ def test_nominate_url_nomination_exists(scope_value, expected):
     )
 
     assert (url_handler.nominate_url(project, nominator, form_data, scope_value) ==
-        [expected.format(form_data['url_value'])])
+            [expected.format(form_data['url_value'])])
 
 
 @pytest.mark.parametrize(
@@ -301,7 +303,7 @@ def test_nominate_url_nomination_modified(scope_value, expected):
     )
 
     assert (url_handler.nominate_url(project, nominator, form_data, scope_value) ==
-        [expected.format(form_data['url_value'])])
+            [expected.format(form_data['url_value'])])
 
 
 def test_nominate_url_new_nomination():
@@ -462,8 +464,63 @@ def test_addImpliedHttpIfNecessary(uri, expected):
     assert url_handler.addImpliedHttpIfNecessary(uri) == expected
 
 
-def test_create_json_browse():
-    pass
+@pytest.mark.parametrize(
+    'root,text,id',
+    [
+        ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
+        ('', 'com', 'com,')
+    ]
+)
+def test_create_json_browse(root, text, id):
+    project = factories.ProjectFactory()
+    factories.SURTFactory(
+        url_project=project,
+        entity='http://www.example.com',
+        value='http://(com,example,www)'
+    )
+    expected = [{
+        'hasChildren': True,
+        'id': id,
+        'text': text
+    }]
+    returned = url_handler.create_json_browse(project.project_slug, None, root)
+
+    assert json.loads(returned) == expected
+
+
+def test_create_json_browse_valid_root_many_urls():
+    project = factories.ProjectFactory()
+    urls = factories.SURTFactory.create_batch(101, url_project=project)
+    root = 'com,'
+    returned = url_handler.create_json_browse(project.project_slug, None, root)
+    expected = [
+        {
+            'hasChildren': True,
+            'id': root + x.value[x.value.find(root) + 4],
+            'text': x.value[x.value.find(root) + 4]
+        } for x in urls
+    ]
+
+    for each in json.loads(returned):
+        assert each in expected
+
+
+def test_create_json_browse_project_does_not_exist():
+    slug = 'blah'
+    with pytest.raises(http.Http404):
+        url_handler.create_json_browse(slug, None, None)
+
+
+def test_create_json_browse_valid_root_without_matching_surt():
+    project = factories.ProjectFactory()
+    root = 'example'
+    assert url_handler.create_json_browse(project.project_slug, None, root) == '[]'
+
+
+def test_create_json_browse_empty_root_without_surt():
+    project = factories.ProjectFactory()
+    root = ''
+    assert url_handler.create_json_browse(project.project_slug, None, root) == '[]'
 
 
 @pytest.mark.xfail(reason='URLs are not being filtered by project.')
