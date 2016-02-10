@@ -1,9 +1,12 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 
 import pytest
+import json
 
 from django.http import Http404
 from django.core.urlresolvers import reverse
+from django.contrib.sites.models import Site
+from django.conf import settings
 
 from nomination import views
 from . import factories
@@ -101,7 +104,7 @@ class TestUrlLookup():
 
     def test_raises_http404_with_no_search_url_value(self, rf):
         project = factories.ProjectFactory()
-        url = factories.URLFactory(url_project=project, attribute='surt')
+        factories.URLFactory(url_project=project, attribute='surt')
         request = rf.post('/', {'partial-search': ''})
 
         with pytest.raises(Http404):
@@ -184,13 +187,46 @@ class TestUrlListing():
 class TestUrlSurt():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_surt(request, project.project_slug, 'a_surt')
+
+        assert response.status_code == 200
 
     def test_template_used(self, client):
-        pass
+        project = factories.ProjectFactory()
+        response = client.get(reverse('url_surt', args=[project.project_slug, 'a surt']))
+        assert response.templates[0].name == 'nomination/url_surt.html'
 
-    def test_context(self, client):
-        pass
+    @pytest.mark.parametrize(
+        'surt_root,surt,url_list_len,letter',
+        [
+            ('http://(com,e', 'http://(com,example,www)', 1, 'e'),
+            ('http://(com,example,www)', 'http://(com,example,www)', 1, False),
+            ('http://(com,a', 'http://(com,example,www)', 0, 'a'),
+            ('http://(com,apples,www)', 'http://(com,example,www)', 0, False)
+        ]
+    )
+    def test_context(self, client, surt_root, surt, url_list_len, letter):
+        project = factories.ProjectFactory()
+        url = factories.URLFactory(
+            url_project=project,
+            attribute='surt',
+            value=surt
+        )
+        response = client.get(reverse('url_surt', args=[project.project_slug, surt_root]))
+
+        assert response.context['surt'] == surt_root
+        assert response.context['project'] == project
+        assert len(response.context['url_list']) == url_list_len
+        if url_list_len == 1:
+            assert response.context['url_list'][0] == url
+        assert response.context['letter'] == letter
+        assert response.context['browse_domain'] == 'com'
+        assert len(response.context['browse_dict']) == 1
+        for each in response.context['browse_dict']['com']:
+            if each[1] is not None:
+                assert each == ('E', 'http://(com,e')
 
 
 class TestUrlAdd():
@@ -208,22 +244,79 @@ class TestUrlAdd():
 class TestProjectAbout():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.project_about(request, project.project_slug)
+
+        assert response.status_code == 200
 
     def test_template_used(self, client):
-        pass
+        project = factories.ProjectFactory()
+        response = client.get(reverse('project_about', args=[project.project_slug]))
+        assert response.templates[0].name == 'nomination/project_about.html'
 
-    def test_context(self, client):
-        pass
+    @pytest.mark.parametrize(
+        'nomination_end,show_bookmarklets',
+        [
+            (datetime.now() - timedelta(days=1), False),
+            (datetime.now() + timedelta(days=1), True)
+        ]
+    )
+    def test_context(self, client, nomination_end, show_bookmarklets):
+        project = factories.ProjectFactory(nomination_end=nomination_end)
+        factories.URLFactory(url_project=project, attribute='surt')
+        factories.NominatedURLFactory.create_batch(2, url_project=project, value=1)
+        current_host = Site.objects.get(id=settings.SITE_ID)
+        response = client.get(reverse('project_about', args=[project.project_slug]))
+
+        assert response.context['project'] == project
+        assert response.context['url_count'] == 1
+        assert response.context['nominator_count'] == 2
+        assert response.context['current_host'] == current_host
+        assert response.context['show_bookmarklets'] == show_bookmarklets
 
 
 class TestBrowseJson():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.browse_json(request, project.project_slug, '')
+
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.browse_json(request, project.project_slug, '')
+
+        assert response['Content-Type'] == 'application/json'
+
+    @pytest.mark.parametrize(
+        'request_type,kwargs,id,text',
+        [
+            ('get', {'root': 'com,'}, 'com,example,',
+             '<a href="surt/http://(com,example">com,example</a>'),
+            ('get', {'root': 'source'}, 'com,', 'com'),
+            ('get', {}, 'com,', 'com'),
+            ('post', {}, 'com,', 'com')
+        ]
+    )
+    def test_json_string(self, rf, request_type, kwargs, id, text):
+        project = factories.ProjectFactory()
+        factories.URLFactory(
+            url_project=project,
+            attribute='surt',
+            value='http://(com,example,www)'
+        )
+        request = getattr(rf, request_type)('/', kwargs)
+        response = views.browse_json(request, project.project_slug, '')
+
+        assert json.loads(response.content) == [{
+            'hasChildren': True,
+            'id': id,
+            'text': text
+        }]
 
 
 class TestSearchJson():
