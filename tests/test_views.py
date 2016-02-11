@@ -198,15 +198,12 @@ class TestUrlSurt():
         response = client.get(reverse('url_surt', args=[project.project_slug, 'a surt']))
         assert response.templates[0].name == 'nomination/url_surt.html'
 
-    @pytest.mark.parametrize(
-        'surt_root,surt,url_list_len,letter',
-        [
-            ('http://(com,e', 'http://(com,example,www)', 1, 'e'),
-            ('http://(com,example,www)', 'http://(com,example,www)', 1, False),
-            ('http://(com,a', 'http://(com,example,www)', 0, 'a'),
-            ('http://(com,apples,www)', 'http://(com,example,www)', 0, False)
-        ]
-    )
+    @pytest.mark.parametrize('surt_root,surt,url_list_len,letter', [
+        ('http://(com,e', 'http://(com,example,www)', 1, 'e'),
+        ('http://(com,example,www)', 'http://(com,example,www)', 1, False),
+        ('http://(com,a', 'http://(com,example,www)', 0, 'a'),
+        ('http://(com,apples,www)', 'http://(com,example,www)', 0, False)
+    ])
     def test_context(self, client, surt_root, surt, url_list_len, letter):
         project = factories.ProjectFactory()
         url = factories.URLFactory(
@@ -255,13 +252,10 @@ class TestProjectAbout():
         response = client.get(reverse('project_about', args=[project.project_slug]))
         assert response.templates[0].name == 'nomination/project_about.html'
 
-    @pytest.mark.parametrize(
-        'nomination_end,show_bookmarklets',
-        [
-            (datetime.now() - timedelta(days=1), False),
-            (datetime.now() + timedelta(days=1), True)
-        ]
-    )
+    @pytest.mark.parametrize('nomination_end,show_bookmarklets', [
+        (datetime.now() - timedelta(days=1), False),
+        (datetime.now() + timedelta(days=1), True)
+    ])
     def test_context(self, client, nomination_end, show_bookmarklets):
         project = factories.ProjectFactory(nomination_end=nomination_end)
         factories.URLFactory(url_project=project, attribute='surt')
@@ -292,16 +286,13 @@ class TestBrowseJson():
 
         assert response['Content-Type'] == 'application/json'
 
-    @pytest.mark.parametrize(
-        'request_type,kwargs,id,text',
-        [
-            ('get', {'root': 'com,'}, 'com,example,',
-             '<a href="surt/http://(com,example">com,example</a>'),
-            ('get', {'root': 'source'}, 'com,', 'com'),
-            ('get', {}, 'com,', 'com'),
-            ('post', {}, 'com,', 'com')
-        ]
-    )
+    @pytest.mark.parametrize('request_type,kwargs,id,text', [
+        ('get', {'root': 'com,'}, 'com,example,',
+         '<a href="surt/http://(com,example">com,example</a>'),
+        ('get', {'root': 'source'}, 'com,', 'com'),
+        ('get', {}, 'com,', 'com'),
+        ('post', {}, 'com,', 'com')
+    ])
     def test_json_string(self, rf, request_type, kwargs, id, text):
         project = factories.ProjectFactory()
         factories.URLFactory(
