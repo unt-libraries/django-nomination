@@ -322,73 +322,182 @@ class TestBrowseJson():
 class TestSearchJson():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.search_json(request, project.project_slug)
+
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.search_json(request, project.project_slug)
+
+        assert response['Content-Type'] == 'application/json'
 
 
 class TestReportsView():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.reports_view(request, project.project_slug)
+
+        assert response.status_code == 200
 
     def test_template_used(self, client):
-        pass
+        project = factories.ProjectFactory()
+        response = client.get(reverse('reports_view', args=[project.project_slug]))
+        assert response.templates[0].name == 'nomination/reports.html'
 
     def test_context(self, client):
-        pass
+        project = factories.ProjectFactory()
+        attrs = [x.attribute for x in factories.URLFactory.create_batch(3, url_project=project)]
+        response = client.get(reverse('reports_view', args=[project.project_slug]))
+
+        assert response.context['project'] == project
+        assert len(response.context['metadata_fields']) == 3
+        for each in response.context['metadata_fields']:
+            assert each[0] in attrs
 
 
 class TestUrlReport():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_report(request, project.project_slug)
 
-    def test_raises_http404(self, rf):
-        pass
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_report(request, project.project_slug)
+
+        assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
+
+    def test_report_text(self, rf):
+        project = factories.ProjectFactory()
+        urls = factories.URLFactory.create_batch(3, url_project=project, attribute='surt')
+        request = rf.get('/')
+        response = views.url_report(request, project.project_slug)
+
+        assert '#This list of urls' in response.content
+        for each in urls:
+            assert each.entity in response.content
 
 
 class TestSurtReport():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.surt_report(request, project.project_slug)
 
-    def test_raises_http404(self, rf):
-        pass
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.surt_report(request, project.project_slug)
+
+        assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
+
+    def test_report_text(self, rf):
+        project = factories.ProjectFactory()
+        urls = factories.URLFactory.create_batch(3, url_project=project, attribute='surt')
+        request = rf.get('/')
+        response = views.surt_report(request, project.project_slug)
+
+        assert '#This list of SURTs' in response.content
+        for each in urls:
+            assert each.value in response.content
 
 
 class TestUrlScoreReport():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_score_report(request, project.project_slug)
+
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_score_report(request, project.project_slug)
+
+        assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
+
+    def test_report_text(self, rf):
+        project = factories.ProjectFactory()
+        urls = factories.NominatedURLFactory.create_batch(3, url_project=project)
+        request = rf.get('/')
+        response = views.url_score_report(request, project.project_slug)
+
+        assert '#This list of URLs' in response.content
+        for each in urls:
+            assert '{0};"{1}"\n'.format(each.value, each.entity) in response.content
 
 
 class TestUrlDateReport():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_date_report(request, project.project_slug)
+
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_date_report(request, project.project_slug)
+
+        assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
+
+    def test_report_text(self, rf):
+        project = factories.ProjectFactory()
+        urls = factories.NominatedURLFactory.create_batch(3, url_project=project)
+        request = rf.get('/')
+        response = views.url_date_report(request, project.project_slug)
+
+        assert '#This list of URLs' in response.content
+        for each in urls:
+            assert '{0};"{1}";{2}\n'.format(
+                each.date.replace(microsecond=0).isoformat(),
+                each.entity,
+                each.value
+            ) in response.content
 
 
 class TestUrlNominationReport():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_nomination_report(request, project.project_slug)
+
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.url_nomination_report(request, project.project_slug)
+
+        assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
+
+    def test_report_text(self, rf):
+        project = factories.ProjectFactory()
+        urls = factories.NominatedURLFactory.create_batch(3, url_project=project)
+        request = rf.get('/')
+        response = views.url_nomination_report(request, project.project_slug)
+
+        assert '#This list of URLs' in response.content
+        for each in urls:
+            assert '1;"{0}"\n'.format(each.entity) in response.content
 
 
 class TestFieldReport():
