@@ -32,13 +32,10 @@ def test_alphabetical_browse():
     assert returned == expected
 
 
-@pytest.mark.parametrize(
-    'surt,expected',
-    [
-        ('http://(,)', {}),
-        ('http://(org,)', {'org': [(x, None) for x in alnum_list]})
-    ]
-)
+@pytest.mark.parametrize('surt, expected', [
+    ('http://(,)', {}),
+    ('http://(org,)', {'org': [(x, None) for x in alnum_list]})
+])
 def test_alphabetical_browse_domains_not_found(surt, expected):
     project = factories.ProjectFactory()
     factories.SURTFactory(url_project=project, value=surt)
@@ -111,22 +108,19 @@ def test_handle_metadata(rf):
     assert url_handler.handle_metadata(request, posted_data) == expected
 
 
-@pytest.mark.parametrize(
-    'date_str',
-    [
-        '2006-10-25',
-        '10/25/2006',
-        '10/25/06',
-        'Oct 25 2006',
-        'Oct 25, 2006',
-        '25 Oct 2006',
-        '25 Oct, 2006',
-        'October 25 2006',
-        'October 25, 2006',
-        '25 October 2006',
-        '25 October, 2006'
-    ]
-)
+@pytest.mark.parametrize('date_str', [
+    '2006-10-25',
+    '10/25/2006',
+    '10/25/06',
+    'Oct 25 2006',
+    'Oct 25, 2006',
+    '25 Oct 2006',
+    '25 Oct, 2006',
+    'October 25 2006',
+    'October 25, 2006',
+    '25 October 2006',
+    '25 October, 2006'
+])
 def test_validate_date_with_valid_dates(date_str):
     assert url_handler.validate_date(date_str) is not None
 
@@ -216,16 +210,13 @@ def test_add_metadata_nominator_does_not_exist_in_project():
         url_handler.add_metadata(project, form_data)
 
 
-@pytest.mark.parametrize(
-    'url,expected',
-    [
-        ('http://www.example.com', 'http://www.example.com'),
-        ('   http://www.example.com   ', 'http://www.example.com'),
-        ('https://www.example.com', 'http://www.example.com'),
-        ('http://http://www.example.com', 'http://www.example.com'),
-        ('http://www.example.com///', 'http://www.example.com')
-    ]
-)
+@pytest.mark.parametrize('url, expected', [
+    ('http://www.example.com', 'http://www.example.com'),
+    ('   http://www.example.com   ', 'http://www.example.com'),
+    ('https://www.example.com', 'http://www.example.com'),
+    ('http://http://www.example.com', 'http://www.example.com'),
+    ('http://www.example.com///', 'http://www.example.com')
+])
 def test_check_url(url, expected):
     assert url_handler.check_url(url) == expected
 
@@ -238,7 +229,7 @@ def test_get_nominator_when_nominator_exists():
 
 def test_get_nominator_when_nominator_does_not_exist():
     form_data = {
-        'nominator_email': 'somebody@some_email.com',
+        'nominator_email': 'somebody@somewhere.com',
         'nominator_name': 'John Smith',
         'nominator_institution': 'UNT'
     }
@@ -252,7 +243,7 @@ def test_get_nominator_when_nominator_does_not_exist():
 
 def test_get_nominator_when_nominator_cannot_be_created():
     form_data = {
-        'nominator_email': 'somebody@some_email.com',
+        'nominator_email': 'somebody@somewhere.com',
         'nominator_name': None,
         'nominator_institution': None
     }
@@ -261,13 +252,10 @@ def test_get_nominator_when_nominator_cannot_be_created():
     assert new_nominator is False
 
 
-@pytest.mark.parametrize(
-    'scope_value,expected',
-    [
-        ('1', 'You have already declared {} as "In Scope"'),
-        ('0', 'You have already declared {} as "Out of Scope"')
-    ]
-)
+@pytest.mark.parametrize('scope_value, expected', [
+    ('1', 'You have already declared {} as "In Scope"'),
+    ('0', 'You have already declared {} as "Out of Scope"')
+])
 def test_nominate_url_nomination_exists(scope_value, expected):
     project = factories.ProjectFactory()
     nominator = factories.NominatorFactory()
@@ -283,13 +271,10 @@ def test_nominate_url_nomination_exists(scope_value, expected):
             [expected.format(form_data['url_value'])])
 
 
-@pytest.mark.parametrize(
-    'scope_value,expected',
-    [
-        ('1', 'You have successfully declared {} as "In Scope"'),
-        ('0', 'You have successfully declared {} as "Out of Scope"')
-    ]
-)
+@pytest.mark.parametrize('scope_value, expected', [
+    ('1', 'You have successfully declared {} as "In Scope"'),
+    ('0', 'You have successfully declared {} as "Out of Scope"')
+])
 def test_nominate_url_nomination_modified(scope_value, expected):
     project = factories.ProjectFactory()
     nominator = factories.NominatorFactory()
@@ -325,13 +310,10 @@ def test_nominate_url_cannot_create_nomination():
         url_handler.nominate_url(project, nominator, form_data, scope_value)
 
 
-@pytest.mark.parametrize(
-    'attr_value',
-    [
-        ['some_value', ],
-        ['some_value', 'some_other_value']
-    ]
-)
+@pytest.mark.parametrize('attr_value', [
+    ['some_value', ],
+    ['some_value', 'some_other_value']
+])
 def test_add_other_attribute(attr_value):
     nominator = factories.NominatorFactory()
     project, metadata = factories.project_with_metadata()
@@ -410,33 +392,27 @@ def test_surt_exists_when_surt_cannot_be_created():
         url_handler.surt_exists(project, system_nominator, url)
 
 
-@pytest.mark.parametrize(
-    'url,expected',
-    [
-        ('www.example.com', 'http://www.example.com'),
-        ('   http://www.example.com   ', 'http://www.example.com')
-    ]
-)
+@pytest.mark.parametrize('url, expected', [
+    ('www.example.com', 'http://www.example.com'),
+    ('   http://www.example.com   ', 'http://www.example.com')
+])
 def test_url_formatter(url, expected):
     assert url_handler.url_formatter(url) == expected
 
 
-@pytest.mark.parametrize(
-    'url,preserveCase,expected',
-    [
-        # Documentation on SURTs is incosistent about whether comma
-        # should come before the port or not. The assumption here is
-        # that it should.
-        ('http://userinfo@domain.tld:80/path?query#fragment', False,
-         'http://(tld,domain,:80@userinfo)/path?query#fragment'),
-        ('http://www.example.com', False, 'http://(com,example,www,)'),
-        ('https://www.example.com', False, 'http://(com,example,www,)'),
-        ('www.example.com', False, 'http://(com,example,www,)'),
-        ('http://www.eXaMple.cOm', True, 'http://(cOm,eXaMple,www,)'),
-        ('Not a URL.', False, ''),
-        ('1.2.3.4:80/examples', False, 'http://(1.2.3.4:80)/examples'),
-    ]
-)
+@pytest.mark.parametrize('url, preserveCase, expected', [
+    # Documentation on SURTs is incosistent about whether comma
+    # should come before the port or not. The assumption here is
+    # that it should.
+    ('http://userinfo@domain.tld:80/path?query#fragment', False,
+        'http://(tld,domain,:80@userinfo)/path?query#fragment'),
+    ('http://www.example.com', False, 'http://(com,example,www,)'),
+    ('https://www.example.com', False, 'http://(com,example,www,)'),
+    ('www.example.com', False, 'http://(com,example,www,)'),
+    ('http://www.eXaMple.cOm', True, 'http://(cOm,eXaMple,www,)'),
+    ('Not a URL.', False, ''),
+    ('1.2.3.4:80/examples', False, 'http://(1.2.3.4:80)/examples'),
+])
 def test_surtize(url, preserveCase, expected):
     assert url_handler.surtize(url, preserveCase=preserveCase) == expected
 
@@ -450,26 +426,20 @@ def test_appendToSurt():
     assert url_handler.appendToSurt(match_obj, groupnum, surt) == expected
 
 
-@pytest.mark.parametrize(
-    'uri,expected',
-    [
-        ('http://www.example.com', 'http://www.example.com'),
-        ('www.example.com', 'http://www.example.com'),
-        (':.', ':.'),
-        ('.:', 'http://.:')
-    ]
-)
+@pytest.mark.parametrize('uri, expected', [
+    ('http://www.example.com', 'http://www.example.com'),
+    ('www.example.com', 'http://www.example.com'),
+    (':.', ':.'),
+    ('.:', 'http://.:')
+])
 def test_addImpliedHttpIfNecessary(uri, expected):
     assert url_handler.addImpliedHttpIfNecessary(uri) == expected
 
 
-@pytest.mark.parametrize(
-    'root,text,id',
-    [
-        ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
-        ('', 'com', 'com,')
-    ]
-)
+@pytest.mark.parametrize('root, text, id', [
+    ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
+    ('', 'com', 'com,')
+])
 def test_create_json_browse(root, text, id):
     project = factories.ProjectFactory()
     factories.SURTFactory(
@@ -504,13 +474,10 @@ def test_create_json_browse_no_children():
     assert json.loads(returned) == expected
 
 
-@pytest.mark.parametrize(
-    'root,text,id',
-    [
-        ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
-        ('', 'com', 'com,'),
-    ]
-)
+@pytest.mark.parametrize('root, text, id', [
+    ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
+    ('', 'com', 'com,'),
+])
 def test_create_json_browse_does_not_show_duplicates(root, text, id):
     project = factories.ProjectFactory()
     factories.SURTFactory.create_batch(
@@ -692,13 +659,10 @@ def test_create_url_dump_url_attribute_new_value():
     }
 
 
-@pytest.mark.parametrize(
-    'surt_root,expected_letter',
-    [
-        ('http://(com,example,www,)', False),
-        ('http://(com,a,', 'a')
-    ]
-)
+@pytest.mark.parametrize('surt_root, expected_letter', [
+    ('http://(com,example,www,)', False),
+    ('http://(com,a,', 'a')
+])
 def test_create_surt_dict(surt_root, expected_letter):
     project = factories.ProjectFactory()
     surts = [
@@ -721,14 +685,11 @@ def test_create_surt_dict_exception_caught():
     assert surt_dict['url_list'] is None
 
 
-@pytest.mark.parametrize(
-    'surt,expected',
-    [
-        ('http://(com,example,www,)', 'http://(com,example,'),
-        ('http://(uk,gov,nationalarchives,www,)', 'http://(uk,gov,'),
-        ('http://not-a-surt.com', 'http://not-a-surt.com')
-    ]
-)
+@pytest.mark.parametrize('surt, expected', [
+    ('http://(com,example,www,)', 'http://(com,example,'),
+    ('http://(uk,gov,nationalarchives,www,)', 'http://(uk,gov,'),
+    ('http://not-a-surt.com', 'http://not-a-surt.com')
+])
 def test_get_domain_surt(surt, expected):
     assert url_handler.get_domain_surt(surt) == expected
 
