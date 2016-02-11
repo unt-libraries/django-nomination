@@ -17,7 +17,6 @@ alnum_list = sorted(digits + uppercase)
 
 def test_alphabetical_browse():
     surts = {
-        'A': ('http://(org,alpha,)', 'http://(org,a'),
         'A': ('http://(org,alarm,)', 'http://(org,a'),
         'C': ('http://(org,charlie,)', 'http://(org,c'),
         '1': ('http://(org,123,)', 'http://(org,1')
