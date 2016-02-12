@@ -174,14 +174,32 @@ class TestProjectUrls():
 
 class TestUrlListing():
 
-    def test_status_ok(self, rf):
-        pass
+    @pytest.mark.parametrize('create_url', [
+        False,
+        True
+    ])
+    def test_status_ok(self, rf, create_url):
+        entity = 'www.example.com'
+        project = factories.ProjectFactory()
+        if create_url:
+            factories.URLFactory(url_project=project, entity=entity)
+        request = rf.get('/')
+        response = views.url_listing(request, project.project_slug, entity)
 
-    def test_template_used(self, client):
-        pass
+        assert response.status_code == 200
 
-    def test_context(self, client):
-        pass
+    @pytest.mark.parametrize('create_url, expected_template', [
+        (False, 'nomination/url_add.html'),
+        (True, 'nomination/url_listing.html')
+    ])
+    def test_template_used(self, client, create_url, expected_template):
+        entity = 'www.example.com'
+        project = factories.ProjectFactory()
+        if create_url:
+            factories.URLFactory(url_project=project, entity=entity)
+        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
+
+        assert response.templates[0].name == expected_template
 
 
 class TestUrlSurt():
@@ -198,7 +216,7 @@ class TestUrlSurt():
         response = client.get(reverse('url_surt', args=[project.project_slug, 'a surt']))
         assert response.templates[0].name == 'nomination/url_surt.html'
 
-    @pytest.mark.parametrize('surt_root,surt,url_list_len,letter', [
+    @pytest.mark.parametrize('surt_root, surt, url_list_len, letter', [
         ('http://(com,e', 'http://(com,example,www)', 1, 'e'),
         ('http://(com,example,www)', 'http://(com,example,www)', 1, False),
         ('http://(com,a', 'http://(com,example,www)', 0, 'a'),
@@ -252,7 +270,7 @@ class TestProjectAbout():
         response = client.get(reverse('project_about', args=[project.project_slug]))
         assert response.templates[0].name == 'nomination/project_about.html'
 
-    @pytest.mark.parametrize('nomination_end,show_bookmarklets', [
+    @pytest.mark.parametrize('nomination_end, show_bookmarklets', [
         (datetime.now() - timedelta(days=1), False),
         (datetime.now() + timedelta(days=1), True)
     ])
@@ -286,7 +304,7 @@ class TestBrowseJson():
 
         assert response['Content-Type'] == 'application/json'
 
-    @pytest.mark.parametrize('request_type,kwargs,id,text', [
+    @pytest.mark.parametrize('request_type, kwargs, id, text', [
         ('get', {'root': 'com,'}, 'com,example,',
          '<a href="surt/http://(com,example">com,example</a>'),
         ('get', {'root': 'source'}, 'com,', 'com'),
@@ -494,10 +512,16 @@ class TestUrlNominationReport():
 class TestFieldReport():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.field_report(request, project.project_slug, '')
+
+        assert response.status_code == 200
 
     def test_template_used(self, client):
-        pass
+        project = factories.ProjectFactory()
+        response = client.get(reverse('field_report', args=[project.project_slug, 'blah']))
+        assert response.templates[0].name == 'nomination/metadata_report.html'
 
     def test_context(self, client):
         pass
@@ -506,37 +530,156 @@ class TestFieldReport():
 class TestValueReport():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.value_report(request, project.project_slug, '', '')
+
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.value_report(request, project.project_slug, '', '')
+
+        assert response['Content-Type'] == 'text/plain;'
+
+    @pytest.mark.parametrize('val, url_value', [
+        ('asdf', 'asdf'),
+        ('asdf', 'asdf/')
+    ])
+    def test_report_text(self, rf, val, url_value):
+        project = factories.ProjectFactory()
+        field = 'qwerty'
+        urls = factories.URLFactory.create_batch(
+            3,
+            url_project=project,
+            attribute=field,
+            value=url_value
+        )
+        request = rf.get('/')
+        response = views.value_report(request, project.project_slug, field, val)
+
+        assert '#This list of URLs' in response.content
+        for each in urls:
+            assert each.entity in response.content
 
 
 class TestNominatorReport():
 
-    def test_status_ok(self, rf):
-        pass
+    @pytest.mark.parametrize('field', [
+        'nominator',
+        'institution'
+    ])
+    def test_status_ok(self, rf, field):
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.nominator_report(request, project.project_slug, field)
 
-    def test_template_used(self, client):
-        pass
+        assert response.status_code == 200
 
-    def test_context(self, client):
-        pass
+    @pytest.mark.parametrize('field', [
+        'nominator',
+        'institution'
+    ])
+    def test_template_used(self, client, field):
+        project = factories.ProjectFactory()
+        response = client.get(reverse('nominator_report', args=[project.project_slug, field]))
+        assert response.templates[0].name == 'nomination/nominator_report.html'
+
+    @pytest.mark.parametrize('field, field_name', [
+        ('nominator','name'),
+        ('institution', 'institution')
+    ])
+    def test_context(self, client, field, field_name):
+        project = factories.ProjectFactory()
+        urls = factories.NominatedURLFactory.create_batch(
+            3,
+            url_project=project,
+            value=1
+        )
+        response = client.get(reverse('nominator_report', args=[project.project_slug, field]))
+
+        assert response.context['project'] == project
+        assert len(response.context['valdic']) == 3
+        for each in urls:
+            assert (getattr(each.url_nominator, 'nominator_{0}'.format(field_name)),
+                    1, each.url_nominator.id) in response.context['valdic']
+        assert response.context['field'] == field
 
 
 class TestNominatorUrlReport():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.nominator_url_report(request, project.project_slug, '', 1)
+
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.nominator_url_report(request, project.project_slug, '', 1)
+
+        assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
+
+    @pytest.mark.parametrize('field', [
+        'nominator',
+        'institution',
+        'neither'
+    ])
+    def test_report_text(self, rf, field):
+        project = factories.ProjectFactory()
+        url = factories.NominatedURLFactory(url_project=project, value=1)
+        request = rf.get('/')
+        response = views.nominator_url_report(
+            request,
+            project.project_slug,
+            field, url.url_nominator.id
+        )
+
+        assert '#This list of URLs' in response.content
+        assert url.entity in response.content
 
 
 class TestProjectDump():
 
     def test_status_ok(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.project_dump(request, project.project_slug)
+
+        assert response.status_code == 200
 
     def test_mimetype(self, rf):
-        pass
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.project_dump(request, project.project_slug)
+
+        assert response['Content-Type'] == 'application/json; charset=utf-8'
+
+    def test_content_disposition(self, rf):
+        project = factories.ProjectFactory()
+        request = rf.get('/')
+        response = views.project_dump(request, project.project_slug)
+
+        assert response['Content-Disposition'] == 'attachment; filename={0}_urls.json'.format(
+            project.project_slug)
+
+    def test_response_content(self, rf):
+        project = factories.ProjectFactory()
+        url = factories.URLFactory(url_project=project)
+        request = rf.get('/')
+        response = views.project_dump(request, project.project_slug)
+        expected = {
+            url.entity: {
+                'attributes': {
+                    url.attribute: [url.value]
+                },
+                'nomination_count': 0,
+                'nomination_score': 0,
+                'nominators': []
+            }
+        }
+
+        assert json.loads(response.content) == expected
