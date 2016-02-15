@@ -122,34 +122,40 @@ class SURTFactory(URLFactory):
     value = fuzzy.FuzzyText(length=5, prefix='http://(com,', suffix=',www,)')
 
 
-def metadata_with_values(num_vals=3):
-    """Creates a metadata object that has linked values."""
-    metadata = MetadataFactory()
-    metadata_values = MetadataValuesFactory.create_batch(3, metadata=metadata)
-    values = [x.value for x in metadata_values]
-    return (metadata, values)
+class MetadataWithValuesFactory(MetadataFactory):
+    value1 = factory.RelatedFactory(MetadataValuesFactory, 'metadata')
+    value2 = factory.RelatedFactory(MetadataValuesFactory, 'metadata')
+    value3 = factory.RelatedFactory(MetadataValuesFactory, 'metadata')
 
 
-def metadata_with_valueset(num_valsets=1, vals_per_valset=3):
-    """Creates a metadata object that has linked valuesets."""
-    valuesets = []
-    for i in range(num_valsets):
-        valuesets.append(ValuesetFactory())
-        ValuesetValuesFactory.create_batch(vals_per_valset, valueset=valuesets[i])
-    metadata = MetadataFactory(value_sets=valuesets)
-    return (metadata, valuesets)
+class ValuesetWithValuesFactory(ValuesetFactory):
+    value1 = factory.RelatedFactory(ValuesetValuesFactory, 'valueset')
+    value2 = factory.RelatedFactory(ValuesetValuesFactory, 'valueset')
+    value3 = factory.RelatedFactory(ValuesetValuesFactory, 'valueset')
 
 
-def project_with_metadata():
-    """Creates a project that has linked metadatas.
+class MetadataWithValuesetFactory(MetadataFactory):
+    @factory.post_generation
+    def value_sets(self, create, extracted, **kwargs):
+        if not create:
+            return
 
-    The project is created with 2 linked metadata objects. The first
-    will be a simple metadata object with 3 linked values. The second
-    is a metadata object with a linked valueset which has 3 values.
-    """
-    project = ProjectFactory()
-    met_values, _ = metadata_with_values()
-    met_valueset, _ = metadata_with_valueset()
-    ProjectMetadataFactory(project=project, metadata=met_values)
-    ProjectMetadataFactory(project=project, metadata=met_valueset)
-    return (project, [met_values, met_valueset])
+        elif extracted:
+            for value_set in extracted:
+                self.value_sets.add(value_set)
+
+        else:
+            self.value_sets.add(ValuesetWithValuesFactory())
+
+
+class ProjectWithMetadataFactory(ProjectFactory):
+    metadata1 = factory.RelatedFactory(
+        ProjectMetadataFactory,
+        'project',
+        metadata=factory.SubFactory(MetadataWithValuesFactory)
+    )
+    metadata2 = factory.RelatedFactory(
+        ProjectMetadataFactory,
+        'project',
+        metadata=factory.SubFactory(MetadataWithValuesetFactory)
+    )

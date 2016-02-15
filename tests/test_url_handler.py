@@ -131,8 +131,8 @@ def test_validate_date_with_invalid_date():
 
 
 def test_add_url():
-    project, metadata = factories.project_with_metadata()
-    attribute_names = [x.name for x in metadata]
+    project = factories.ProjectWithMetadataFactory()
+    attribute_names = [x.name for x in project.metadata.all()]
     value = 'some_value'
     form_data = {
         'url_value': 'http://www.example.com',
@@ -182,9 +182,9 @@ def test_add_url_cannot_get_or_create_nominator():
 
 
 def test_add_metadata():
-    project, metadata = factories.project_with_metadata()
+    project = factories.ProjectWithMetadataFactory()
     nominator = factories.NominatorFactory()
-    attribute_names = [x.name for x in metadata]
+    attribute_names = [x.name for x in project.metadata.all()]
     value = 'some_value'
     form_data = {
         'nominator_email': nominator.nominator_email,
@@ -316,10 +316,10 @@ def test_nominate_url_cannot_create_nomination():
 ])
 def test_add_other_attribute(attr_value):
     nominator = factories.NominatorFactory()
-    project, metadata = factories.project_with_metadata()
+    project = factories.ProjectWithMetadataFactory()
     form_data = {'url_value': 'http://www.example.com'}
     expected = []
-    for metadata_att in [x.name for x in metadata]:
+    for metadata_att in [x.name for x in project.metadata.all()]:
         form_data[metadata_att] = attr_value if len(attr_value) > 1 else attr_value[0]
         for value in attr_value:
             expected.append('You have successfully added the {0} "{1}" for {2}'.format(
@@ -627,8 +627,8 @@ def test_create_url_dump_url_surt():
 
 
 def test_create_url_dump_url_attribute():
-    project, metadata = factories.project_with_metadata()
-    attribute = metadata[0].name
+    project = factories.ProjectWithMetadataFactory(metadata2=None)
+    attribute = project.metadata.all()[0].name
     value = models.Metadata_Values.objects.filter(metadata__name__iexact=attribute)[0].value
     url = factories.URLFactory(url_project=project, attribute=attribute, value=value.key)
     returned = url_handler.create_url_dump(project)
@@ -643,9 +643,9 @@ def test_create_url_dump_url_attribute():
     }
 
 
-def test_create_url_dump_url_attribute_new_value():
-    project, metadata = factories.project_with_metadata()
-    attribute = metadata[0].name
+def test_create_url_dump_url_attribute_new_value_with_factory():
+    project = factories.ProjectWithMetadataFactory(metadata2=None)
+    attribute = project.metadata.all()[0].name
     url = factories.URLFactory(url_project=project, attribute=attribute)
     returned = url_handler.create_url_dump(project)
 
