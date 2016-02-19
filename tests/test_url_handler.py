@@ -28,9 +28,9 @@ def test_alphabetical_browse():
     expected = {'org': [(x, surts[x][1] if surts.get(x) else None) for x in alnum_list]}
     # Create another unrelated SURT to make sure we aren't grabbing everything.
     factories.SURTFactory()
-    returned = url_handler.alphabetical_browse(project)
+    results = url_handler.alphabetical_browse(project)
 
-    assert returned == expected
+    assert results == expected
 
 
 @pytest.mark.parametrize('surt, expected', [
@@ -40,9 +40,9 @@ def test_alphabetical_browse():
 def test_alphabetical_browse_domains_not_found(surt, expected):
     project = factories.ProjectFactory()
     factories.SURTFactory(url_project=project, value=surt)
-    returned = url_handler.alphabetical_browse(project)
+    results = url_handler.alphabetical_browse(project)
 
-    assert returned == expected
+    assert results == expected
 
 
 def test_alphabetical_browse_fake_project():
@@ -56,9 +56,9 @@ def test_get_metadata():
     vals = [x.metadata for x in factories.MetadataValuesFactory.create_batch(3)]
     metadata = [factories.ProjectMetadataFactory(project=project, metadata=x) for x in vals]
     expected = [(x, [models.Metadata_Values.objects.get(metadata=x).value]) for x in metadata]
-    returned = url_handler.get_metadata(project)
+    results = url_handler.get_metadata(project)
 
-    assert str(sorted(returned, key=str)) == str(sorted(expected, key=str))
+    assert str(sorted(results, key=str)) == str(sorted(expected, key=str))
 
 
 def test_get_metadata_with_valueset():
@@ -67,9 +67,9 @@ def test_get_metadata_with_valueset():
     vals = [factories.ValuesetValuesFactory(valueset=valset).value for i in range(3)]
     metadata = factories.MetadataFactory(value_sets=[valset])
     factories.ProjectMetadataFactory(project=project, metadata=metadata)
-    returned = url_handler.get_metadata(project)
+    results = url_handler.get_metadata(project)
 
-    for _, value_iter in returned:
+    for _, value_iter in results:
         assert list(value_iter).sort() == vals.sort()
 
 
@@ -320,14 +320,13 @@ def test_add_other_attribute(attr_value):
             expected.append('You have successfully added the {0} "{1}" for {2}'.format(
                 metadata_att, value, form_data['url_value']))
     summary_list = []
-    returned = url_handler.add_other_attribute(project, nominator, form_data, summary_list)
+    results = url_handler.add_other_attribute(project, nominator, form_data, summary_list)
 
-    for each in returned:
-        assert each in expected
+    assert results.sort() == expected.sort()
 
 
 def test_save_attribute():
-    returned = url_handler.save_attribute(
+    results = url_handler.save_attribute(
         factories.ProjectFactory(),
         factories.NominatorFactory(),
         {'url_value': 'http://www.example.com'},
@@ -336,14 +335,14 @@ def test_save_attribute():
         'English'
     )
 
-    assert 'You have successfully added' in returned[0]
+    assert 'You have successfully added' in results[0]
     assert models.URL.objects.all().count() == 1
 
 
 @pytest.mark.xfail(reason='Search for existing URL object with same atts is broken.')
 def test_save_attribute_url_with_attribute_already_exists():
     url = factories.URLFactory()
-    returned = url_handler.save_attribute(
+    results = url_handler.save_attribute(
         url.url_project,
         url.url_nominator,
         {'url_value': url.entity},
@@ -352,7 +351,7 @@ def test_save_attribute_url_with_attribute_already_exists():
         url.value
     )
 
-    assert 'You have already added' in returned[0]
+    assert 'You have already added' in results[0]
     assert models.URL.objects.all().count() == 1
 
 
@@ -396,7 +395,7 @@ def test_url_formatter(url, expected):
 
 
 @pytest.mark.parametrize('url, preserveCase, expected', [
-    # Documentation on SURTs is incosistent about whether comma
+    # Documentation on SURTs is inconsistent about whether a comma
     # should come before the port or not. The assumption here is
     # that it should.
     ('http://userinfo@domain.tld:80/path?query#fragment', False,
@@ -447,9 +446,9 @@ def test_create_json_browse(root, text, id):
         'id': id,
         'text': text
     }]
-    returned = url_handler.create_json_browse(project.project_slug, None, root)
+    results = url_handler.create_json_browse(project.project_slug, None, root)
 
-    assert json.loads(returned) == expected
+    assert json.loads(results) == expected
 
 
 def test_create_json_browse_no_children():
@@ -464,9 +463,9 @@ def test_create_json_browse_no_children():
         'id': 'com,example,www,',
         'text': '<a href="surt/http://(com,example,www">com,example,www</a>'
     }]
-    returned = url_handler.create_json_browse(project.project_slug, None, root)
+    results = url_handler.create_json_browse(project.project_slug, None, root)
 
-    assert json.loads(returned) == expected
+    assert json.loads(results) == expected
 
 
 @pytest.mark.parametrize('root, text, id', [
@@ -486,16 +485,16 @@ def test_create_json_browse_does_not_show_duplicates(root, text, id):
         'id': id,
         'text': text
     }]
-    returned = url_handler.create_json_browse(project.project_slug, None, root)
+    results = url_handler.create_json_browse(project.project_slug, None, root)
 
-    assert json.loads(returned) == expected
+    assert json.loads(results) == expected
 
 
 def test_create_json_browse_valid_root_many_urls():
     project = factories.ProjectFactory()
     urls = factories.SURTFactory.create_batch(101, url_project=project)
     root = 'com,'
-    returned = url_handler.create_json_browse(project.project_slug, None, root)
+    results = url_handler.create_json_browse(project.project_slug, None, root)
     expected = [
         {
             'hasChildren': True,
@@ -504,8 +503,10 @@ def test_create_json_browse_valid_root_many_urls():
         } for x in urls
     ]
 
-    for each in json.loads(returned):
-        assert each in expected
+    for result in json.loads(results):
+        assert result in expected
+
+    assert json.loads(results).sort() == expected.sort()
 
 
 def test_create_json_browse_project_does_not_exist():
@@ -556,19 +557,19 @@ def test_create_url_list():
     for nomination in nominations:
         score += int(nomination.value)
     factories.SURTFactory(url_project=project, entity=url, value=surt)
-    returned = url_handler.create_url_list(project, models.URL.objects.filter(entity__iexact=url))
+    results = url_handler.create_url_list(project, models.URL.objects.filter(entity__iexact=url))
 
-    assert returned['entity'] == url
-    for each in nominations:
+    assert results['entity'] == url
+    for nomination in nominations:
         assert '{0} - {1}'.format(
-            each.url_nominator.nominator_name,
-            each.url_nominator.nominator_institution
-        ) in returned['nomination_list']
-    assert returned['nomination_count'] == 5
-    assert returned['nomination_score'] == score
-    assert returned['surt'] == domain_surt
-    for each in rand_metadata:
-        assert each.value in returned['attribute_dict'][capwords(each.attribute.replace('_', ' '))]
+            nomination.url_nominator.nominator_name,
+            nomination.url_nominator.nominator_institution
+        ) in results['nomination_list']
+    assert results['nomination_count'] == 5
+    assert results['nomination_score'] == score
+    assert results['surt'] == domain_surt
+    for metadata in rand_metadata:
+        assert metadata.value in results['attribute_dict'][capwords(metadata.attribute.replace('_', ' '))]
 
 
 def test_create_url_list_with_associated_project_metadata_values():
@@ -578,18 +579,18 @@ def test_create_url_list_with_associated_project_metadata_values():
     value = 'one'
     met_value = factories.MetadataValuesFactory(metadata=metadata, value__key=value).value
     url = factories.URLFactory(url_project=project, attribute=metadata.name, value=value)
-    returned = url_handler.create_url_list(project, [url])
+    results = url_handler.create_url_list(project, [url])
 
-    assert returned['attribute_dict'][capwords(url.attribute.replace('_', ' '))] == [met_value]
+    assert results['attribute_dict'][capwords(url.attribute.replace('_', ' '))] == [met_value]
 
 
 def test_create_url_dump_url_nomination():
     project = factories.ProjectFactory()
     url = factories.NominatedURLFactory(url_project=project)
     nominator = url.url_nominator
-    returned = url_handler.create_url_dump(project)
+    results = url_handler.create_url_dump(project)
 
-    assert returned == {
+    assert results == {
         url.entity: {
             'nominators': ['{0} - {1}'.format(
                 nominator.nominator_name,
@@ -607,9 +608,9 @@ def test_create_url_dump_url_surt():
     surt = 'http://(com,example,www)'
     domain_surt = 'http://(com,example,'
     url = factories.SURTFactory(url_project=project, value=surt)
-    returned = url_handler.create_url_dump(project)
+    results = url_handler.create_url_dump(project)
 
-    assert returned == {
+    assert results == {
         url.entity: {
             'nominators': [],
             'nomination_count': 0,
@@ -626,9 +627,9 @@ def test_create_url_dump_url_attribute():
     attribute = project.metadata.all()[0].name
     value = models.Metadata_Values.objects.filter(metadata__name__iexact=attribute)[0].value
     url = factories.URLFactory(url_project=project, attribute=attribute, value=value.key)
-    returned = url_handler.create_url_dump(project)
+    results = url_handler.create_url_dump(project)
 
-    assert returned == {
+    assert results == {
         url.entity: {
             'nominators': [],
             'nomination_count': 0,
@@ -642,9 +643,9 @@ def test_create_url_dump_url_attribute_new_value_with_factory():
     project = factories.ProjectWithMetadataFactory(metadata2=None)
     attribute = project.metadata.all()[0].name
     url = factories.URLFactory(url_project=project, attribute=attribute)
-    returned = url_handler.create_url_dump(project)
+    results = url_handler.create_url_dump(project)
 
-    assert returned == {
+    assert results == {
         url.entity: {
             'nominators': [],
             'nomination_count': 0,
