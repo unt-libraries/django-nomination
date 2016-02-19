@@ -1,6 +1,7 @@
 import re
 import json
 from string import digits, uppercase, capwords
+import datetime
 
 from django import http
 from django.conf import settings
@@ -23,7 +24,7 @@ def test_alphabetical_browse():
     }
     project = factories.ProjectFactory()
     # Create the surts we're expecting to see represented in the returned dict.
-    [factories.SURTFactory(url_project=project, value=surts[key][0]) for key in iter(surts)]
+    [factories.SURTFactory(url_project=project, value=surts[key][0]) for key in surts]
     expected = {'org': [(x, surts[x][1] if surts.get(x) else None) for x in alnum_list]}
     # Create another unrelated SURT to make sure we aren't grabbing everything.
     factories.SURTFactory()
@@ -57,8 +58,7 @@ def test_get_metadata():
     expected = [(x, [models.Metadata_Values.objects.get(metadata=x).value]) for x in metadata]
     returned = url_handler.get_metadata(project)
 
-    for each in returned:
-        assert str(each) in str(expected)
+    assert str(sorted(returned, key=str)) == str(sorted(expected, key=str))
 
 
 def test_get_metadata_with_valueset():
@@ -70,42 +70,39 @@ def test_get_metadata_with_valueset():
     returned = url_handler.get_metadata(project)
 
     for _, value_iter in returned:
-        for value in value_iter:
-            assert value in vals
+        assert list(value_iter).sort() == vals.sort()
 
 
-def test_handle_metadata(rf):
-    request = rf.post(
-        '/',
-        {
-            'color': ['blue', 'other_specify'],
-            'group': ['alpha', 'other_specify'],
-            'name': ['Dan', 'Sara'],
-            'title': ['other_specify'],
-            'job': ['other_specify'],
-        }
-    )
-    posted_data = {
-        'color': ['blue', 'other_specify'],
-        'color_other': 'magenta',
-        'group': ['alpha', 'other_specify'],
-        'name': ['Dan', 'Sara'],
-        'title': 'other_specify',
-        'title_other': 'Monsieur',
-        'job': 'other_specify',
-    }
-    expected = {
-        'color': ['blue', 'magenta'],
-        'color_other': 'magenta',
-        'group': ['alpha'],
-        'name': ['Dan', 'Sara'],
-        'title': 'Monsieur',
-        'title_other': 'Monsieur',
-        # Is this really what we want returned if the 'other' attribute isn't set?
-        'job': 'other_specify',
-    }
-
-    assert url_handler.handle_metadata(request, posted_data) == expected
+@pytest.mark.parametrize('posted_data, processed_posted_data, expected', [
+    (
+        {'color': ['blue', 'other_specify']},
+        {'color': ['blue', 'other_specify'], 'color_other': 'magenta'},
+        {'color': ['blue', 'magenta'], 'color_other': 'magenta'}
+    ),
+    (
+        {'color': ['blue', 'other_specify']},
+        {'color': ['blue', 'other_specify']},
+        {'color': ['blue']}
+    ),
+    (
+        {'color': ['blue', 'green']},
+        {'color': ['blue', 'green']},
+        {'color': ['blue', 'green']}
+    ),
+    (
+        {'color': ['other_specify']},
+        {'color': 'other_specify', 'color_other': 'magenta'},
+        {'color': 'magenta', 'color_other': 'magenta'}
+    ),
+    pytest.mark.xfail((
+        {'color': ['other_specify']},
+        {'color': 'other_specify'},
+        {}
+    ))
+])
+def test_handle_metadata(rf, posted_data, processed_posted_data, expected):
+    request = rf.post('/', posted_data)
+    assert url_handler.handle_metadata(request, processed_posted_data) == expected
 
 
 @pytest.mark.parametrize('date_str', [
@@ -122,7 +119,7 @@ def test_handle_metadata(rf):
     '25 October, 2006'
 ])
 def test_validate_date_with_valid_dates(date_str):
-    assert url_handler.validate_date(date_str) is not None
+    assert isinstance(url_handler.validate_date(date_str), datetime.date)
 
 
 def test_validate_date_with_invalid_date():
@@ -147,8 +144,7 @@ def test_add_url():
             attribute_names[0], value, form_data['url_value'])
     ]
 
-    for each in url_handler.add_url(project, form_data):
-        assert each in expected
+    assert url_handler.add_url(project, form_data) == expected
 
 
 def test_add_url_cannot_get_system_nominator():
@@ -198,8 +194,7 @@ def test_add_metadata():
             attribute_names[0], value, form_data['url_value'])
     ]
 
-    for each in url_handler.add_metadata(project, form_data):
-        assert each in expected
+    assert url_handler.add_metadata(project, form_data) == expected
 
 
 def test_add_metadata_nominator_does_not_exist_in_project():
