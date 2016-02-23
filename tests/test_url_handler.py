@@ -129,19 +129,19 @@ def test_validate_date_with_invalid_date():
 
 def test_add_url():
     project = factories.ProjectWithMetadataFactory()
-    attribute_names = [x.name for x in project.metadata.all()]
+    attribute_name = project.metadata.first().name
     value = 'some_value'
     form_data = {
         'url_value': 'http://www.example.com',
         'nominator_email': 'somebody@someplace.com',
         'nominator_name': 'John Lambda',
         'nominator_institution': 'UNT',
-        attribute_names[0]: value
+        attribute_name: value
     }
     expected = [
         'You have successfully nominated {0}'.format(form_data['url_value']),
         'You have successfully added the {0} "{1}" for {2}'.format(
-            attribute_names[0], value, form_data['url_value'])
+            attribute_name, value, form_data['url_value'])
     ]
 
     assert url_handler.add_url(project, form_data) == expected
@@ -156,7 +156,7 @@ def test_add_url_cannot_get_system_nominator():
         url_handler.add_url(project, form_data)
 
 
-@pytest.mark.xfail(reason='Called function surt_exists raises 404, does not return Falsy value.')
+@pytest.mark.xfail(reason='Unreachable path')
 def test_add_url_cannot_get_or_create_surt():
     form_data = {'url_value': 'http://www.example.com'}
     project = None
@@ -180,18 +180,18 @@ def test_add_url_cannot_get_or_create_nominator():
 def test_add_metadata():
     project = factories.ProjectWithMetadataFactory()
     nominator = factories.NominatorFactory()
-    attribute_names = [x.name for x in project.metadata.all()]
+    attribute_name = project.metadata.first().name
     value = 'some_value'
     form_data = {
         'nominator_email': nominator.nominator_email,
         'scope': '1',
         'url_value': 'http://www.example.com',
-        attribute_names[0]: value
+        attribute_name: value
     }
     expected = [
         'You have successfully nominated {0}'.format(form_data['url_value']),
         'You have successfully added the {0} "{1}" for {2}'.format(
-            attribute_names[0], value, form_data['url_value'])
+            attribute_name, value, form_data['url_value'])
     ]
 
     assert url_handler.add_metadata(project, form_data) == expected
@@ -247,11 +247,11 @@ def test_get_nominator_when_nominator_cannot_be_created():
     assert new_nominator is False
 
 
-@pytest.mark.parametrize('scope_value, expected', [
-    ('1', 'You have already declared {} as "In Scope"'),
-    ('0', 'You have already declared {} as "Out of Scope"')
+@pytest.mark.parametrize('scope_value, scope', [
+    ('1', 'In Scope'),
+    ('0', 'Out of Scope')
 ])
-def test_nominate_url_nomination_exists(scope_value, expected):
+def test_nominate_url_nomination_exists(scope_value, scope):
     project = factories.ProjectFactory()
     nominator = factories.NominatorFactory()
     form_data = {'url_value': 'http://www.example.com'}
@@ -261,16 +261,17 @@ def test_nominate_url_nomination_exists(scope_value, expected):
         entity=form_data['url_value'],
         value=scope_value
     )
+    results = url_handler.nominate_url(project, nominator, form_data, scope_value)[0]
 
-    assert (url_handler.nominate_url(project, nominator, form_data, scope_value) ==
-            [expected.format(form_data['url_value'])])
+    assert 'already' in results
+    assert scope in results
 
 
-@pytest.mark.parametrize('scope_value, expected', [
-    ('1', 'You have successfully declared {} as "In Scope"'),
-    ('0', 'You have successfully declared {} as "Out of Scope"')
+@pytest.mark.parametrize('scope_value, scope', [
+    ('1', 'In Scope'),
+    ('0', 'Out of Scope')
 ])
-def test_nominate_url_nomination_modified(scope_value, expected):
+def test_nominate_url_nomination_modified(scope_value, scope):
     project = factories.ProjectFactory()
     nominator = factories.NominatorFactory()
     form_data = {'url_value': 'http://www.example.com'}
@@ -280,9 +281,10 @@ def test_nominate_url_nomination_modified(scope_value, expected):
         entity=form_data['url_value'],
         value='1' if scope_value == '0' else '0'
     )
+    results = url_handler.nominate_url(project, nominator, form_data, scope_value)[0]
 
-    assert (url_handler.nominate_url(project, nominator, form_data, scope_value) ==
-            [expected.format(form_data['url_value'])])
+    assert 'successfully' in results
+    assert scope in results
 
 
 def test_nominate_url_new_nomination():
@@ -290,16 +292,15 @@ def test_nominate_url_new_nomination():
     nominator = factories.NominatorFactory()
     form_data = {'url_value': 'http://www.example.com'}
     scope_value = 1
-    expected = ['You have successfully nominated {0}'.format(form_data['url_value'])]
+    results = url_handler.nominate_url(project, nominator, form_data, scope_value)[0]
+    expected = 'You have successfully nominated {0}'.format(form_data['url_value'])
 
-    assert url_handler.nominate_url(project, nominator, form_data, scope_value) == expected
+    assert results == expected
 
 
 def test_nominate_url_cannot_create_nomination():
-    project = None
-    nominator = None
+    project = nominator = scope_value = None
     form_data = {}
-    scope_value = None
 
     with pytest.raises(http.Http404):
         url_handler.nominate_url(project, nominator, form_data, scope_value)
@@ -312,15 +313,16 @@ def test_nominate_url_cannot_create_nomination():
 def test_add_other_attribute(attr_value):
     nominator = factories.NominatorFactory()
     project = factories.ProjectWithMetadataFactory()
-    form_data = {'url_value': 'http://www.example.com'}
-    expected = []
-    for metadata_att in [x.name for x in project.metadata.all()]:
-        form_data[metadata_att] = attr_value if len(attr_value) > 1 else attr_value[0]
-        for value in attr_value:
-            expected.append('You have successfully added the {0} "{1}" for {2}'.format(
-                metadata_att, value, form_data['url_value']))
+    entity = 'http://www.example.com'
+    form_data = {'url_value': entity}
+    proj_metadata = [x.name for x in project.metadata.all()]
+    for metadata in proj_metadata:
+        form_data[metadata] = attr_value if len(attr_value) > 1 else attr_value[0]
     summary_list = []
     results = url_handler.add_other_attribute(project, nominator, form_data, summary_list)
+    template = 'You have successfully added the {0} "{1}" for {2}'
+    expected = [template.format(proj_metadata[0], x, entity) for x in attr_value]
+    expected += [template.format(proj_metadata[1], x, entity) for x in attr_value]
 
     assert results.sort() == expected.sort()
 
@@ -430,11 +432,11 @@ def test_addImpliedHttpIfNecessary(uri, expected):
     assert url_handler.addImpliedHttpIfNecessary(uri) == expected
 
 
-@pytest.mark.parametrize('root, text, id', [
+@pytest.mark.parametrize('root, text, id_group', [
     ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
     ('', 'com', 'com,')
 ])
-def test_create_json_browse(root, text, id):
+def test_create_json_browse(root, text, id_group):
     project = factories.ProjectFactory()
     factories.SURTFactory(
         url_project=project,
@@ -443,7 +445,7 @@ def test_create_json_browse(root, text, id):
     )
     expected = [{
         'hasChildren': True,
-        'id': id,
+        'id': id_group,
         'text': text
     }]
     results = url_handler.create_json_browse(project.project_slug, None, root)
@@ -468,11 +470,11 @@ def test_create_json_browse_no_children():
     assert json.loads(results) == expected
 
 
-@pytest.mark.parametrize('root, text, id', [
+@pytest.mark.parametrize('root, text, id_group', [
     ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
     ('', 'com', 'com,'),
 ])
-def test_create_json_browse_does_not_show_duplicates(root, text, id):
+def test_create_json_browse_does_not_show_duplicates(root, text, id_group):
     project = factories.ProjectFactory()
     factories.SURTFactory.create_batch(
         2,
@@ -482,7 +484,7 @@ def test_create_json_browse_does_not_show_duplicates(root, text, id):
     )
     expected = [{
         'hasChildren': True,
-        'id': id,
+        'id': id_group,
         'text': text
     }]
     results = url_handler.create_json_browse(project.project_slug, None, root)
@@ -548,28 +550,28 @@ def test_create_json_search_project_not_found():
 
 def test_create_url_list():
     project = factories.ProjectFactory()
-    url = 'www.example.com'
+    entity = 'www.example.com'
     surt = 'http://(com,example,www,)'
     domain_surt = 'http://(com,example,'
-    rand_metadata = factories.URLFactory.create_batch(5, url_project=project, entity=url)
-    nominations = factories.NominatedURLFactory.create_batch(5, url_project=project, entity=url)
+    urls = factories.URLFactory.create_batch(5, url_project=project, entity=entity)
+    nominations = factories.NominatedURLFactory.create_batch(5, url_project=project, entity=entity)
     score = 0
     for nomination in nominations:
         score += int(nomination.value)
-    factories.SURTFactory(url_project=project, entity=url, value=surt)
-    results = url_handler.create_url_list(project, models.URL.objects.filter(entity__iexact=url))
+    factories.SURTFactory(url_project=project, entity=entity, value=surt)
+    results = url_handler.create_url_list(project, models.URL.objects.filter(entity__iexact=entity))
 
-    assert results['entity'] == url
+    assert results['entity'] == entity
     for nomination in nominations:
-        assert '{0} - {1}'.format(
-            nomination.url_nominator.nominator_name,
-            nomination.url_nominator.nominator_institution
-        ) in results['nomination_list']
+        name = nomination.url_nominator.nominator_name
+        institution = nomination.url_nominator.nominator_institution
+        assert '{0} - {1}'.format(name, institution) in results['nomination_list']
     assert results['nomination_count'] == 5
     assert results['nomination_score'] == score
     assert results['surt'] == domain_surt
-    for metadata in rand_metadata:
-        assert metadata.value in results['attribute_dict'][capwords(metadata.attribute.replace('_', ' '))]
+    for url in urls:
+        attribute = capwords(url.attribute.replace('_', ' '))
+        assert url.value in results['attribute_dict'][attribute]
 
 
 def test_create_url_list_with_associated_project_metadata_values():
@@ -580,8 +582,9 @@ def test_create_url_list_with_associated_project_metadata_values():
     met_value = factories.MetadataValuesFactory(metadata=metadata, value__key=value).value
     url = factories.URLFactory(url_project=project, attribute=metadata.name, value=value)
     results = url_handler.create_url_list(project, [url])
+    attribute = capwords(url.attribute.replace('_', ' '))
 
-    assert results['attribute_dict'][capwords(url.attribute.replace('_', ' '))] == [met_value]
+    assert results['attribute_dict'][attribute] == [met_value]
 
 
 def test_create_url_dump_url_nomination():
