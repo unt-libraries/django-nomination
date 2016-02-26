@@ -18,7 +18,7 @@ alnum_list = sorted(digits + uppercase)
 
 class TestAlphabeticalBrowse():
 
-    def test_alphabetical_browse(self):
+    def test_returns_browse_dict(self):
         surts = {
             'A': ('http://(org,alarm,)', 'http://(org,a'),
             'C': ('http://(org,charlie,)', 'http://(org,c'),
@@ -34,20 +34,18 @@ class TestAlphabeticalBrowse():
 
         assert results == expected
 
-
     @pytest.mark.parametrize('surt, expected', [
         ('http://(,)', {}),
         ('http://(org,)', {'org': [(x, None) for x in alnum_list]})
     ])
-    def test_alphabetical_browse_domains_not_found(self, surt, expected):
+    def test_no_valid_surts_found(self, surt, expected):
         project = factories.ProjectFactory()
         factories.SURTFactory(url_project=project, value=surt)
         results = url_handler.alphabetical_browse(project)
 
         assert results == expected
 
-
-    def test_alphabetical_browse_fake_project(self):
+    def test_project_not_found(self):
         project = 'not a real project'
         with pytest.raises(http.Http404):
             url_handler.alphabetical_browse(project)
@@ -55,7 +53,7 @@ class TestAlphabeticalBrowse():
 
 class TestGetMetadata():
 
-    def test_get_metadata(self):
+    def test_returns_metadata_list(self):
         project = factories.ProjectFactory()
         vals = [x.metadata for x in factories.MetadataValuesFactory.create_batch(3)]
         metadata = [factories.ProjectMetadataFactory(project=project, metadata=x) for x in vals]
@@ -64,8 +62,7 @@ class TestGetMetadata():
 
         assert str(sorted(results, key=str)) == str(sorted(expected, key=str))
 
-
-    def test_get_metadata_with_valueset(self):
+    def test_metadata_list_includes_valueset_values(self):
         project = factories.ProjectFactory()
         valset = factories.ValuesetFactory()
         vals = [factories.ValuesetValuesFactory(valueset=valset).value for i in range(3)]
@@ -124,18 +121,17 @@ class TestValidateDate():
         '25 October 2006',
         '25 October, 2006'
     ])
-    def test_validate_date_with_valid_dates(self, date_str):
+    def test_returns_valid_date(self, date_str):
         assert isinstance(url_handler.validate_date(date_str), datetime.date)
 
-
-    def test_validate_date_with_invalid_date(self):
+    def test_returns_none_with_invalid_date(self):
         date_str = '2006, Oct 25'
         assert url_handler.validate_date(date_str) is None
 
 
 class TestAddURL():
 
-    def test_add_url(self):
+    def test_returns_expected(self):
         project = factories.ProjectWithMetadataFactory()
         attribute_name = project.metadata.first().name
         value = 'some_value'
@@ -154,8 +150,7 @@ class TestAddURL():
 
         assert url_handler.add_url(project, form_data) == expected
 
-
-    def test_add_url_cannot_get_system_nominator(self):
+    def test_cannot_get_system_nominator(self):
         form_data = {'url_value': 'http://www.example.com'}
         project = factories.ProjectFactory()
         models.Nominator.objects.get().delete()
@@ -163,16 +158,14 @@ class TestAddURL():
         with pytest.raises(http.Http404):
             url_handler.add_url(project, form_data)
 
-
     @pytest.mark.xfail(reason='Unreachable path')
-    def test_add_url_cannot_get_or_create_surt(self):
+    def test_cannot_get_or_create_surt(self):
         form_data = {'url_value': 'http://www.example.com'}
         project = None
         with pytest.raises(http.Http404):
             url_handler.add_url(project, form_data)
 
-
-    def test_add_url_cannot_get_or_create_nominator(self):
+    def test_cannot_get_or_create_nominator(self):
         form_data = {
             'url_value': 'http://www.example.com',
             'nominator_email': None,
@@ -187,7 +180,7 @@ class TestAddURL():
 
 class TestAddMetadata():
 
-    def test_add_metadata(self):
+    def test_returns_expected(self):
         project = factories.ProjectWithMetadataFactory()
         nominator = factories.NominatorFactory()
         attribute_name = project.metadata.first().name
@@ -206,8 +199,7 @@ class TestAddMetadata():
 
         assert url_handler.add_metadata(project, form_data) == expected
 
-
-    def test_add_metadata_nominator_does_not_exist_in_project(self):
+    def test_nominator_not_found(self):
         project = factories.ProjectFactory()
         form_data = {'nominator_email': 'someone@someplace.com'}
 
@@ -228,13 +220,12 @@ def test_check_url(url, expected):
 
 class TestGetNominator():
 
-    def test_get_nominator_when_nominator_exists(self):
+    def test_returns_nominator(self):
         nominator = factories.NominatorFactory()
         form_data = {'nominator_email': nominator.nominator_email}
         assert url_handler.get_nominator(form_data) == nominator
 
-
-    def test_get_nominator_when_nominator_does_not_exist(self):
+    def test_creates_and_returns_nominator(self):
         form_data = {
             'nominator_email': 'somebody@somewhere.com',
             'nominator_name': 'John Smith',
@@ -247,8 +238,7 @@ class TestGetNominator():
         for key in form_data.keys():
             assert getattr(new_nominator, key) == form_data[key]
 
-
-    def test_get_nominator_when_nominator_cannot_be_created(self):
+    def test_cannot_create_nominator(self):
         form_data = {
             'nominator_email': 'somebody@somewhere.com',
             'nominator_name': None,
@@ -265,7 +255,7 @@ class TestNominateURL():
         ('1', 'In Scope'),
         ('0', 'Out of Scope')
     ])
-    def test_nominate_url_nomination_exists(self, scope_value, scope):
+    def test_nomination_exists(self, scope_value, scope):
         project = factories.ProjectFactory()
         nominator = factories.NominatorFactory()
         form_data = {'url_value': 'http://www.example.com'}
@@ -280,12 +270,11 @@ class TestNominateURL():
         assert 'already' in results
         assert scope in results
 
-
     @pytest.mark.parametrize('scope_value, scope', [
         ('1', 'In Scope'),
         ('0', 'Out of Scope')
     ])
-    def test_nominate_url_nomination_modified(self, scope_value, scope):
+    def test_nomination_gets_modified(self, scope_value, scope):
         project = factories.ProjectFactory()
         nominator = factories.NominatorFactory()
         form_data = {'url_value': 'http://www.example.com'}
@@ -300,8 +289,7 @@ class TestNominateURL():
         assert 'successfully' in results
         assert scope in results
 
-
-    def test_nominate_url_new_nomination(self):
+    def test_creates_new_nomination(self):
         project = factories.ProjectFactory()
         nominator = factories.NominatorFactory()
         form_data = {'url_value': 'http://www.example.com'}
@@ -311,8 +299,7 @@ class TestNominateURL():
 
         assert results == expected
 
-
-    def test_nominate_url_cannot_create_nomination(self):
+    def test_cannot_create_nomination(self):
         project = nominator = scope_value = None
         form_data = {}
 
@@ -347,7 +334,6 @@ class TestAddOtherAttribute():
 
         assert results.sort() == expected.sort()
 
-
     def test_returns_expected_with_multiple_attribute_values(self, setup):
         project, metadata_names, nominator = setup
         entity = 'http://www.example.com'
@@ -369,7 +355,7 @@ class TestAddOtherAttribute():
 
 class TestSaveAttribute():
 
-    def test_save_attribute(self):
+    def test_creates_url(self):
         results = url_handler.save_attribute(
             factories.ProjectFactory(),
             factories.NominatorFactory(),
@@ -382,9 +368,8 @@ class TestSaveAttribute():
         assert 'You have successfully added' in results[0]
         assert models.URL.objects.all().count() == 1
 
-
     @pytest.mark.xfail(reason='Search for existing URL object with same atts is broken.')
-    def test_save_attribute_url_with_attribute_already_exists(self):
+    def test_does_not_create_url_if_it_exists_already(self):
         url = factories.URLFactory()
         results = url_handler.save_attribute(
             url.url_project,
@@ -398,8 +383,7 @@ class TestSaveAttribute():
         assert 'You have already added' in results[0]
         assert models.URL.objects.all().count() == 1
 
-
-    def test_save_attribute_url_with_attribute_cannot_be_saved(self):
+    def test_url_cannot_be_saved(self):
         with pytest.raises(http.Http404):
             url_handler.save_attribute(None, None, {'url_value': ''}, [], '', '',)
         assert models.URL.objects.all().count() == 0
@@ -407,13 +391,12 @@ class TestSaveAttribute():
 
 class TestSurtExists():
 
-    def test_surt_exists_when_surt_exists(self):
+    def test_returns_true_with_existing_surt(self):
         system_nominator = models.Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
         url = factories.SURTFactory()
         assert url_handler.surt_exists(url.url_project, system_nominator, url.entity) is True
 
-
-    def test_surt_exists_when_surt_does_not_exist(self):
+    def test_creates_surt_when_surt_does_not_exist(self):
         system_nominator = models.Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
         project = factories.ProjectFactory()
         url = 'http://example.com'
@@ -422,8 +405,7 @@ class TestSurtExists():
         assert url_handler.surt_exists(project, system_nominator, url) is True
         assert len(models.URL.objects.all()) == 1
 
-
-    def test_surt_exists_when_surt_cannot_be_created(self):
+    def test_surt_cannot_be_created(self):
         system_nominator = models.Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
         project = factories.ProjectFactory()
         url = None
@@ -482,7 +464,7 @@ class TestCreateJsonBrowse():
         ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
         ('', 'com', 'com,')
     ])
-    def test_create_json_browse(self, root, text, id_group):
+    def test_returns_expected(self, root, text, id_group):
         project = factories.ProjectFactory()
         factories.SURTFactory(
             url_project=project,
@@ -498,8 +480,7 @@ class TestCreateJsonBrowse():
 
         assert json.loads(results) == expected
 
-
-    def test_create_json_browse_no_children(self):
+    def test_returns_expected_with_no_children(self):
         project = factories.ProjectFactory()
         factories.SURTFactory(
             url_project=project,
@@ -515,12 +496,11 @@ class TestCreateJsonBrowse():
 
         assert json.loads(results) == expected
 
-
     @pytest.mark.parametrize('root, text, id_group', [
         ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
         ('', 'com', 'com,'),
     ])
-    def test_create_json_browse_does_not_show_duplicates(self, root, text, id_group):
+    def test_does_not_show_duplicates(self, root, text, id_group):
         project = factories.ProjectFactory()
         factories.SURTFactory.create_batch(
             2,
@@ -537,8 +517,7 @@ class TestCreateJsonBrowse():
 
         assert json.loads(results) == expected
 
-
-    def test_create_json_browse_valid_root_many_urls(self):
+    def test_groups_by_prefix_when_many_urls_exist(self):
         project = factories.ProjectFactory()
         urls = factories.SURTFactory.create_batch(101, url_project=project)
         root = 'com,'
@@ -546,9 +525,9 @@ class TestCreateJsonBrowse():
         expected = [
             {
                 'hasChildren': True,
-                'id': root + x.value[x.value.find(root) + 4],
-                'text': x.value[x.value.find(root) + 4]
-            } for x in urls
+                'id': root + url.value[url.value.find(root) + 4],
+                'text': url.value[url.value.find(root) + 4]
+            } for url in urls
         ]
 
         for result in json.loads(results):
@@ -556,20 +535,17 @@ class TestCreateJsonBrowse():
 
         assert json.loads(results).sort() == expected.sort()
 
-
-    def test_create_json_browse_project_does_not_exist(self):
+    def test_cannot_find_project(self):
         slug = 'blah'
         with pytest.raises(http.Http404):
             url_handler.create_json_browse(slug, None, None)
 
-
-    def test_create_json_browse_valid_root_without_matching_surt(self):
+    def test_cannot_find_matching_surts(self):
         project = factories.ProjectFactory()
         root = 'example'
         assert url_handler.create_json_browse(project.project_slug, None, root) == '[]'
 
-
-    def test_create_json_browse_empty_root_without_surt(self):
+    def test_empty_root(self):
         project = factories.ProjectFactory()
         root = ''
         assert url_handler.create_json_browse(project.project_slug, None, root) == '[]'
@@ -578,7 +554,7 @@ class TestCreateJsonBrowse():
 class TestCreateJsonSearch():
 
     @pytest.mark.xfail(reason='URLs are not being filtered by project.')
-    def test_create_json_search_project_found(self):
+    def test_returns_expected(self):
         project = factories.ProjectFactory()
         expected_urls = factories.URLFactory.create_batch(10, url_project=project)
         other_urls = factories.URLFactory.create_batch(10)
@@ -590,26 +566,32 @@ class TestCreateJsonSearch():
         for url in other_urls:
             assert url.entity not in json_url_list
 
-
-    def test_create_json_search_project_not_found(self):
+    def test_project_not_found(self):
         with pytest.raises(http.Http404):
             url_handler.create_json_search('fake_slug')
 
 
 class TestCreateURLList():
 
-    def test_create_url_list(self):
+    def test_returns_expected(self):
         project = factories.ProjectFactory()
         entity = 'www.example.com'
         surt = 'http://(com,example,www,)'
         domain_surt = 'http://(com,example,'
         urls = factories.URLFactory.create_batch(5, url_project=project, entity=entity)
-        nominations = factories.NominatedURLFactory.create_batch(5, url_project=project, entity=entity)
+        nominations = factories.NominatedURLFactory.create_batch(
+            5,
+            url_project=project,
+            entity=entity
+        )
         score = 0
         for nomination in nominations:
             score += int(nomination.value)
         factories.SURTFactory(url_project=project, entity=entity, value=surt)
-        results = url_handler.create_url_list(project, models.URL.objects.filter(entity__iexact=entity))
+        results = url_handler.create_url_list(
+            project,
+            models.URL.objects.filter(entity__iexact=entity)
+        )
 
         assert results['entity'] == entity
         for nomination in nominations:
@@ -623,8 +605,7 @@ class TestCreateURLList():
             attribute = capwords(url.attribute.replace('_', ' '))
             assert url.value in results['attribute_dict'][attribute]
 
-
-    def test_create_url_list_with_associated_project_metadata_values(self):
+    def test_returns_expected_with_project_metadata_values(self):
         project = factories.ProjectFactory()
         metadata = factories.MetadataFactory()
         factories.ProjectMetadataFactory(project=project, metadata=metadata)
@@ -639,7 +620,7 @@ class TestCreateURLList():
 
 class TestCreateURLDump():
 
-    def test_create_url_dump_url_nomination(self):
+    def test_returns_expected_with_nomination(self):
         project = factories.ProjectFactory()
         url = factories.NominatedURLFactory(url_project=project)
         nominator = url.url_nominator
@@ -657,8 +638,7 @@ class TestCreateURLDump():
             }
         }
 
-
-    def test_create_url_dump_url_surt(self):
+    def test_returns_expected_with_surt(self):
         project = factories.ProjectFactory()
         surt = 'http://(com,example,www)'
         domain_surt = 'http://(com,example,'
@@ -676,8 +656,7 @@ class TestCreateURLDump():
             }
         }
 
-
-    def test_create_url_dump_url_attribute(self):
+    def test_returns_correct_attribute(self):
         project = factories.ProjectWithMetadataFactory(metadata2=None)
         attribute = project.metadata.all()[0].name
         value = models.Metadata_Values.objects.filter(metadata__name__iexact=attribute)[0].value
@@ -693,8 +672,7 @@ class TestCreateURLDump():
             }
         }
 
-
-    def test_create_url_dump_url_attribute_new_value_with_factory(self):
+    def test_returns_correct_attribute_with_new_value(self):
         project = factories.ProjectWithMetadataFactory(metadata2=None)
         attribute = project.metadata.all()[0].name
         url = factories.URLFactory(url_project=project, attribute=attribute)
@@ -716,7 +694,7 @@ class TestCreateSurtDict():
         ('http://(com,example,www,)', False),
         ('http://(com,a,', 'a')
     ])
-    def test_create_surt_dict(self, surt_root, expected_letter):
+    def test_returns_expected(self, surt_root, expected_letter):
         project = factories.ProjectFactory()
         surts = [
             surt_root + '/some/stuff',
@@ -732,8 +710,7 @@ class TestCreateSurtDict():
             assert url in urls
         assert surt_dict['letter'] == expected_letter
 
-
-    def test_create_surt_dict_exception_caught(self):
+    def test_returns_none_when_no_surts_found(self):
         surt_dict = url_handler.create_surt_dict('', 'http://(com,example,)')
         assert surt_dict['url_list'] is None
 
