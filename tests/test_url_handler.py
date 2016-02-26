@@ -306,25 +306,51 @@ def test_nominate_url_cannot_create_nomination():
         url_handler.nominate_url(project, nominator, form_data, scope_value)
 
 
-@pytest.mark.parametrize('attr_value', [
-    ['some_value', ],
-    ['some_value', 'some_other_value']
-])
-def test_add_other_attribute(attr_value):
-    nominator = factories.NominatorFactory()
-    project = factories.ProjectWithMetadataFactory()
-    entity = 'http://www.example.com'
-    form_data = {'url_value': entity}
-    proj_metadata = [x.name for x in project.metadata.all()]
-    for metadata in proj_metadata:
-        form_data[metadata] = attr_value if len(attr_value) > 1 else attr_value[0]
-    summary_list = []
-    results = url_handler.add_other_attribute(project, nominator, form_data, summary_list)
-    template = 'You have successfully added the {0} "{1}" for {2}'
-    expected = [template.format(proj_metadata[0], x, entity) for x in attr_value]
-    expected += [template.format(proj_metadata[1], x, entity) for x in attr_value]
+class TestAddOtherAttribute():
 
-    assert results.sort() == expected.sort()
+    @pytest.fixture
+    def setup(self):
+        nominator = factories.NominatorFactory()
+        project = factories.ProjectWithMetadataFactory()
+        metadata_names = [x.name for x in project.metadata.all()]
+        return project, metadata_names, nominator
+
+    def test_returns_expected(self, setup):
+        project, metadata_names, nominator = setup
+        entity = 'http://www.example.com'
+        value = 'some_value'
+
+        form_data = {'url_value': entity}
+        for metadata in metadata_names:
+            form_data[metadata] = value
+
+        results = url_handler.add_other_attribute(project, nominator, form_data, [])
+
+        expected = [
+            'You have successfully added the {0} "{1}" for {2}'.format(met_name, value, entity)
+            for met_name in metadata_names
+        ]
+
+        assert results.sort() == expected.sort()
+
+
+    def test_returns_expected_with_multiple_attribute_values(self, setup):
+        project, metadata_names, nominator = setup
+        entity = 'http://www.example.com'
+        values = ['some_value', 'some_other_value']
+
+        form_data = {'url_value': entity}
+        for metadata in metadata_names:
+            form_data[metadata] = values
+
+        results = url_handler.add_other_attribute(project, nominator, form_data, [])
+        expected = [
+            'You have successfully added the {0} "{1}" for {2}'.format(met_name, value, entity)
+            for met_name in metadata_names
+            for value in values
+        ]
+
+        assert results.sort() == expected.sort()
 
 
 def test_save_attribute():
