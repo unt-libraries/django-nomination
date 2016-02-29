@@ -27,7 +27,9 @@ class TestAlphabeticalBrowse():
         project = factories.ProjectFactory()
         # Create the surts we're expecting to see represented in the returned dict.
         [factories.SURTFactory(url_project=project, value=surts[key][0]) for key in surts]
-        expected = {'org': [(x, surts[x][1] if surts.get(x) else None) for x in alnum_list]}
+        expected = {
+            'org': [(char, surts[char][1] if surts.get(char) else None) for char in alnum_list]
+        }
         # Create another unrelated SURT to make sure we aren't grabbing everything.
         factories.SURTFactory()
         results = url_handler.alphabetical_browse(project)
@@ -36,7 +38,7 @@ class TestAlphabeticalBrowse():
 
     @pytest.mark.parametrize('surt, expected', [
         ('http://(,)', {}),
-        ('http://(org,)', {'org': [(x, None) for x in alnum_list]})
+        ('http://(org,)', {'org': [(char, None) for char in alnum_list]})
     ])
     def test_no_valid_surts_found(self, surt, expected):
         project = factories.ProjectFactory()
@@ -55,9 +57,15 @@ class TestGetMetadata():
 
     def test_returns_metadata_list(self):
         project = factories.ProjectFactory()
-        vals = [x.metadata for x in factories.MetadataValuesFactory.create_batch(3)]
-        metadata = [factories.ProjectMetadataFactory(project=project, metadata=x) for x in vals]
-        expected = [(x, [models.Metadata_Values.objects.get(metadata=x).value]) for x in metadata]
+        vals = [mdv.metadata for mdv in factories.MetadataValuesFactory.create_batch(3)]
+        metadata = [
+            factories.ProjectMetadataFactory(project=project, metadata=val)
+            for val in vals
+        ]
+        expected = [
+            (md, [models.Metadata_Values.objects.get(metadata=md).value])
+            for md in metadata
+        ]
         results = url_handler.get_metadata(project)
 
         assert str(sorted(results, key=str)) == str(sorted(expected, key=str))
@@ -313,7 +321,7 @@ class TestAddOtherAttribute():
     def setup(self):
         nominator = factories.NominatorFactory()
         project = factories.ProjectWithMetadataFactory()
-        metadata_names = [x.name for x in project.metadata.all()]
+        metadata_names = [md.name for md in project.metadata.all()]
         return project, metadata_names, nominator
 
     def test_returns_expected(self, setup):
