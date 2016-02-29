@@ -115,3 +115,47 @@ class URLFactory(factory.django.DjangoModelFactory):
 class NominatedURLFactory(URLFactory):
     attribute = 'nomination'
     value = fuzzy.FuzzyChoice(['-1', '1'])
+
+
+class SURTFactory(URLFactory):
+    attribute = 'surt'
+    value = fuzzy.FuzzyText(length=5, prefix='http://(com,', suffix=',www,)')
+
+
+class MetadataWithValuesFactory(MetadataFactory):
+    value1 = factory.RelatedFactory(MetadataValuesFactory, 'metadata')
+    value2 = factory.RelatedFactory(MetadataValuesFactory, 'metadata')
+    value3 = factory.RelatedFactory(MetadataValuesFactory, 'metadata')
+
+
+class ValuesetWithValuesFactory(ValuesetFactory):
+    value1 = factory.RelatedFactory(ValuesetValuesFactory, 'valueset')
+    value2 = factory.RelatedFactory(ValuesetValuesFactory, 'valueset')
+    value3 = factory.RelatedFactory(ValuesetValuesFactory, 'valueset')
+
+
+class MetadataWithValuesetFactory(MetadataFactory):
+    @factory.post_generation
+    def value_sets(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        elif extracted:
+            for value_set in extracted:
+                self.value_sets.add(value_set)
+
+        else:
+            self.value_sets.add(ValuesetWithValuesFactory())
+
+
+class ProjectWithMetadataFactory(ProjectFactory):
+    metadata1 = factory.RelatedFactory(
+        ProjectMetadataFactory,
+        'project',
+        metadata=factory.SubFactory(MetadataWithValuesFactory)
+    )
+    metadata2 = factory.RelatedFactory(
+        ProjectMetadataFactory,
+        'project',
+        metadata=factory.SubFactory(MetadataWithValuesetFactory)
+    )
