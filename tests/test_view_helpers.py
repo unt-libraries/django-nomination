@@ -10,16 +10,6 @@ import factories
 pytestmark = pytest.mark.django_db
 
 
-class TestURLForm():
-
-    pass
-
-
-class TestScopeForm():
-
-    pass
-
-
 class TestGetProject():
 
     def test_returns_project(self):
@@ -36,18 +26,20 @@ class TestGetProjectUrlCount():
 
     def test_returns_surt_count(self):
         factories.SURTFactory.create_batch(10)
-        factories.URLFactory.create_batch(5) # Should not affect the surt count.
+        # Should not affect the surt count.
+        factories.URLFactory.create_batch(5)
         url_query_set = models.URL.objects.all()
-        results = views.get_project_url_count(url_query_set)
+        result = views.get_project_url_count(url_query_set)
 
-        assert results == 10
+        assert result == 10
 
 
 class TestGetProjectNominatorCount():
 
     def test_returns_nominator_count(self):
         factories.NominatedURLFactory.create_batch(10, value=1)
-        factories.SURTFactory.create_batch(5) # Should not affect nominator count.
+        # Should not affect nominator count.
+        factories.SURTFactory.create_batch(5)
         url_query_set = models.URL.objects.all()
         result = views.get_project_nominator_count(url_query_set)
 
@@ -70,7 +62,8 @@ class TestGetLookAhead():
             url.url_nominator.nominator_institution
             for url in factories.URLFactory.create_batch(10, url_project=project)
         ]
-        factories.URLFactory.create_batch(5) # Should not affect the institution list.
+        # Should not affect the institution list.
+        factories.URLFactory.create_batch(5)
         results = views.get_look_ahead(project)
 
         assert json.loads(results) == sorted(expected)
