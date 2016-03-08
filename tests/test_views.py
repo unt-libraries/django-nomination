@@ -135,19 +135,31 @@ class TestUrlLookup():
 
 class TestProjectUrls():
 
-    def test_status_ok(self, rf):
+    @pytest.mark.parametrize('request_type', [
+        'get',
+        'post'
+    ])
+    def test_status_ok(self, client, request_type):
         project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.project_urls(request, project.project_slug)
-
+        response = getattr(client, request_type)(
+            reverse('project_urls', args=[project.project_slug]))
         assert response.status_code == 200
 
-    def test_template_used(self, client):
+    @pytest.mark.parametrize('request_type', [
+        'get',
+        'post'
+    ])
+    def test_template_used(self, client, request_type):
         project = factories.ProjectFactory()
-        response = client.post(reverse('project_urls', args=[project.project_slug]))
+        response = getattr(client, request_type)(
+            reverse('project_urls', args=[project.project_slug]))
         assert response.templates[0].name == 'nomination/project_urls.html'
 
-    def test_context(self, client):
+    @pytest.mark.parametrize('request_type', [
+        'get',
+        'post'
+    ])
+    def test_context(self, client, request_type):
         project = factories.ProjectFactory()
         factories.URLFactory.create_batch(
             3,
@@ -160,7 +172,8 @@ class TestProjectUrls():
             url_project=project,
             value=1
         )
-        response = client.post(reverse('project_urls', args=[project.project_slug]))
+        response = getattr(client, request_type)(
+            reverse('project_urls', args=[project.project_slug]))
 
         assert response.context['project'] == project
         assert response.context['url_count'] == 3
@@ -174,33 +187,118 @@ class TestProjectUrls():
 
 class TestUrlListing():
 
-    @pytest.mark.parametrize('create_url', [
-        False,
-        True
+    @pytest.mark.parametrize('request_type, create_url', [
+        ('get', False),
+        ('get', True),
+        ('post', False),
+        ('post', True)
     ])
-    def test_status_ok(self, rf, create_url):
+    def test_status_ok(self, client, request_type, create_url):
         entity = 'www.example.com'
         project = factories.ProjectFactory()
         if create_url:
             factories.URLFactory(url_project=project, entity=entity)
-        request = rf.get('/')
-        response = views.url_listing(request, project.project_slug, entity)
+        response = getattr(client, request_type)(
+            reverse('url_listing', args=[project.project_slug, entity]))
 
         assert response.status_code == 200
 
-    @pytest.mark.parametrize('create_url, expected_template', [
-        (False, 'nomination/url_add.html'),
-        (True, 'nomination/url_listing.html')
+    @pytest.mark.parametrize('request_type, create_url, expected_template', [
+        ('get', False, 'nomination/url_add.html'),
+        ('post', False, 'nomination/url_add.html'),
+        ('get', True, 'nomination/url_listing.html'),
+        ('post', True, 'nomination/url_listing.html')
     ])
-    def test_template_used(self, client, create_url, expected_template):
+    def test_template_used(self, client, request_type, create_url, expected_template):
         entity = 'www.example.com'
         project = factories.ProjectFactory()
         if create_url:
             factories.URLFactory(url_project=project, entity=entity)
-        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
+        response = getattr(client, request_type)(
+            reverse('url_listing', args=[project.project_slug, entity]))
 
         assert response.templates[0].name == expected_template
 
+    def test_context_url_not_found(self, client):
+        entity = 'http://www.example.com'
+        project = factories.ProjectFactory()
+        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
+        expected_context = {
+            'project': project,
+            'form': views.URLForm({'url_value': entity,}),
+            'url_not_found': True,
+            'metadata_vals': views.get_metadata(project),
+            'form_errors': None,
+            'summary_list': None,
+            'json_data': None,
+            'form_types': None,
+            'institutions': views.get_look_ahead(project),
+            'url_entity': entity,
+        }
+
+        for key in expected_context:
+            assert str(response.context[key]) == str(expected_context[key])
+
+    def test_base_context_values(self, client):
+        entity = u'http://www.example.com'
+        project = factories.ProjectFactory()
+        url = factories.URLFactory(url_project=project, entity=entity)
+        expected_context = {
+            'project': project,
+            'url_data': views.create_url_list(project, [url]),
+            'metadata_vals': views.get_metadata(project),
+            'institutions': views.get_look_ahead(project),
+        }
+        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
+
+        for key in expected_context:
+            assert str(response.context[key]) == str(expected_context[key])
+
+    @pytest.mark.parametrize('create_related', [
+        True,
+        False
+    ])
+    def test_related_url_list_context_value(self, client, create_related):
+        entity = u'http://www.example.com'
+        entity_surt = u'http://(com,example,www,)'
+        project = factories.ProjectFactory()
+        url = factories.URLFactory(url_project=project, entity=entity)
+        if create_related:
+            surt = factories.SURTFactory(
+                url_project=project,
+                entity=entity,
+                value=entity_surt
+            )
+            expected = str(
+                factories.SURTFactory.create_batch(
+                    1,
+                    url_project=project,
+                    entity='{}/main/page'.format(entity),
+                    value='{}/main/page'.format(entity_surt)
+                )
+            )
+        else:
+            expected = 'None'
+        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
+
+        assert str(response.context['related_url_list']) == expected
+
+    @pytest.mark.parametrize('create_project_metadata', [
+        True,
+        False
+    ])
+    def test_form_types_context_value(self, client, create_project_metadata):
+        entity = u'http://www.example.com'
+        project = factories.ProjectFactory()
+        url = factories.URLFactory(url_project=project, entity=entity)
+        if create_project_metadata:
+            project_metadata = factories.ProjectMetadataFactory(project=project)
+            expected = {project_metadata.metadata.name: project_metadata.form_type}
+        else:
+            expected = {}
+        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
+
+        assert json.loads(response.context['form_types']) == expected
 
 class TestUrlSurt():
 
@@ -246,14 +344,33 @@ class TestUrlSurt():
 
 class TestUrlAdd():
 
-    def test_status_ok(self, rf):
-        pass
+    @pytest.mark.parametrize('request_type, data_dict', [
+        ('get', {}),
+        ('post', {
+            'nominator_name': 'Eddie',
+            'nominator_institution': 'UNT',
+            'nominator_email': 'someone@somewhere.com'
+        })
+    ])
+    def test_status_ok(self, client, request_type, data_dict):
+        project = factories.ProjectFactory()
+        response = getattr(client, request_type)(
+            reverse('url_add', args=[project.project_slug]), data_dict)
+        assert response.status_code == 200
 
     def test_template_used(self, client):
-        pass
+        project = factories.ProjectFactory(registration_required=False)
+        response = client.post(
+            reverse('url_add', args=[project.project_slug]),
+            {
+                'nominator_name': 'Eddie',
+                'nominator_institution': 'UNT',
+                'nominator_email': 'someone@somewhere.com'
+            }
+        )
 
-    def test_context(self, client):
-        pass
+        assert response.templates[0].name == 'nomination/url_add.html'
+
 
 
 class TestProjectAbout():
