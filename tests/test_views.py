@@ -264,7 +264,7 @@ class TestUrlListing():
         project = factories.ProjectFactory()
         factories.URLFactory(url_project=project, entity=entity)
         if create_related:
-            surt = factories.SURTFactory(
+            factories.SURTFactory(
                 url_project=project,
                 entity=entity,
                 value=entity_surt
@@ -290,7 +290,7 @@ class TestUrlListing():
     def test_form_types_context_value(self, client, create_project_metadata):
         entity = u'http://www.example.com'
         project = factories.ProjectFactory()
-        url = factories.URLFactory(url_project=project, entity=entity)
+        factories.URLFactory(url_project=project, entity=entity)
         if create_project_metadata:
             project_metadata = factories.ProjectMetadataFactory(project=project)
             expected = {project_metadata.metadata.name: project_metadata.form_type}
@@ -299,6 +299,7 @@ class TestUrlListing():
         response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
 
         assert json.loads(response.context['form_types']) == expected
+
 
 class TestUrlSurt():
 
@@ -703,7 +704,7 @@ class TestNominatorReport():
         assert response.templates[0].name == 'nomination/nominator_report.html'
 
     @pytest.mark.parametrize('field, field_name', [
-        ('nominator','name'),
+        ('nominator', 'name'),
         ('institution', 'institution')
     ])
     def test_context(self, client, field, field_name):
