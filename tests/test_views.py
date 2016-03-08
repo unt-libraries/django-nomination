@@ -225,7 +225,7 @@ class TestUrlListing():
         response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
         expected_context = {
             'project': project,
-            'form': views.URLForm({'url_value': entity,}),
+            'form': views.URLForm({'url_value': entity}),
             'url_not_found': True,
             'metadata_vals': views.get_metadata(project),
             'form_errors': None,
@@ -262,7 +262,7 @@ class TestUrlListing():
         entity = u'http://www.example.com'
         entity_surt = u'http://(com,example,www,)'
         project = factories.ProjectFactory()
-        url = factories.URLFactory(url_project=project, entity=entity)
+        factories.URLFactory(url_project=project, entity=entity)
         if create_related:
             surt = factories.SURTFactory(
                 url_project=project,
@@ -370,7 +370,6 @@ class TestUrlAdd():
         )
 
         assert response.templates[0].name == 'nomination/url_add.html'
-
 
 
 class TestProjectAbout():
