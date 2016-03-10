@@ -107,7 +107,7 @@ class URLFactory(factory.django.DjangoModelFactory):
 
     url_project = factory.SubFactory(ProjectFactory)
     url_nominator = factory.SubFactory(NominatorFactory)
-    entity = fuzzy.FuzzyText(length=8, prefix='http://www.', suffix='.net')
+    entity = fuzzy.FuzzyText(length=8, prefix='http://www.', suffix='.com')
     attribute = fuzzy.FuzzyText(length=20)
     value = fuzzy.FuzzyText(length=10)
 
