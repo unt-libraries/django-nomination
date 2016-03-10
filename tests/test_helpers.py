@@ -26,7 +26,9 @@ class TestGetProjectUrlCount():
 
     def test_returns_surt_count(self):
         factories.SURTFactory.create_batch(10)
-        # Should not affect the surt count.
+        # Additional URL objects (SURTs are URL objects with their 'attribute'
+        # attribute set to 'surt') should not affect the project URL count since
+        # the count only looks for SURTs.
         factories.URLFactory.create_batch(5)
         url_query_set = models.URL.objects.all()
         result = views.get_project_url_count(url_query_set)
@@ -38,8 +40,9 @@ class TestGetProjectNominatorCount():
 
     def test_returns_nominator_count(self):
         factories.NominatedURLFactory.create_batch(10, value=1)
-        # Should not affect nominator count.
-        factories.SURTFactory.create_batch(5)
+        # Other URLs that have not been nominated should not affect the
+        # nominator count.
+        factories.URLFactory.create_batch(5)
         url_query_set = models.URL.objects.all()
         result = views.get_project_nominator_count(url_query_set)
 
@@ -62,7 +65,8 @@ class TestGetLookAhead():
             url.url_nominator.nominator_institution
             for url in factories.URLFactory.create_batch(10, url_project=project)
         ]
-        # Should not affect the institution list.
+        # Should not affect the institution list since these URLs are not
+        # associated with the project.
         factories.URLFactory.create_batch(5)
         results = views.get_look_ahead(project)
 
