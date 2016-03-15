@@ -300,6 +300,58 @@ class TestUrlListing():
 
         assert json.loads(response.context['form_types']) == expected
 
+    @pytest.mark.parametrize('request_type, reg_required, data, expected', [
+        ('get', False, {}, None),
+        ('get', True, {}, None),
+        ('post', False, {}, {}),
+        (
+            'post',
+            False,
+            {
+                'scope': 1,
+                'nominator_name': 'Joe Schmoe',
+                'nominator_email': 'here@there.com',
+            },
+            {
+                'nominator_institution': ('You must provide name, institution, and '
+                                          'email to affiliate your name or institution '
+                                          'with nominations. Leave all "Information About '
+                                          'You" fields blank to remain anonymous.')
+            }
+        ),
+        (
+            'post',
+            True,
+            {
+                'scope': 1,
+                'nominator_name': 'Joe Schmoe',
+                'nominator_email': 'here@there.com',
+                'nominator_institution': 'UNT'
+            },
+            {}
+        ),
+        (
+            'post',
+            True,
+            {},
+            {
+                'nominator_name': 'This field is required.',
+                'nominator_email': 'This field is required.',
+                'nominator_institution': 'This field is required.'
+            }
+        ),
+    ])
+    def test_form_errors_context_value(self, client, request_type, reg_required, data, expected):
+        entity = 'www.example.com'
+        project = factories.ProjectFactory(registration_required=reg_required)
+        factories.URLFactory(url_project=project, entity=entity)
+        response = getattr(client, request_type)(
+            reverse('url_listing', args=[project.project_slug, entity]),
+            data
+        )
+
+        assert response.context['form_errors'] == expected
+
 
 class TestUrlSurt():
 
