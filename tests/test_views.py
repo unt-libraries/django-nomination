@@ -240,117 +240,141 @@ class TestUrlListing():
             assert str(response.context[key]) == str(expected_context[key])
 
     def test_base_context_values(self, client):
+        """Test the context variables which are similar across different paths.
+
+        These context variables do not change based on the specific path taken
+        in the view, and so are being tested apart from the rest. The only time
+        they may change is if the requested url does not actually exist, and that
+        occurrence is covered in the previous test.
+        """
         entity = u'http://www.example.com'
+        entity_surt = u'http://(com,example,www,)'
         project = factories.ProjectFactory()
+        project_metadata = factories.ProjectMetadataFactory(project=project)
         url = factories.URLFactory(url_project=project, entity=entity)
+        factories.SURTFactory(
+            url_project=project,
+            entity=entity,
+            value=entity_surt
+        )
+        related_urls = factories.SURTFactory.create_batch(
+            1,
+            url_project=project,
+            entity=u'{}/main/page'.format(entity),
+            value=u'{}/main/page'.format(entity_surt)
+        )
         expected_context = {
             'project': project,
-            'url_data': views.create_url_list(project, [url]),
+            'url_data': views.create_url_list(project, related_urls + [url]),
+            'related_url_list': related_urls,
             'metadata_vals': views.get_metadata(project),
             'institutions': views.get_look_ahead(project),
+            'form_types': json.dumps({project_metadata.metadata.name: project_metadata.form_type}),
         }
         response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
 
         for key in expected_context:
             assert str(response.context[key]) == str(expected_context[key])
 
-    @pytest.mark.parametrize('create_related', [
-        True,
-        False
-    ])
-    def test_related_url_list_context_value(self, client, create_related):
-        entity = u'http://www.example.com'
-        entity_surt = u'http://(com,example,www,)'
-        project = factories.ProjectFactory()
+    def test_context_with_post(self, client):
+        data = {
+            'scope': 1,
+            'nominator_name': 'John Doe',
+            'nominator_email': 'here@there.com',
+            'nominator_institution': 'UNT',
+            'metadata': '2012-12-12'
+        }
+        entity = 'www.example.com'
+        project = factories.ProjectFactory(registration_required=False)
+        factories.ProjectMetadataFactory(
+            project=project,
+            metadata__name='metadata',
+            form_type='date'
+        )
         factories.URLFactory(url_project=project, entity=entity)
-        if create_related:
-            factories.SURTFactory(
-                url_project=project,
-                entity=entity,
-                value=entity_surt
-            )
-            expected = str(
-                factories.SURTFactory.create_batch(
-                    1,
-                    url_project=project,
-                    entity='{}/main/page'.format(entity),
-                    value='{}/main/page'.format(entity_surt)
-                )
-            )
-        else:
-            expected = 'None'
-        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
+        response = client.post(
+            reverse('url_listing', args=[project.project_slug, entity]),
+            data
+        )
+        expected = {
+            'scope_form': views.ScopeForm(data),
+            'form_errors': '',
+            'summary_list': [
+                u'You have successfully nominated www.example.com',
+                u'You have successfully added the metadata "2012-12-12" for www.example.com'
+            ],
+            'json_data': None,
+        }
 
-        assert str(response.context['related_url_list']) == expected
+        for key in expected:
+            assert str(response.context[key]) == str(expected[key])
 
-    @pytest.mark.parametrize('create_project_metadata', [
-        True,
-        False
-    ])
-    def test_form_types_context_value(self, client, create_project_metadata):
-        entity = u'http://www.example.com'
-        project = factories.ProjectFactory()
-        factories.URLFactory(url_project=project, entity=entity)
-        if create_project_metadata:
-            project_metadata = factories.ProjectMetadataFactory(project=project)
-            expected = {project_metadata.metadata.name: project_metadata.form_type}
-        else:
-            expected = {}
-        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
-
-        assert json.loads(response.context['form_types']) == expected
-
-    @pytest.mark.parametrize('request_type, reg_required, data, expected', [
-        ('get', False, {}, None),
-        ('get', True, {}, None),
-        ('post', False, {}, {}),
+    @pytest.mark.parametrize('reg_required, data, expected_errors', [
         (
-            'post',
             False,
+            {'scope': 2},
+            {'scope': [u'Select a valid choice. 2 is not one of the available choices.']}
+        ),
+        (
+            False,
+            {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'},
             {
-                'scope': 1,
-                'nominator_name': 'Joe Schmoe',
-                'nominator_email': 'here@there.com',
-            },
-            {
-                'nominator_institution': ('You must provide name, institution, and '
-                                          'email to affiliate your name or institution '
-                                          'with nominations. Leave all "Information About '
-                                          'You" fields blank to remain anonymous.')
+                'nominator_email': (
+                    u'You must provide name, institution, and '
+                    'email to affiliate your name or institution with nominations. Leave '
+                    'all "Information About ' 'You" fields blank to remain anonymous.'
+                )
             }
         ),
         (
-            'post',
             True,
-            {
-                'scope': 1,
-                'nominator_name': 'Joe Schmoe',
-                'nominator_email': 'here@there.com',
-                'nominator_institution': 'UNT'
-            },
-            {}
-        ),
-        (
-            'post',
-            True,
-            {},
-            {
-                'nominator_name': 'This field is required.',
-                'nominator_email': 'This field is required.',
-                'nominator_institution': 'This field is required.'
-            }
-        ),
+            {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'},
+            {'nominator_email': u'This field is required.'}
+        )
     ])
-    def test_form_errors_context_value(self, client, request_type, reg_required, data, expected):
+    def test_context_with_post_and_errors(self, client, reg_required, data, expected_errors):
         entity = 'www.example.com'
         project = factories.ProjectFactory(registration_required=reg_required)
         factories.URLFactory(url_project=project, entity=entity)
-        response = getattr(client, request_type)(
+        response = client.post(
             reverse('url_listing', args=[project.project_slug, entity]),
             data
         )
 
-        assert response.context['form_errors'] == expected
+        assert response.context['form_errors'] == expected_errors
+        assert response.context['summary_list'] is None
+        assert response.context['scope_form'].is_valid() is False
+        assert sorted(json.loads(response.context['json_data'])) == sorted(
+            [[key, [str(data[key])]] for key in data])
+
+    def test_context_with_get(self, client):
+        entity = u'http://www.example.com'
+        entity_surt = u'http://(com,example,www,)'
+        project = factories.ProjectFactory()
+        factories.ProjectMetadataFactory(project=project)
+        factories.URLFactory(url_project=project, entity=entity)
+        factories.SURTFactory(
+            url_project=project,
+            entity=entity,
+            value=entity_surt
+        )
+        factories.SURTFactory.create_batch(
+            1,
+            url_project=project,
+            entity=u'{}/main/page'.format(entity),
+            value=u'{}/main/page'.format(entity_surt)
+        )
+
+        expected_context = {
+            'scope_form': views.ScopeForm(),
+            'form_errors': None,
+            'summary_list': None,
+            'json_data': None
+        }
+        response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
+
+        for key in expected_context:
+            assert str(response.context[key]) == str(expected_context[key])
 
 
 class TestUrlSurt():
@@ -423,6 +447,151 @@ class TestUrlAdd():
         )
 
         assert response.templates[0].name == 'nomination/url_add.html'
+
+    def test_base_context_values(self, client):
+        entity = u'http://www.example.com'
+        entity_surt = u'http://(com,example,www,)'
+        project = factories.ProjectFactory()
+        project_metadata = factories.ProjectMetadataFactory(project=project)
+        factories.URLFactory(url_project=project, entity=entity)
+        factories.SURTFactory(
+            url_project=project,
+            entity=entity,
+            value=entity_surt
+        )
+        factories.SURTFactory.create_batch(
+            1,
+            url_project=project,
+            entity=u'{}/main/page'.format(entity),
+            value=u'{}/main/page'.format(entity_surt)
+        )
+        expected_context = {
+            'project': project,
+            'form': views.URLForm(),
+            'metadata_vals': views.get_metadata(project),
+            'institutions': views.get_look_ahead(project),
+            'form_types': json.dumps({project_metadata.metadata.name: project_metadata.form_type}),
+        }
+        response = client.get(reverse('url_add', args=[project.project_slug]))
+
+        for key in expected_context:
+            assert str(response.context[key]) == str(expected_context[key])
+
+    def test_context_with_get(self, client):
+        entity = u'http://www.example.com'
+        entity_surt = u'http://(com,example,www,)'
+        project = factories.ProjectFactory()
+        factories.ProjectMetadataFactory(project=project)
+        factories.URLFactory(url_project=project, entity=entity)
+        factories.SURTFactory(
+            url_project=project,
+            entity=entity,
+            value=entity_surt
+        )
+        factories.SURTFactory.create_batch(
+            1,
+            url_project=project,
+            entity=u'{}/main/page'.format(entity),
+            value=u'{}/main/page'.format(entity_surt)
+        )
+
+        expected_context = {
+            'form_errors': None,
+            'summary_list': None,
+            'json_data': None,
+            'url_entity': None
+        }
+        response = client.get(reverse('url_add', args=[project.project_slug]))
+
+        for key in expected_context:
+            assert str(response.context[key]) == str(expected_context[key])
+
+    def test_context_with_post(self, client):
+        entity = 'http://www.example.com'
+        data = {
+            'url_value': entity,
+            'nominator_name': 'John Doe',
+            'nominator_email': 'here@there.com',
+            'nominator_institution': 'UNT',
+            'metadata': '2012-12-12'
+        }
+        project = factories.ProjectFactory(registration_required=False)
+        factories.ProjectMetadataFactory(
+            project=project,
+            metadata__name='metadata',
+            form_type='date'
+        )
+        factories.URLFactory(url_project=project, entity=entity)
+        response = client.post(
+            reverse('url_add', args=[project.project_slug]),
+            data
+        )
+        expected = {
+            'form_errors': '',
+            'summary_list': [
+                u'You have successfully nominated http://www.example.com',
+                u'You have successfully added the metadata "2012-12-12" for http://www.example.com'
+            ],
+            'json_data': None,
+            'url_entity': entity
+        }
+
+        for key in expected:
+            assert str(response.context[key]) == str(expected[key])
+
+    @pytest.mark.parametrize('reg_required, data, expected_errors', [
+        (
+            False,
+            {'nominator_name': '', 'nominator_institution': '', 'nominator_email': ''},
+            {'url_value': ['This field is required.']}
+        ),
+        (
+            False,
+            {
+                'url_value': 'http://www.example.com',
+                'nominator_name': 'John Doe',
+                'nominator_institution': 'UNT',
+                'nominator_email': '',
+            },
+            {
+                'nominator_email': (
+                    u'You must provide name, institution, and '
+                    'email to affiliate your name or institution with nominations. Leave '
+                    'all "Information About ' 'You" fields blank to remain anonymous.'
+                )
+            }
+        ),
+        (
+            True,
+            {
+                'url_value': 'http://www.example.com',
+                'nominator_name': 'John Doe',
+                'nominator_institution': 'UNT',
+                'nominator_email': ''
+            },
+            {'nominator_email': u'This field is required.'}
+        )
+    ])
+    def test_context_with_post_and_errors(self, client, reg_required, data, expected_errors):
+        entity = 'http://www.example.com'
+        project = factories.ProjectFactory(registration_required=reg_required)
+        factories.URLFactory(url_project=project, entity=entity)
+        response = client.post(
+            reverse('url_add', args=[project.project_slug]),
+            data
+        )
+        expected = {
+            'form_errors': expected_errors,
+            'summary_list': None,
+            'json_data': None,
+            'url_entity': None
+        }
+
+        assert response.context['form_errors'] == expected['form_errors']
+        assert response.context['summary_list'] == expected['summary_list']
+        assert sorted(json.loads(response.context['json_data'])) == sorted(
+            [[key, [data[key]]] for key in data])
+        assert response.context['url_entity'] == expected['url_entity']
 
 
 class TestProjectAbout():
@@ -706,7 +875,7 @@ class TestFieldReport():
             metadata.value_sets.first().values.first().key if metadata_with_valueset
             else u'something'
         )
-        url = factories.URLFactory.create_batch(
+        factories.URLFactory.create_batch(
             3,
             url_project=project,
             attribute=metadata.name,
