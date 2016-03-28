@@ -135,31 +135,17 @@ class TestUrlLookup():
 
 class TestProjectUrls():
 
-    @pytest.mark.parametrize('request_type', [
-        'get',
-        'post'
-    ])
-    def test_status_ok(self, client, request_type):
+    def test_status_ok(self, client):
         project = factories.ProjectFactory()
-        response = getattr(client, request_type)(
-            reverse('project_urls', args=[project.project_slug]))
+        response = client.get(reverse('project_urls', args=[project.project_slug]))
         assert response.status_code == 200
 
-    @pytest.mark.parametrize('request_type', [
-        'get',
-        'post'
-    ])
-    def test_template_used(self, client, request_type):
+    def test_template_used(self, client):
         project = factories.ProjectFactory()
-        response = getattr(client, request_type)(
-            reverse('project_urls', args=[project.project_slug]))
+        response = client.get(reverse('project_urls', args=[project.project_slug]))
         assert response.templates[0].name == 'nomination/project_urls.html'
 
-    @pytest.mark.parametrize('request_type', [
-        'get',
-        'post'
-    ])
-    def test_context(self, client, request_type):
+    def test_context(self, client):
         project = factories.ProjectFactory()
         factories.URLFactory.create_batch(
             3,
@@ -172,8 +158,7 @@ class TestProjectUrls():
             url_project=project,
             value=1
         )
-        response = getattr(client, request_type)(
-            reverse('project_urls', args=[project.project_slug]))
+        response = client.get(reverse('project_urls', args=[project.project_slug]))
 
         assert response.context['project'] == project
         assert response.context['url_count'] == 3
