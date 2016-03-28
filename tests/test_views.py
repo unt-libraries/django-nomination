@@ -163,11 +163,7 @@ class TestProjectUrls():
         assert response.context['project'] == project
         assert response.context['url_count'] == 3
         assert response.context['nominator_count'] == 2
-        for key, value in response.context['browse_tup']:
-            assert key == 'com'
-            for each in value:
-                if each[1] is not None:
-                    assert each == ('E', 'http://(com,e')
+        assert 'browse_tup' in response.context
 
 
 class TestUrlListing():
