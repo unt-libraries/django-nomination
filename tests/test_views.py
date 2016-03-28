@@ -159,7 +159,7 @@ class TestProjectUrls():
         assert response.context['project'] == project
         assert response.context['url_count'] == 3
         assert response.context['nominator_count'] == 2
-        assert 'browse_tup' in response.context
+        assert len(response.context['browse_tup']) == 1
 
 
 class TestUrlListing():
@@ -235,13 +235,6 @@ class TestUrlListing():
             assert str(response.context[key]) == str(expected_context[key])
 
     def test_base_context_values(self, client):
-        """Test the context variables which are similar across different paths.
-
-        These context variables do not change based on the specific path taken
-        in the view, and so are being tested apart from the rest. The only time
-        they may change is if the requested url does not actually exist, and that
-        occurrence is covered in the previous test.
-        """
         entity = u'http://www.example.com'
         entity_surt = u'http://(com,example,www,)'
         project = factories.ProjectFactory()
@@ -414,9 +407,6 @@ class TestUrlSurt():
         assert response.context['letter'] == letter
         assert response.context['browse_domain'] == 'com'
         assert len(response.context['browse_dict']) == 1
-        for each in response.context['browse_dict']['com']:
-            if each[1] is not None:
-                assert each == ('E', 'http://(com,e')
 
 
 class TestUrlAdd():
@@ -692,8 +682,8 @@ class TestReportsView():
 
         assert response.context['project'] == project
         assert len(response.context['metadata_fields']) == 3
-        for each in response.context['metadata_fields']:
-            assert each[0] in attrs
+        for field in response.context['metadata_fields']:
+            assert field[0] in attrs
 
 
 class TestUrlReport():
@@ -713,8 +703,8 @@ class TestUrlReport():
         response = views.url_report(request, project.project_slug)
 
         assert '#This list of urls' in response.content
-        for each in urls:
-            assert each.entity in response.content
+        for url in urls:
+            assert url.entity in response.content
 
 
 class TestSurtReport():
@@ -734,8 +724,8 @@ class TestSurtReport():
         response = views.surt_report(request, project.project_slug)
 
         assert '#This list of SURTs' in response.content
-        for each in urls:
-            assert each.value in response.content
+        for url in urls:
+            assert url.value in response.content
 
 
 class TestUrlScoreReport():
@@ -755,8 +745,8 @@ class TestUrlScoreReport():
         response = views.url_score_report(request, project.project_slug)
 
         assert '#This list of URLs' in response.content
-        for each in urls:
-            assert '{0};"{1}"\n'.format(each.value, each.entity) in response.content
+        for url in urls:
+            assert '{0};"{1}"\n'.format(url.value, url.entity) in response.content
 
 
 class TestUrlDateReport():
@@ -776,11 +766,11 @@ class TestUrlDateReport():
         response = views.url_date_report(request, project.project_slug)
 
         assert '#This list of URLs' in response.content
-        for each in urls:
+        for url in urls:
             assert '{0};"{1}";{2}\n'.format(
-                each.date.replace(microsecond=0).isoformat(),
-                each.entity,
-                each.value
+                url.date.replace(microsecond=0).isoformat(),
+                url.entity,
+                url.value
             ) in response.content
 
 
@@ -801,8 +791,8 @@ class TestUrlNominationReport():
         response = views.url_nomination_report(request, project.project_slug)
 
         assert '#This list of URLs' in response.content
-        for each in urls:
-            assert '1;"{0}"\n'.format(each.entity) in response.content
+        for url in urls:
+            assert '1;"{0}"\n'.format(url.entity) in response.content
 
 
 class TestFieldReport():
@@ -877,8 +867,8 @@ class TestValueReport():
         response = views.value_report(request, project.project_slug, field, val)
 
         assert '#This list of URLs' in response.content
-        for each in urls:
-            assert each.entity in response.content
+        for url in urls:
+            assert url.entity in response.content
 
 
 class TestNominatorReport():
@@ -918,9 +908,9 @@ class TestNominatorReport():
 
         assert response.context['project'] == project
         assert len(response.context['valdic']) == 3
-        for each in urls:
-            assert (getattr(each.url_nominator, 'nominator_{0}'.format(field_name)),
-                    1, each.url_nominator.id) in response.context['valdic']
+        for url in urls:
+            assert (getattr(url.url_nominator, 'nominator_{0}'.format(field_name)),
+                    1, url.url_nominator.id) in response.context['valdic']
         assert response.context['field'] == field
 
 
