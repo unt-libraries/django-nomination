@@ -42,14 +42,10 @@ class TestProjectListing():
 
 class TestRobotBan():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         request = rf.get('/')
         response = views.robot_ban(request)
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        request = rf.get('/')
-        response = views.robot_ban(request)
         assert response['Content-Type'] == 'text/plain'
 
 
@@ -367,6 +363,11 @@ class TestUrlSurt():
 
         assert response.status_code == 200
 
+    def test_raises_http404(self, rf):
+        request = rf.get('/')
+        with pytest.raises(Http404):
+            views.url_surt(request, 'fake_slug', 'a_surt')
+
     def test_template_used(self, client):
         project = factories.ProjectFactory()
         response = client.get(reverse('url_surt', args=[project.project_slug, 'a surt']))
@@ -609,18 +610,12 @@ class TestProjectAbout():
 
 class TestBrowseJson():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.browse_json(request, project.project_slug, '')
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.browse_json(request, project.project_slug, '')
-
         assert response['Content-Type'] == 'application/json'
 
     @pytest.mark.parametrize('request_type, kwargs, id, text', [
@@ -649,18 +644,12 @@ class TestBrowseJson():
 
 class TestSearchJson():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.search_json(request, project.project_slug)
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.search_json(request, project.project_slug)
-
         assert response['Content-Type'] == 'application/json'
 
 
@@ -691,18 +680,12 @@ class TestReportsView():
 
 class TestUrlReport():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.url_report(request, project.project_slug)
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.url_report(request, project.project_slug)
-
         assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
 
     def test_report_text(self, rf):
@@ -718,18 +701,12 @@ class TestUrlReport():
 
 class TestSurtReport():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.surt_report(request, project.project_slug)
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.surt_report(request, project.project_slug)
-
         assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
 
     def test_report_text(self, rf):
@@ -745,18 +722,12 @@ class TestSurtReport():
 
 class TestUrlScoreReport():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.url_score_report(request, project.project_slug)
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.url_score_report(request, project.project_slug)
-
         assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
 
     def test_report_text(self, rf):
@@ -772,18 +743,12 @@ class TestUrlScoreReport():
 
 class TestUrlDateReport():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.url_date_report(request, project.project_slug)
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.url_date_report(request, project.project_slug)
-
         assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
 
     def test_report_text(self, rf):
@@ -803,18 +768,12 @@ class TestUrlDateReport():
 
 class TestUrlNominationReport():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.url_nomination_report(request, project.project_slug)
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.url_nomination_report(request, project.project_slug)
-
         assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
 
     def test_report_text(self, rf):
@@ -875,18 +834,12 @@ class TestFieldReport():
 
 class TestValueReport():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.value_report(request, project.project_slug, '', '')
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.value_report(request, project.project_slug, '', '')
-
         assert response['Content-Type'] == 'text/plain;'
 
     @pytest.mark.parametrize('val, url_value', [
@@ -955,18 +908,12 @@ class TestNominatorReport():
 
 class TestNominatorUrlReport():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.nominator_url_report(request, project.project_slug, '', 1)
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.nominator_url_report(request, project.project_slug, '', 1)
-
         assert response['Content-Type'] == 'text/plain; charset="UTF-8"'
 
     @pytest.mark.parametrize('field', [
@@ -990,18 +937,12 @@ class TestNominatorUrlReport():
 
 class TestProjectDump():
 
-    def test_status_ok(self, rf):
+    def test_status_and_content_type(self, rf):
         project = factories.ProjectFactory()
         request = rf.get('/')
         response = views.project_dump(request, project.project_slug)
 
         assert response.status_code == 200
-
-    def test_mimetype(self, rf):
-        project = factories.ProjectFactory()
-        request = rf.get('/')
-        response = views.project_dump(request, project.project_slug)
-
         assert response['Content-Type'] == 'application/json; charset=utf-8'
 
     def test_content_disposition(self, rf):
