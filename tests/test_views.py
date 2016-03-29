@@ -13,6 +13,11 @@ from . import factories
 
 
 pytestmark = pytest.mark.django_db
+scope_error = u'Select a valid choice. {} is not one of the available choices.'
+anonymous_error = (u'You must provide name, institution, and email to affiliate your name '
+                   'or institution with nominations. Leave all "Information About You" fields '
+                   'blank to remain anonymous.')
+field_error = u'This field is required.'
 
 
 class TestProjectListing():
@@ -298,27 +303,11 @@ class TestUrlListing():
             assert str(response.context[key]) == str(expected[key])
 
     @pytest.mark.parametrize('reg_required, data, expected_errors', [
-        (
-            False,
-            {'scope': 2},
-            {'scope': [u'Select a valid choice. 2 is not one of the available choices.']}
-        ),
-        (
-            False,
-            {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'},
-            {
-                'nominator_email': (
-                    u'You must provide name, institution, and '
-                    'email to affiliate your name or institution with nominations. Leave '
-                    'all "Information About ' 'You" fields blank to remain anonymous.'
-                )
-            }
-        ),
-        (
-            True,
-            {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'},
-            {'nominator_email': u'This field is required.'}
-        )
+        (False, {'scope': 2}, {'scope': [scope_error.format(2)]}),
+        (False, {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'},
+         {'nominator_email': anonymous_error}),
+        (True, {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'},
+         {'nominator_email': field_error})
     ])
     def test_context_with_post_and_errors(self, client, reg_required, data, expected_errors):
         entity = 'www.example.com'
@@ -384,13 +373,15 @@ class TestUrlSurt():
         response = client.get(reverse('url_surt', args=[project.project_slug, 'a surt']))
         assert response.templates[0].name == 'nomination/url_surt.html'
 
-    @pytest.mark.parametrize('surt_root, surt, url_list_len, letter', [
-        ('http://(com,e', 'http://(com,example,www)', 1, 'e'),
-        ('http://(com,example,www)', 'http://(com,example,www)', 1, False),
-        ('http://(com,a', 'http://(com,example,www)', 0, 'a'),
-        ('http://(com,apples,www)', 'http://(com,example,www)', 0, False)
+    @pytest.mark.parametrize('surt_root, letter', [
+        ('http://(com,e', 'e'),
+        ('http://(com,example,www)', False),
+        ('http://(com,a', 'a'),
+        ('http://(com,apples,www)', False)
     ])
-    def test_context(self, client, surt_root, surt, url_list_len, letter):
+    def test_context(self, client, surt_root, letter):
+        surt = 'http://(com,example,www)'
+        num_matching_surts = 1 if surt_root in surt else 0
         project = factories.ProjectFactory()
         url = factories.URLFactory(
             url_project=project,
@@ -401,9 +392,7 @@ class TestUrlSurt():
 
         assert response.context['surt'] == surt_root
         assert response.context['project'] == project
-        assert len(response.context['url_list']) == url_list_len
-        if url_list_len == 1:
-            assert response.context['url_list'][0] == url
+        assert str(response.context['url_list']) == str([url] if num_matching_surts else [])
         assert response.context['letter'] == letter
         assert response.context['browse_domain'] == 'com'
         assert len(response.context['browse_dict']) == 1
@@ -523,37 +512,14 @@ class TestUrlAdd():
             assert str(response.context[key]) == str(expected[key])
 
     @pytest.mark.parametrize('reg_required, data, expected_errors', [
-        (
-            False,
-            {'nominator_name': '', 'nominator_institution': '', 'nominator_email': ''},
-            {'url_value': ['This field is required.']}
-        ),
-        (
-            False,
-            {
-                'url_value': 'http://www.example.com',
-                'nominator_name': 'John Doe',
-                'nominator_institution': 'UNT',
-                'nominator_email': '',
-            },
-            {
-                'nominator_email': (
-                    u'You must provide name, institution, and '
-                    'email to affiliate your name or institution with nominations. Leave '
-                    'all "Information About ' 'You" fields blank to remain anonymous.'
-                )
-            }
-        ),
-        (
-            True,
-            {
-                'url_value': 'http://www.example.com',
-                'nominator_name': 'John Doe',
-                'nominator_institution': 'UNT',
-                'nominator_email': ''
-            },
-            {'nominator_email': u'This field is required.'}
-        )
+        (False, {'nominator_name': '', 'nominator_institution': '', 'nominator_email': ''},
+         {'url_value': [field_error]}),
+        (False, {'url_value': 'http://www.example.com', 'nominator_name': 'John Doe',
+                 'nominator_institution': 'UNT', 'nominator_email': ''},
+         {'nominator_email': anonymous_error}),
+        (True, {'url_value': 'http://www.example.com', 'nominator_name': 'John Doe',
+                'nominator_institution': 'UNT', 'nominator_email': ''},
+         {'nominator_email': field_error})
     ])
     def test_context_with_post_and_errors(self, client, reg_required, data, expected_errors):
         entity = 'http://www.example.com'
