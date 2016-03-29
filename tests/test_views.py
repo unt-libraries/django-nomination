@@ -427,14 +427,7 @@ class TestUrlAdd():
 
     def test_template_used(self, client):
         project = factories.ProjectFactory(registration_required=False)
-        response = client.post(
-            reverse('url_add', args=[project.project_slug]),
-            {
-                'nominator_name': 'Eddie',
-                'nominator_institution': 'UNT',
-                'nominator_email': 'someone@somewhere.com'
-            }
-        )
+        response = client.get(reverse('url_add', args=[project.project_slug]))
 
         assert response.templates[0].name == 'nomination/url_add.html'
 
@@ -570,18 +563,12 @@ class TestUrlAdd():
             reverse('url_add', args=[project.project_slug]),
             data
         )
-        expected = {
-            'form_errors': expected_errors,
-            'summary_list': None,
-            'json_data': None,
-            'url_entity': None
-        }
+        json_data = [[key, [data[key]]] for key in sorted(data)]
 
-        assert response.context['form_errors'] == expected['form_errors']
-        assert response.context['summary_list'] == expected['summary_list']
-        assert sorted(json.loads(response.context['json_data'])) == sorted(
-            [[key, [data[key]]] for key in data])
-        assert response.context['url_entity'] == expected['url_entity']
+        assert response.context['form_errors'] == expected_errors
+        assert response.context['summary_list'] == None
+        assert sorted(json.loads(response.context['json_data'])) == json_data
+        assert response.context['url_entity'] == None
 
 
 class TestProjectAbout():
@@ -819,10 +806,8 @@ class TestFieldReport():
         else:
             project = factories.ProjectWithMetadataFactory(metadata2=None)
         metadata = models.Project_Metadata.objects.first().metadata
-        value = (
-            metadata.value_sets.first().values.first().key if metadata_with_valueset
-            else u'something'
-        )
+        met_value = models.Value.objects.first()
+        value = met_value.key if metadata_with_valueset else u'something'
         factories.URLFactory.create_batch(
             3,
             url_project=project,
@@ -830,13 +815,11 @@ class TestFieldReport():
             value=value
         )
         response = client.get(reverse('field_report', args=[project.project_slug, metadata.name]))
+        namelist = [(met_value.value if metadata_with_valueset else value, 3, value)]
 
         assert response.context['project'] == project
         assert str(response.context['valdic']) == str([(value, 3)])
-        assert response.context['namelist'] == (
-            [(models.Value.objects.filter(key=value)[0].value, 3, value)] if metadata_with_valueset
-            else [(value, 3, value)]
-        )
+        assert response.context['namelist'] == namelist
         assert response.context['field'] == metadata.name
 
 
