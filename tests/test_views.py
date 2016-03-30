@@ -760,18 +760,11 @@ class TestFieldReport():
         response = client.get(reverse('field_report', args=[project.project_slug, 'blah']))
         assert response.templates[0].name == 'nomination/metadata_report.html'
 
-    @pytest.mark.parametrize('metadata_with_valueset', [
-        True,
-        False
-    ])
-    def test_context(self, client, metadata_with_valueset):
-        if metadata_with_valueset:
-            project = factories.ProjectWithMetadataFactory(metadata1=None)
-        else:
-            project = factories.ProjectWithMetadataFactory(metadata2=None)
+    def test_context(self, client):
+        project = factories.ProjectWithMetadataFactory(metadata2=None)
         metadata = models.Project_Metadata.objects.first().metadata
         met_value = models.Value.objects.first()
-        value = met_value.key if metadata_with_valueset else u'something'
+        value = u'something'
         factories.URLFactory.create_batch(
             3,
             url_project=project,
@@ -779,11 +772,28 @@ class TestFieldReport():
             value=value
         )
         response = client.get(reverse('field_report', args=[project.project_slug, metadata.name]))
-        namelist = [(met_value.value if metadata_with_valueset else value, 3, value)]
 
         assert response.context['project'] == project
         assert str(response.context['valdic']) == str([(value, 3)])
-        assert response.context['namelist'] == namelist
+        assert response.context['namelist'] == [(value, 3, value)]
+        assert response.context['field'] == metadata.name
+
+    def test_context_with_valueset(self, client):
+        project = factories.ProjectWithMetadataFactory(metadata1=None)
+        metadata = models.Project_Metadata.objects.first().metadata
+        met_value = models.Value.objects.first()
+        value = met_value.key
+        factories.URLFactory.create_batch(
+            3,
+            url_project=project,
+            attribute=metadata.name,
+            value=value
+        )
+        response = client.get(reverse('field_report', args=[project.project_slug, metadata.name]))
+
+        assert response.context['project'] == project
+        assert str(response.context['valdic']) == str([(value, 3)])
+        assert response.context['namelist'] == [(met_value.value, 3, value)]
         assert response.context['field'] == metadata.name
 
 
