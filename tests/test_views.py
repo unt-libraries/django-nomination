@@ -484,19 +484,6 @@ class TestUrlAdd():
         entity = u'http://www.example.com'
         entity_surt = u'http://(com,example,www,)'
         project = factories.ProjectFactory()
-        factories.ProjectMetadataFactory(project=project)
-        factories.URLFactory(url_project=project, entity=entity)
-        factories.SURTFactory(
-            url_project=project,
-            entity=entity,
-            value=entity_surt
-        )
-        factories.SURTFactory.create_batch(
-            1,
-            url_project=project,
-            entity=u'{}/main/page'.format(entity),
-            value=u'{}/main/page'.format(entity_surt)
-        )
 
         expected_context = {
             'form_errors': None,
