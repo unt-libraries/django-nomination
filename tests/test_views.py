@@ -13,11 +13,9 @@ from . import factories
 
 
 pytestmark = pytest.mark.django_db
-scope_error = u'Select a valid choice. {} is not one of the available choices.'
 anonymous_error = (u'You must provide name, institution, and email to affiliate your name '
                    'or institution with nominations. Leave all "Information About You" fields '
                    'blank to remain anonymous.')
-field_error = u'This field is required.'
 
 
 class TestProjectListing():
@@ -302,23 +300,58 @@ class TestUrlListing():
         for key in expected:
             assert str(response.context[key]) == str(expected[key])
 
-    @pytest.mark.parametrize('reg_required, data, expected_errors', [
-        (False, {'scope': 2}, {'scope': [scope_error.format(2)]}),
-        (False, {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'},
-         {'nominator_email': anonymous_error}),
-        (True, {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'},
-         {'nominator_email': field_error})
-    ])
-    def test_context_with_post_and_errors(self, client, reg_required, data, expected_errors):
+    def test_context_with_post_and_field_error(self, client):
         entity = 'www.example.com'
-        project = factories.ProjectFactory(registration_required=reg_required)
+        data = {'scope': 2}
+        project = factories.ProjectFactory(registration_required=False)
         factories.URLFactory(url_project=project, entity=entity)
         response = client.post(
             reverse('url_listing', args=[project.project_slug, entity]),
             data
         )
+        expected_error = {
+            'scope': [u'Select a valid choice. 2 is not one of the available choices.']
+        }
 
-        assert response.context['form_errors'] == expected_errors
+        assert response.context['form_errors'] == expected_error
+        assert response.context['summary_list'] is None
+        assert response.context['scope_form'].is_valid() is False
+        assert sorted(json.loads(response.context['json_data'])) == sorted(
+            [[key, [str(data[key])]] for key in data])
+
+    def test_context_with_post_and_anonymous_error(self, client):
+        entity = 'www.example.com'
+        data = {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'}
+        project = factories.ProjectFactory(registration_required=False)
+        factories.URLFactory(url_project=project, entity=entity)
+        response = client.post(
+            reverse('url_listing', args=[project.project_slug, entity]),
+            data
+        )
+        expected_error = {
+            'nominator_email': (u'You must provide name, institution, and email to affiliate '
+                'your name or institution with nominations. Leave all "Information About You" '
+                'fields blank to remain anonymous.')
+        }
+
+        assert response.context['form_errors'] == expected_error
+        assert response.context['summary_list'] is None
+        assert response.context['scope_form'].is_valid() is False
+        assert sorted(json.loads(response.context['json_data'])) == sorted(
+            [[key, [str(data[key])]] for key in data])
+
+    def test_context_with_post_and_missing_field_error_reg_required(self, client):
+        entity = 'www.example.com'
+        data = {'scope': 1, 'nominator_name': 'John Doe', 'nominator_institution': 'UNT'}
+        project = factories.ProjectFactory(registration_required=True)
+        factories.URLFactory(url_project=project, entity=entity)
+        response = client.post(
+            reverse('url_listing', args=[project.project_slug, entity]),
+            data
+        )
+        expected_error = {'nominator_email': u'This field is required.'}
+
+        assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
         assert response.context['scope_form'].is_valid() is False
         assert sorted(json.loads(response.context['json_data'])) == sorted(
@@ -509,19 +542,10 @@ class TestUrlAdd():
         for key in expected:
             assert str(response.context[key]) == str(expected[key])
 
-    @pytest.mark.parametrize('reg_required, data, expected_errors', [
-        (False, {'nominator_name': '', 'nominator_institution': '', 'nominator_email': ''},
-         {'url_value': [field_error]}),
-        (False, {'url_value': 'http://www.example.com', 'nominator_name': 'John Doe',
-                 'nominator_institution': 'UNT', 'nominator_email': ''},
-         {'nominator_email': anonymous_error}),
-        (True, {'url_value': 'http://www.example.com', 'nominator_name': 'John Doe',
-                'nominator_institution': 'UNT', 'nominator_email': ''},
-         {'nominator_email': field_error})
-    ])
-    def test_context_with_post_and_errors(self, client, reg_required, data, expected_errors):
+    def test_context_with_post_and_missing_field_error(self, client):
         entity = 'http://www.example.com'
-        project = factories.ProjectFactory(registration_required=reg_required)
+        data = {'nominator_name': '', 'nominator_institution': '', 'nominator_email': ''}
+        project = factories.ProjectFactory(registration_required=False)
         factories.URLFactory(url_project=project, entity=entity)
         response = client.post(
             reverse('url_add', args=[project.project_slug]),
@@ -529,7 +553,57 @@ class TestUrlAdd():
         )
         json_data = [[key, [data[key]]] for key in sorted(data)]
 
-        assert response.context['form_errors'] == expected_errors
+        assert response.context['form_errors'] == {'url_value': [u'This field is required.']}
+        assert response.context['summary_list'] == None
+        assert sorted(json.loads(response.context['json_data'])) == json_data
+        assert response.context['url_entity'] == None
+
+    def test_context_with_post_and_anonymous_error(self, client):
+        """A nominator can only be anonymous if ALL nominator fields are blank
+        and registration is not required.
+        """
+        entity = 'http://www.example.com'
+        data = {
+            'url_value': 'http://www.example.com',
+            'nominator_name': 'John Doe',
+            'nominator_institution': 'UNT',
+            'nominator_email': ''
+        }
+        project = factories.ProjectFactory(registration_required=False)
+        factories.URLFactory(url_project=project, entity=entity)
+        response = client.post(
+            reverse('url_add', args=[project.project_slug]),
+            data
+        )
+        expected_error = {
+            'nominator_email': (u'You must provide name, institution, and email to affiliate '
+                'your name or institution with nominations. Leave all "Information About You" '
+                'fields blank to remain anonymous.')
+        }
+        json_data = [[key, [data[key]]] for key in sorted(data)]
+
+        assert response.context['form_errors'] == expected_error
+        assert response.context['summary_list'] == None
+        assert sorted(json.loads(response.context['json_data'])) == json_data
+        assert response.context['url_entity'] == None
+
+    def test_context_with_post_and_missing_field_error_reg_required(self, client):
+        entity = 'http://www.example.com'
+        data = {
+            'url_value': 'http://www.example.com',
+            'nominator_name': 'John Doe',
+            'nominator_institution': 'UNT',
+            'nominator_email': ''
+        }
+        project = factories.ProjectFactory(registration_required=True)
+        factories.URLFactory(url_project=project, entity=entity)
+        response = client.post(
+            reverse('url_add', args=[project.project_slug]),
+            data
+        )
+        json_data = [[key, [data[key]]] for key in sorted(data)]
+
+        assert response.context['form_errors'] == {'nominator_email': u'This field is required.'}
         assert response.context['summary_list'] == None
         assert sorted(json.loads(response.context['json_data'])) == json_data
         assert response.context['url_entity'] == None
