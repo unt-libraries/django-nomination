@@ -425,29 +425,27 @@ class TestUrlAdd():
         entity_surt = u'http://(com,example,www,)'
         project = factories.ProjectFactory()
         project_metadata = factories.ProjectMetadataFactory(project=project)
-        factories.URLFactory(url_project=project, entity=entity)
-        factories.SURTFactory(
+        urls = []
+        urls.append(factories.URLFactory(url_project=project, entity=entity))
+        urls.append(factories.SURTFactory(
             url_project=project,
             entity=entity,
             value=entity_surt
-        )
-        factories.SURTFactory.create_batch(
-            1,
+        ))
+        urls.append(factories.SURTFactory(
             url_project=project,
             entity=u'{}/main/page'.format(entity),
             value=u'{}/main/page'.format(entity_surt)
-        )
-        expected_context = {
-            'project': project,
-            'form': views.URLForm(),
-            'metadata_vals': views.get_metadata(project),
-            'institutions': views.get_look_ahead(project),
-            'form_types': json.dumps({project_metadata.metadata.name: project_metadata.form_type}),
-        }
+        ))
+        institutions = [url.url_nominator.nominator_institution for url in urls]
         response = client.get(reverse('url_add', args=[project.project_slug]))
 
-        for key in expected_context:
-            assert str(response.context[key]) == str(expected_context[key])
+        assert response.context['project'] == project
+        assert type(response.context['form']) == views.URLForm
+        assert str(response.context['metadata_vals']) == str([(project_metadata, [])])
+        assert response.context['institutions'] == json.dumps(sorted(institutions))
+        assert response.context['form_types'] == '{{"{0}": "{1}"}}'.format(
+            project_metadata.metadata.name, project_metadata.form_type)
 
     def test_context_with_get(self, client):
         entity = u'http://www.example.com'
