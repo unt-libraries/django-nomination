@@ -851,8 +851,8 @@ class TestNominatorReport():
         assert response.templates[0].name == 'nomination/nominator_report.html'
 
     @pytest.mark.parametrize('field, field_name', [
-        ('nominator', 'name'),
-        ('institution', 'institution')
+        ('nominator', 'nominator_name'),
+        ('institution', 'nominator_institution')
     ])
     def test_context(self, client, field, field_name):
         project = factories.ProjectFactory()
@@ -862,12 +862,13 @@ class TestNominatorReport():
             value=1
         )
         response = client.get(reverse('nominator_report', args=[project.project_slug, field]))
+        nom_ids = [url.url_nominator.id for url in urls]
+        nominators = [getattr(url.url_nominator, field_name) for url in urls]
 
         assert response.context['project'] == project
         assert len(response.context['valdic']) == 3
-        for url in urls:
-            assert (getattr(url.url_nominator, 'nominator_{0}'.format(field_name)),
-                    1, url.url_nominator.id) in response.context['valdic']
+        for nominator, nom_id in zip(nominators, nom_ids):
+            assert (nominator, 1, nom_id) in response.context['valdic']
         assert response.context['field'] == field
 
 
