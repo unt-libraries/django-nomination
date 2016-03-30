@@ -194,30 +194,30 @@ class TestUrlListing():
 
         assert response.status_code == 200
 
-    @pytest.mark.parametrize('request_type, expected_template', [
-        ('get', 'nomination/url_listing.html'),
-        ('post', 'nomination/url_listing.html')
+    @pytest.mark.parametrize('request_type', [
+        ('get'),
+        ('post')
     ])
-    def test_template_used(self, client, request_type, expected_template):
+    def test_template_used(self, client, request_type):
         entity = 'www.example.com'
         project = factories.ProjectFactory()
         factories.URLFactory(url_project=project, entity=entity)
         response = getattr(client, request_type)(
             reverse('url_listing', args=[project.project_slug, entity]))
 
-        assert response.templates[0].name == expected_template
+        assert response.templates[0].name == 'nomination/url_listing.html'
 
-    @pytest.mark.parametrize('request_type, expected_template', [
-        ('get', 'nomination/url_add.html'),
-        ('post', 'nomination/url_add.html')
+    @pytest.mark.parametrize('request_type', [
+        ('get'),
+        ('post')
     ])
-    def test_template_used_when_url_does_not_exist(self, client, request_type, expected_template):
+    def test_template_used_when_url_does_not_exist(self, client, request_type):
         entity = 'www.example.com'
         project = factories.ProjectFactory()
         response = getattr(client, request_type)(
             reverse('url_listing', args=[project.project_slug, entity]))
 
-        assert response.templates[0].name == expected_template
+        assert response.templates[0].name == 'nomination/url_add.html'
 
     def test_context_url_not_found(self, client):
         entity = 'http://www.example.com'
