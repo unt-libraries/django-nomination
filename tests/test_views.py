@@ -868,11 +868,12 @@ class TestValueReport():
         assert response.status_code == 200
         assert response['Content-Type'] == 'text/plain;'
 
-    @pytest.mark.parametrize('val, url_value', [
-        ('asdf', 'asdf'),
-        ('asdf', 'asdf/')
+    @pytest.mark.parametrize('url_value', [
+        'asdf',
+        'asdf/'
     ])
-    def test_report_text(self, rf, val, url_value):
+    def test_report_text(self, rf, url_value):
+        val = 'asdf'
         project = factories.ProjectFactory()
         field = 'qwerty'
         urls = factories.URLFactory.create_batch(
