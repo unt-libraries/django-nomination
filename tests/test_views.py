@@ -251,8 +251,8 @@ class TestUrlListing():
         related_urls = factories.SURTFactory.create_batch(
             1,
             url_project=project,
-            entity=u'{}/main/page'.format(entity),
-            value=u'{}/main/page'.format(entity_surt)
+            entity=u'{0}/main/page'.format(entity),
+            value=u'{0}/main/page'.format(entity_surt)
         )
         expected_context = {
             'project': project,
@@ -330,8 +330,8 @@ class TestUrlListing():
         )
         expected_error = {
             'nominator_email': (u'You must provide name, institution, and email to affiliate '
-                'your name or institution with nominations. Leave all "Information About You" '
-                'fields blank to remain anonymous.')
+                                'your name or institution with nominations. Leave all '
+                                '"Information About You" fields blank to remain anonymous.')
         }
 
         assert response.context['form_errors'] == expected_error
@@ -371,8 +371,8 @@ class TestUrlListing():
         factories.SURTFactory.create_batch(
             1,
             url_project=project,
-            entity=u'{}/main/page'.format(entity),
-            value=u'{}/main/page'.format(entity_surt)
+            entity=u'{0}/main/page'.format(entity),
+            value=u'{0}/main/page'.format(entity_surt)
         )
 
         expected_context = {
@@ -467,8 +467,8 @@ class TestUrlAdd():
         ))
         urls.append(factories.SURTFactory(
             url_project=project,
-            entity=u'{}/main/page'.format(entity),
-            value=u'{}/main/page'.format(entity_surt)
+            entity=u'{0}/main/page'.format(entity),
+            value=u'{0}/main/page'.format(entity_surt)
         ))
         institutions = [url.url_nominator.nominator_institution for url in urls]
         response = client.get(reverse('url_add', args=[project.project_slug]))
@@ -481,8 +481,6 @@ class TestUrlAdd():
             project_metadata.metadata.name, project_metadata.form_type)
 
     def test_context_with_get(self, client):
-        entity = u'http://www.example.com'
-        entity_surt = u'http://(com,example,www,)'
         project = factories.ProjectFactory()
 
         expected_context = {
@@ -541,9 +539,9 @@ class TestUrlAdd():
         json_data = [[key, [data[key]]] for key in sorted(data)]
 
         assert response.context['form_errors'] == {'url_value': [u'This field is required.']}
-        assert response.context['summary_list'] == None
+        assert response.context['summary_list'] is None
         assert sorted(json.loads(response.context['json_data'])) == json_data
-        assert response.context['url_entity'] == None
+        assert response.context['url_entity'] is None
 
     def test_context_with_post_and_anonymous_error(self, client):
         """A nominator can only be anonymous if ALL nominator fields are blank
@@ -564,15 +562,15 @@ class TestUrlAdd():
         )
         expected_error = {
             'nominator_email': (u'You must provide name, institution, and email to affiliate '
-                'your name or institution with nominations. Leave all "Information About You" '
-                'fields blank to remain anonymous.')
+                                'your name or institution with nominations. Leave all '
+                                '"Information About You" fields blank to remain anonymous.')
         }
         json_data = [[key, [data[key]]] for key in sorted(data)]
 
         assert response.context['form_errors'] == expected_error
-        assert response.context['summary_list'] == None
+        assert response.context['summary_list'] is None
         assert sorted(json.loads(response.context['json_data'])) == json_data
-        assert response.context['url_entity'] == None
+        assert response.context['url_entity'] is None
 
     def test_context_with_post_and_missing_field_error_reg_required(self, client):
         entity = 'http://www.example.com'
@@ -591,9 +589,9 @@ class TestUrlAdd():
         json_data = [[key, [data[key]]] for key in sorted(data)]
 
         assert response.context['form_errors'] == {'nominator_email': u'This field is required.'}
-        assert response.context['summary_list'] == None
+        assert response.context['summary_list'] is None
         assert sorted(json.loads(response.context['json_data'])) == json_data
-        assert response.context['url_entity'] == None
+        assert response.context['url_entity'] is None
 
 
 class TestProjectAbout():
@@ -824,7 +822,7 @@ class TestFieldReport():
     def test_context(self, client):
         project = factories.ProjectWithMetadataFactory(metadata2=None)
         metadata = models.Project_Metadata.objects.first().metadata
-        met_value = models.Value.objects.first()
+        models.Value.objects.first()
         value = u'something'
         factories.URLFactory.create_batch(
             3,
@@ -905,7 +903,8 @@ class TestNominatorReport():
 
     def test_template_used(self, client):
         project = factories.ProjectFactory()
-        response = client.get(reverse('nominator_report', args=[project.project_slug, 'nominator']))
+        url = reverse('nominator_report', args=[project.project_slug, 'nominator'])
+        response = client.get(url)
         assert response.templates[0].name == 'nomination/nominator_report.html'
 
     @pytest.mark.parametrize('field, field_name', [
