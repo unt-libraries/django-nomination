@@ -903,13 +903,9 @@ class TestNominatorReport():
 
         assert response.status_code == 200
 
-    @pytest.mark.parametrize('field', [
-        'nominator',
-        'institution'
-    ])
-    def test_template_used(self, client, field):
+    def test_template_used(self, client):
         project = factories.ProjectFactory()
-        response = client.get(reverse('nominator_report', args=[project.project_slug, field]))
+        response = client.get(reverse('nominator_report', args=[project.project_slug, 'nominator']))
         assert response.templates[0].name == 'nomination/nominator_report.html'
 
     @pytest.mark.parametrize('field, field_name', [
