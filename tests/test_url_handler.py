@@ -58,13 +58,13 @@ class TestGetMetadata():
     def test_returns_metadata_list(self):
         project = factories.ProjectFactory()
         vals = [mdv.metadata for mdv in factories.MetadataValuesFactory.create_batch(3)]
-        metadata = [
+        proj_metadata = [
             factories.ProjectMetadataFactory(project=project, metadata=val)
             for val in vals
         ]
         expected = [
-            (md, [models.Metadata_Values.objects.get(metadata=md).value])
-            for md in metadata
+            (pm, [models.Metadata_Values.objects.get(metadata=pm.metadata).value])
+            for pm in proj_metadata
         ]
         results = url_handler.get_metadata(project)
 

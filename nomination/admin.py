@@ -31,8 +31,10 @@ class URLAdmin(admin.ModelAdmin):
 
 class ProjectAdminForm(forms.ModelForm):
     """ Project class to specify how form data is handled in admin """
+
     class Meta:
         model = Project
+        fields = '__all__'
 
     def clean_project_slug(self):
         """ Make sure the project_slug field is alphanumeric """

@@ -102,7 +102,7 @@ def project_listing(request):
     )
 
 def robot_ban(request):
-    return HttpResponse('User-agent: *' + "\n" + 'Disallow: /', mimetype='text/plain')
+    return HttpResponse('User-agent: *' + "\n" + 'Disallow: /', content_type='text/plain')
 
 def nomination_about(request):
     return render_to_response(
@@ -580,12 +580,12 @@ def browse_json(request, slug, attribute):
     else:
         json_string = create_json_browse(slug, attribute, '')
 
-    return HttpResponse(json_string, mimetype='application/json')
+    return HttpResponse(json_string, content_type='application/json')
 
 def search_json(request, slug):
     json_string = create_json_search(slug)
 
-    return HttpResponse(json_string, mimetype='application/json')
+    return HttpResponse(json_string, content_type='application/json')
 
 def reports_view(request, slug):
     #get the project by the project slug
@@ -624,7 +624,7 @@ def url_report(request, slug):
     for url_item in url_list:
         report_text += url_item.entity + "\n"
 
-    return HttpResponse(report_text, mimetype='text/plain; charset="UTF-8"')
+    return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
 def surt_report(request, slug):
     #get the project by the project slug
@@ -643,7 +643,7 @@ def surt_report(request, slug):
     for url_item in surt_list:
         report_text += url_item.value + "\n"
 
-    return HttpResponse(report_text, mimetype='text/plain; charset="UTF-8"')
+    return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
 def url_score_report(request, slug):
     #get the project by the project slug
@@ -664,7 +664,7 @@ def url_score_report(request, slug):
         nomination_score, entity = row
         report_text += u'{0};"{1}"\n'.format(int(nomination_score), entity)
 
-    return HttpResponse(report_text, mimetype='text/plain; charset="UTF-8"')
+    return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
 def url_date_report(request, slug):
     #get the project by the project slug
@@ -685,7 +685,7 @@ def url_date_report(request, slug):
         report_text += u'{0};"{1}";{2}\n'.format(date.strftime('%Y-%m-%dT%H:%M:%S'),
                                                  entity, value)
 
-    return HttpResponse(report_text, mimetype='text/plain; charset="UTF-8"')
+    return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
 def url_nomination_report(request, slug):
     #get the project by the project slug
@@ -707,7 +707,7 @@ def url_nomination_report(request, slug):
         nominations, entity = row
         report_text += u'{0};"{1}"\n'.format(int(nominations), entity)
 
-    return HttpResponse(report_text, mimetype='text/plain; charset="UTF-8"')
+    return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
 def field_report(request, slug, field):
     #get the project by the project slug
@@ -772,7 +772,7 @@ def value_report(request, slug, field, val):
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
     for entity in urls.values_list('entity', flat=True).order_by('entity').distinct():
         report_text += unicode(entity) + '\n'
-    return HttpResponse(report_text, mimetype='text/plain;')
+    return HttpResponse(report_text, content_type='text/plain;')
 
 
 def nominator_report(request, slug, field):
@@ -838,7 +838,7 @@ def nominator_url_report(request, slug, field, nomid):
     for entity in results:
         report_text += unicode(entity) + '\n'
 
-    return HttpResponse(report_text, mimetype='text/plain; charset="UTF-8"')
+    return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
 def project_dump(request, slug):
     #get the project by the project slug
@@ -846,7 +846,7 @@ def project_dump(request, slug):
     project_urls = {}
     # Create dictionary from the URLs data pulled from all URLs entries
     project_urls = create_url_dump(project)
-    response = HttpResponse(mimetype = 'application/json; charset=utf-8')
+    response = HttpResponse(content_type = 'application/json; charset=utf-8')
     json.dump(project_urls, fp=response, sort_keys=True, indent=4, ensure_ascii=False)
     response['Content-Disposition'] = 'attachment; filename=' + slug + '_urls.json'
     return response
