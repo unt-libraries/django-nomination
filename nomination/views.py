@@ -70,15 +70,6 @@ def get_project(slug):
 
     return project
 
-def query_to_tuple(query_string, *query_args):
-    """Run a simple query and produce a tuple of results,
-        with row data tuples
-    """
-    cursor = connection.cursor()
-    cursor.execute(query_string, query_args)
-
-    return cursor.fetchall()
-
 def project_listing(request):
     #get the project by the project slug
     try:
