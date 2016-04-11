@@ -376,7 +376,6 @@ class TestSaveAttribute():
         assert 'You have successfully added' in results[0]
         assert models.URL.objects.all().count() == 1
 
-    @pytest.mark.xfail(reason='Search for existing URL object with same atts is broken.')
     def test_does_not_create_url_if_it_exists_already(self):
         url = factories.URLFactory()
         results = url_handler.save_attribute(
