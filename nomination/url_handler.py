@@ -244,7 +244,7 @@ def save_attribute(project, nominator, form_data, summary_list, attribute_name, 
     """
     try:
         #Check if URL attribute and value already exist
-        added_url = URL.objects.get(url_nominator__iexact = nominator,
+        added_url = URL.objects.get(url_nominator = nominator,
                                                  url_project = project,
                                                  entity__iexact = form_data['url_value'],
                                                  value__iexact = valvar,
