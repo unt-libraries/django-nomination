@@ -79,14 +79,14 @@ class TestURLFeed:
     @pytest.mark.xfail(reason='Manual use of urlquote inside of reverse produces different URL.')
     def test_item_link(self, rf):
         project = factories.ProjectFactory(project_slug='test_project')
-        surt = factories.SURTFactory(url_project=project, entity='www.example.com')
+        surt = factories.SURTFactory(url_project=project, entity='http://www.example.com')
         request = rf.get('/')
 
         feed = feeds.url_feed()
         feed.get_object(request, project.project_slug)
         item_link = feed.item_link(surt)
 
-        assert item_link == '/nomination/test_project/url/www.example.com'
+        assert item_link == '/nomination/test_project/url/http://www.example.com/'
 
     def test_item_pubdate(self):
         project = factories.ProjectFactory()
@@ -234,14 +234,14 @@ class TestNominationFeed:
     @pytest.mark.xfail(reason='Manual use of urlquote inside of reverse produces different URL.')
     def test_item_link(self, rf):
         project = factories.ProjectFactory(project_slug='test_project')
-        nom = factories.NominatedURLFactory(url_project=project, entity='www.example.com')
+        nom = factories.NominatedURLFactory(url_project=project, entity='http://www.example.com')
         request = rf.get('/')
 
         feed = feeds.nomination_feed()
         feed.get_object(request, project.project_slug)
         item_link = feed.item_link(nom)
 
-        assert item_link == '/nomination/test_project/nominations/www.example.com'
+        assert item_link == '/nomination/test_project/url/http://www.example.com/'
 
     def test_item_pubdate(self):
         project = factories.ProjectFactory()
