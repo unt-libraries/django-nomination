@@ -76,7 +76,6 @@ class TestURLFeed:
         assert items[0] == surts[1]
         assert items[1] == surts[0]
 
-    @pytest.mark.xfail(reason='Manual use of urlquote inside of reverse produces different URL.')
     def test_item_link(self, rf):
         project = factories.ProjectFactory(project_slug='test_project')
         surt = factories.SURTFactory(url_project=project, entity='http://www.example.com')
@@ -231,7 +230,6 @@ class TestNominationFeed:
         assert items[0] == noms[1]
         assert items[1] == noms[0]
 
-    @pytest.mark.xfail(reason='Manual use of urlquote inside of reverse produces different URL.')
     def test_item_link(self, rf):
         project = factories.ProjectFactory(project_slug='test_project')
         nom = factories.NominatedURLFactory(url_project=project, entity='http://www.example.com')
