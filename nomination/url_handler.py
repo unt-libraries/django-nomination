@@ -460,7 +460,10 @@ def create_json_search(slug):
         raise http.Http404
 
     json_list = []
-    query_list = URL.objects.values_list('entity', flat=True).distinct().order_by('entity')
+    query_list = (URL.objects.filter(url_project=project)
+                             .values_list('entity', flat=True)
+                             .distinct()
+                             .order_by('entity'))
     for url_item in query_list:
         json_list.append(url_item)
 
