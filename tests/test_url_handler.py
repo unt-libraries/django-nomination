@@ -560,7 +560,6 @@ class TestCreateJsonBrowse():
 
 class TestCreateJsonSearch():
 
-    @pytest.mark.xfail(reason='URLs are not being filtered by project.')
     def test_returns_expected(self):
         project = factories.ProjectFactory()
         expected_urls = factories.URLFactory.create_batch(10, url_project=project)
