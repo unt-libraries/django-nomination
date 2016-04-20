@@ -43,12 +43,13 @@ class TestURLFeed:
 
         assert link == '/nomination/test_project/feed/urls/'
 
-    def test_description(self):
+    @pytest.mark.xfail(reason='Atom feeds need the subtitle element, not the description element.')
+    def test_subtitle(self):
         project = factories.ProjectFactory(project_name='Test Project')
         feed = feeds.url_feed()
-        description = feed.description(project)
+        subtitle = feed.subtitle(project)
 
-        assert description == 'RSS feed for the most recent URLs added to Test Project.'
+        assert subtitle == 'RSS feed for the most recent URLs added to Test Project.'
 
     def test_items_returns_only_project_surts(self):
         project = factories.ProjectFactory()
@@ -196,14 +197,15 @@ class TestNominationFeed:
 
         assert link == '/nomination/test_project/feed/nominations/'
 
-    def test_description(self):
+    @pytest.mark.xfail(reason='Atom feeds need the subtitle element, not the description element.')
+    def test_subtitle(self):
         project = factories.ProjectFactory(project_name='Test Project')
         feed = feeds.nomination_feed()
-        description = feed.description(project)
+        subtitle = feed.subtitle(project)
 
-        assert description == ('RSS feed for the most recently nominated URLs for Test Project. '
-                               'Includes newly added URLs and subsequent nominations of '
-                               'those URLs.')
+        assert subtitle == ('RSS feed for the most recently nominated URLs for Test Project. '
+                            'Includes newly added URLs and subsequent nominations of '
+                            'those URLs.')
 
     def test_items_returns_only_project_nominations(self):
         project = factories.ProjectFactory()
