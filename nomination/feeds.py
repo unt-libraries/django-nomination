@@ -1,7 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.contrib.syndication.views import Feed, FeedDoesNotExist
 from nomination.views import get_project
-from django.utils.http import urlquote
 from django.utils.feedgenerator import Atom1Feed
 
 class url_feed(Feed):
@@ -35,7 +34,7 @@ class url_feed(Feed):
 
     def item_link(self, item):
         """Takes an item from items(), and returns its URL."""
-        return reverse('url_listing', args=[self.slug,urlquote(item.entity)])
+        return reverse('url_listing', args=[self.slug, item.entity])
 
     def item_pubdate(self, item):
         """Takes an item from items(), and returns its added date."""
@@ -93,7 +92,7 @@ class nomination_feed(Feed):
 
     def item_link(self, item):
         """Takes an item from items(), and returns its URL."""
-        return reverse('url_listing', args=[self.slug,urlquote(item.entity)])
+        return reverse('url_listing', args=[self.slug, item.entity])
 
     def item_pubdate(self, item):
         """Takes an item from items(), and returns its nomination date."""
