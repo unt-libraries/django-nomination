@@ -6,4 +6,4 @@ build/
 .tox/
 *.sqlite3
 .cache
-*.coverage*
+*.coverage
