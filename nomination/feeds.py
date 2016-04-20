@@ -23,8 +23,8 @@ class url_feed(Feed):
             raise FeedDoesNotExist
         return reverse('url_feed', args=[self.slug])
 
-    def description(self, obj):
-        """Returns the description of the feed."""
+    def subtitle(self, obj):
+        """Returns the subtitle for the feed."""
         return "RSS feed for the most recent URLs added to " + \
             obj.project_name + "."
 
@@ -80,8 +80,8 @@ class nomination_feed(Feed):
             raise FeedDoesNotExist
         return reverse('nomination_feed', args=[self.slug,])
 
-    def description(self, obj):
-        """Returns the description of the feed."""
+    def subtitle(self, obj):
+        """Returns the subtitle for the feed."""
         return "RSS feed for the most recently nominated URLs for " + \
             obj.project_name + ". Includes newly added URLs " + \
             "and subsequent nominations of those URLs."
