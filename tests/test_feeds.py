@@ -43,7 +43,6 @@ class TestURLFeed:
 
         assert link == '/nomination/test_project/feed/urls/'
 
-    @pytest.mark.xfail(reason='Atom feeds need the subtitle element, not the description element.')
     def test_subtitle(self):
         project = factories.ProjectFactory(project_name='Test Project')
         feed = feeds.url_feed()
@@ -196,7 +195,6 @@ class TestNominationFeed:
 
         assert link == '/nomination/test_project/feed/nominations/'
 
-    @pytest.mark.xfail(reason='Atom feeds need the subtitle element, not the description element.')
     def test_subtitle(self):
         project = factories.ProjectFactory(project_name='Test Project')
         feed = feeds.nomination_feed()
