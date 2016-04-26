@@ -1,0 +1,34 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <title>{% block title %}{% endblock %}</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="shortcut icon" type="image/x-icon" href="{% static 'nomination/images/favicon.ico' %}" />
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+        {% if project %}
+            <link rel="alternate" type="application/rss+xml" title="Newly Added URLs" href="{% url 'url_feed' project.project_slug %}" />
+            <link rel="alternate" type="application/rss+xml" title="Recent Nominations" href="{% url 'nomination_feed' project.project_slug %}" />
+        {% endif %}
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="{% static 'nomination/scripts/jquery-1.2.6.pack.js' %}"></script>
+        <script type="text/javascript" src="{% static 'nomination/scripts/jquery.dimensions.pack.js' %}"></script>
+        <script type="text/javascript" src="{% static 'nomination/scripts/local.js' %}"></script>
+        {% block extra_headers %}{% endblock %}
+    </head>
+
+    <body>
+        {% include "nomination/navbar.html" %}
+        <div class="container">
+            {% if maintenance_message %}
+                <div class="alert alert-warning" role="alert">{{maintenance_message}}</div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+
+</html>
