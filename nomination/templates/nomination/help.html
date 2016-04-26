@@ -1,78 +1,161 @@
-{% extends "nomination/index.html" %}
+{% extends "nomination/base.html" %}
 
 {% block title %}Nomination Tool: About{% endblock %}
 
-{% block body_classes %}about-project{% endblock %}
-
-{% block project_nav %}{% endblock %}
-
-{% block main_nav %}
-    <div id="hd"><h1>Nomination Tool</h1>
-    <p id="other-projects"><a href="{% url 'nomination_help' %}">Help</a></p>
-    <ul id="navigation">
-    <li><a href="{% url 'project_listing' %}">Home</a></li>
-    <li><a href="{% url 'nomination_about' %}">About this Tool</a></li>
-    </ul>
-    </div>
-{% endblock %}
-
 {% block content %}
-<!--<div id="bd">-->
-<!--<div id="yui-main">-->
-<!--<div class="field-wrapper">-->
-<h1>Nomination Tool: How to Contribute</h1>&nbsp;
-<h2>Overview:</h2>
-<p>The purpose of this nomination tool is to allow subject experts to:</p>
-<ul>
-<li>Flag which URLs are “in scope” and most critical to harvest</li>
-<li>Add new relevant URLs not appearing in the list yet</li>
-<li>Flag which URLs are either wrong or “out of scope” and not relevant to the harvest</li>
-<li>Supply basic metadata about a URL, such as site title or description</li>
-</ul>
-&nbsp;
 
-<p>Each URL in the list will have a nomination score.  Every time a subject expert marks a URL “in scope”, the score will rise.  Mark a URL as “out of scope” and the score will fall.  The nomination score will be used to weight the depth and frequency of harvests, to insure that critical sites are captured completely.</p>
-<h2>Search or browse the nomination tool by URL</h2>
-<p>You can either type a known URL in the search box, or click on a letter to browse alphabetically. </p>
-<h2>If the URL is already in the nomination tool</h2>
-&nbsp;
-
-<h3>REVIEW THE INFORMATION KNOWN ABOUT THE URL</h3>
-<p>When you select a URL from a browse or search results page, you will have a single screen to review known information about it, to supply new information about it, and to provide your contact information.</p>
-<p>Information about that URL will show at the top of the screen.  This will include the current nomination score, information about who has voted on it, and some technical information about the URL (see “What is a SURT”? for further info.).  This area may also contain information about related URLs where a website is complex enough to have many variations on the URL.  If any metadata has been supplied by other subject experts, it will also appear here.<br />
-</p>
-<h3>VOTE ON WHETHER THE URL IS IN SCOPE OR OUT OF SCOPE</h3>
-<p>This step is required before you can hit the submit button.  “In scope” means that the URL is important to harvest, and “Out of scope” means that the URL is not relevant to the harvest.  You should also mark a URL as “out of scope” if you know that it is no longer functional.</p>
-<p>If the site is important to the project DO mark it “in scope”, even if other subject experts have also done so.  The more “in scope” votes a URL has, the easier it will be for the harvest specialists to identify as critical.</p>
-<h3>SUPPLY METADATA (OPTIONAL)</h3>
-<p>Sometimes the nomination tool's Add a URL form will provide an area where you can enter values for predefined metadata fields. Unless these fields are marked "required," you do not have to provide information for them. All values submitted for these fields will be available to view on the URLs listing page once it has been entered into the system.
-Harvest engineers may use these metadata values in addition to the nomination score to determine how intensively to harvest a site.</p>
-<h3>SUPPLY YOUR INFORMATION (REQUIRED)</h3>
-<p>The first time you add or vote on a URL, you will be asked to provide your name, institution and email address.  That information will be saved for your session so you don’t have to enter it again.  If you leave the nomination tool and return to it some time later, you may be prompted to supply your information again.</p>
-<h2>If the URL is not in the nomination tool</h2>
-<p>If you search for a URL that is not already in the harvest list, you will arrive at a blank entry screen for that URL.  You do not need to type the URL in again to add it, this information is retained from your search.  Mark the URL as “in scope”, make sure your contact information is provided and optionally provide metadata to add it to the list.</p>
-<h2>Nomination Tool Navigation</h2>
-<p>After you submit a new URL or vote on an existing URL, the detailed screen will re-load with a confirmation of your action.  Choose <strong>Project Home</strong> to resume searching or browsing.  You can also use the browser’s <strong>Back</strong> button to return to an alphabetical list page.  The visited link color will indicate where you left off in the list.</p>
-<hr />
-<h2>Nomination Tool FAQ</h2>
-&nbsp;
-
-<h3>CAN I EDIT AN EXISTING ENTRY?</h3>
-<p>No – the harvest specialists will edit the list for accuracy.  If you observe or make an error in a URL record, submit a comment for that URL and the harvest specialists will make the correction.</p>
-<h3>CAN I DELETE ENTRIES?</h3>
-<p>No, but you can mark and entry as “out of scope” if you think it is not relevant to the project.</p>
-<h3>WHAT IS A SURT?</h3>
-<p>SURT stands for Sort-friendly URI Reordering Transform, and is used by the harvest specialists to understand how URLs are related to one another.  The SURT for a URL shows its domain information from the most general to the most specific, and can identify when a particular domain contains many URLs.  This is what generates the list of “related URLs” that you see in some URL records.  You may find this a useful way of exploring the list of URLs, but you’re not required to use it; this information is intended mainly for use by the harvest specialists.</p>
-<h3>WILL A URL GET CRAWLED IF I DON’T VOTE ON IT?</h3>
-<p>Yes.  All of the known URLs will be harvested to some degree during this project.  Voting a URL “in scope” helps to insure that it will be harvested in-depth, so that the resulting archive will be more complete.</p>
-<h3>HOW IS THE NOMINATION SCORE CALCULATED?</h3>
-<p>The initial URL list is compiled from several different sources.  A URL will get one point for each source list it appeared on.  The URL will get one point every time it is voted “in scope” and will lose a point every time it is voted “out of scope”. </p>
-<h3>CAN I VOTE ON A URL MULTIPLE TIMES?</h3>
-<p>You cannot mark a URL “in scope” repeatedly to increase its score, but you can change your vote in order to correct a mistake if needed. </p>
-<h3>WHAT IF I HAVE A QUESTION?</h3>
-<p>If you have questions about the nomination tool, please contact <a href="mailto:mark.phillips@unt.edu">mark.phillips@unt.edu</a></p>
-
-
+    <div class="panel-group">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Nomination Tool: How to Contribute</h4>
+            </div>
+            <div class="panel-body">
+                <h5><b>Overview:</b></h5>
+                <p>The purpose of this nomination tool is to allow subject experts to:</p>
+                <ul>
+                    <li>Flag which URLs are “in scope” and most critical to harvest</li>
+                    <li>Add new relevant URLs not appearing in the list yet</li>
+                    <li>Flag which URLs are either wrong or “out of scope” and not relevant to the harvest</li>
+                    <li>Supply basic metadata about a URL, such as site title or description</li>
+                </ul>
+                <p>
+                    Each URL in the list will have a nomination score.  Every time a subject expert
+                    marks a URL “in scope”, the score will rise.  Mark a URL as “out of scope” and
+                    the score will fall.  The nomination score will be used to weight the depth and
+                    frequency of harvests, to insure that critical sites are captured completely.
+                </p>
+                <br>
+                <h5><b>Search or browse the nomination tool by URL</b></h5>
+                <p>
+                    You can either type a known URL in the search box, or click
+                    on a letter to browse alphabetically.
+                </p>
+                <br>
+                <h5><b>If the URL is already in the nomination tool</b></h5>
+                <hr>
+                <h6><b>REVIEW THE INFORMATION KNOWN ABOUT THE URL</b></h6>
+                <p>
+                    When you select a URL from a browse or search results page, you will have a
+                    single screen to review known information about it, to supply new information
+                    about it, and to provide your contact information.
+                </p>
+                <p>
+                    Information about that URL will show at the top of the screen.  This will
+                    include the current nomination score, information about who has voted on it,
+                    and some technical information about the URL (see “What is a SURT”? for
+                    further info.).  This area may also contain information about related URLs
+                    where a website is complex enough to have many variations on the URL.  If
+                    any metadata has been supplied by other subject experts, it will also
+                    appear here.
+                </p>
+                <h6><b>VOTE ON WHETHER THE URL IS IN SCOPE OR OUT OF SCOPE</b></h6>
+                <p>
+                    This step is required before you can hit the submit button.  “In scope” means
+                    that the URL is important to harvest, and “Out of scope” means that the URL
+                    is not relevant to the harvest.  You should also mark a URL as “out of scope”
+                    if you know that it is no longer functional.
+                </p>
+                <p>
+                    If the site is important to the project DO mark it “in scope”, even if other
+                    subject experts have also done so.  The more “in scope” votes a URL has, the
+                    easier it will be for the harvest specialists to identify as critical.
+                </p>
+                <h6><b>SUPPLY METADATA (OPTIONAL)</b></h6>
+                <p>
+                    Sometimes the nomination tool's Add a URL form will provide an area where you
+                    can enter values for predefined metadata fields. Unless these fields are marked
+                    "required," you do not have to provide information for them. All values
+                    submitted for these fields will be available to view on the URLs listing page
+                    once it has been entered into the system. Harvest engineers may use these
+                    metadata values in addition to the nomination score to determine how
+                    intensively to harvest a site.
+                </p>
+                <h6><b>SUPPLY YOUR INFORMATION (REQUIRED)</b></h6>
+                <p>
+                    The first time you add or vote on a URL, you will be asked to provide your
+                    name, institution and email address.  That information will be saved for
+                    your session so you don’t have to enter it again.  If you leave the
+                    nomination tool and return to it some time later, you may be prompted to
+                    supply your information again.
+                </p>
+                <br>
+                <h5><b>If the URL is not in the nomination tool</b></h5>
+                <hr>
+                <p>
+                    If you search for a URL that is not already in the harvest list, you will
+                    arrive at a blank entry screen for that URL.  You do not need to type the
+                    URL in again to add it, this information is retained from your search.
+                    Mark the URL as “in scope”, make sure your contact information is provided
+                    and optionally provide metadata to add it to the list.
+                </p>
+                <h6><b>Nomination Tool Navigation</b></h6>
+                <p>
+                    After you submit a new URL or vote on an existing URL, the detailed screen
+                    will re-load with a confirmation of your action.  Choose
+                    <strong>Project Home</strong> to resume searching or browsing.  You can also
+                    use the browser’s <strong>Back</strong> button to return to an alphabetical
+                    list page.  The visited link color will indicate where you left off in the list.
+                </p>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Nomination Tool FAQ</h4>
+            </div>
+            <div class="panel-body">
+                <h5><b>CAN I EDIT AN EXISTING ENTRY?</b></h5>
+                <p>
+                    No – the harvest specialists will edit the list for accuracy.  If you observe
+                    or make an error in a URL record, submit a comment for that URL and the
+                    harvest specialists will make the correction.
+                </p>
+                <br>
+                <h5><b>CAN I DELETE ENTRIES?</b></h5>
+                <p>
+                    No, but you can mark and entry as “out of scope” if you think it is
+                    not relevant to the project.
+                </p>
+                <br>
+                <h5><b>WHAT IS A SURT?</b></h5>
+                <p>
+                    SURT stands for Sort-friendly URI Reordering Transform, and is used by the
+                    harvest specialists to understand how URLs are related to one another.  The
+                    SURT for a URL shows its domain information from the most general to the most
+                    specific, and can identify when a particular domain contains many URLs.  This
+                    is what generates the list of “related URLs” that you see in some URL records.
+                    You may find this a useful way of exploring the list of URLs, but you’re not
+                    required to use it; this information is intended mainly for use by the harvest
+                    specialists.
+                </p>
+                <br>
+                <h5><b>WILL A URL GET CRAWLED IF I DON’T VOTE ON IT?</b></h5>
+                <p>
+                    Yes.  All of the known URLs will be harvested to some degree during this
+                    project.  Voting a URL “in scope” helps to insure that it will be
+                    harvested in-depth, so that the resulting archive will be more complete.
+                </p>
+                <br>
+                <h5><b>HOW IS THE NOMINATION SCORE CALCULATED?</b></h5>
+                <p>
+                    The initial URL list is compiled from several different sources.  A URL
+                    will get one point for each source list it appeared on.  The URL will get
+                    one point every time it is voted “in scope” and will lose a point every
+                    time it is voted “out of scope”.
+                </p>
+                <br>
+                <h5><b>CAN I VOTE ON A URL MULTIPLE TIMES?</b></h5>
+                <p>
+                    You cannot mark a URL “in scope” repeatedly to increase its score, but you
+                    can change your vote in order to correct a mistake if needed. 
+                </p>
+                <br>
+                <h5><b>WHAT IF I HAVE A QUESTION?</b></h5>
+                <p>
+                    If you have questions about the nomination tool, please contact
+                    <a href="mailto:mark.phillips@unt.edu">mark.phillips@unt.edu</a>
+                </p>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
-
