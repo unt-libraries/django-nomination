@@ -1,29 +1,36 @@
-{% extends "nomination/index.html" %}
+{% extends "nomination/base.html" %}
 
 {% block title %}Nomination Tool: About{% endblock %}
 
-{% block body_classes %}about-project{% endblock %}
-
-{% block project_nav %}{% endblock %}
-
-{% block main_nav %}
-    <div id="hd"><h1>Nomination Tool</h1>
-    <p id="other-projects"><a href="{% url 'nomination_help' %}">Help</a></p>
-    <ul id="navigation">
-    <li><a href="{% url 'project_listing' %}">Home</a></li>
-    <li><a href="{% url 'nomination_about' %}">About this Tool</a></li>
-    </ul>
-    </div>
-{% endblock %}
-
 {% block content %}
 
-        <div class="field-wrapper">
-        <h2>About</h2>&nbsp;
-<p>The URL Nomination Tool has been designed by the project team and developed by the University of North Texas to provide the community of subject specialists with a convenient means to contribute information on specific sites for a focused crawl. The tool was initially populated with URLs (“seeds”) from previous harvests. Using the tool, participants may suggest additional URLs, add recommendations for priority, and add brief additional information as appropriate. After nomination occurs, this new list is used as the crawlers initial list of URLs to crawl.</p>
-        <h2>Request a Project</h2>&nbsp;
-        <p>If you would like to start a Nomination project, please send an email to <a href="mailto:lauren.ko@unt.edu">lauren.ko@unt.edu</a> to initiate the setup process.</p>
+    <div class="panel-group">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">About</h4>
+            </div>
+            <div class="panel-body">
+                The URL Nomination Tool has been designed by the project team and
+                developed by the University of North Texas to provide the community
+                of subject specialists with a convenient means to contribute information
+                on specific sites for a focused crawl. The tool was initially populated
+                with URLs (“seeds”) from previous harvests. Using the tool, participants
+                may suggest additional URLs, add recommendations for priority, and
+                add brief additional information as appropriate. After nomination
+                occurs, this new list is used as the crawlers initial list of URLs
+                to crawl.
+            </div>
         </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Request a Project</h4>
+            </div>
+            <div class="panel-body">
+                If you would like to start a Nomination project, please send an
+                email to <a href="mailto:lauren.ko@unt.edu">lauren.ko@unt.edu</a> 
+                to initiate the setup process.
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
-
