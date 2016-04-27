@@ -1,45 +1,68 @@
-{% extends "nomination/index.html" %}
+{% extends "nomination/base.html" %}
+
 {% block title %}Nomination Tool{% endblock %}
-{% block main_nav %}{% endblock %}
+
 {% block content %}
-<div class="field-wrapper">
-{% if url_list %}
-    {% if letter %}
-        <span><b>Browse URLs that begin with {{ letter|capfirst }}</b></span><br/><br/>
-    {% endif %}
-    {% if browse_domain %}
-    <h2>Browse
-        <a href="/nomination/{{ project.project_slug }}/surt/http://({{ browse_domain }}/">
-            {{ browse_domain }}
-        </a> URLs
-    </h2>
-    <div class="browse">
-    {% for top_domain,domain_list in browse_dict.items %}
-        {% ifequal browse_domain top_domain %}
-        <ul>
-            {% for surt_tuple in domain_list %}
-                {% ifequal surt_tuple.0 "A" %}<br/>{% endifequal %}
-                    <li>
-                        {% if surt_tuple.1 %}
-                            <a href="/nomination/{{ project.project_slug }}/surt/{{ surt_tuple.1 }}/">
-                                {{ surt_tuple.0 }}
-                            </a>
-                        {% else %}
-                            {{ surt_tuple.0 }}
-                        {% endif %}
-                    </li>
-            {% endfor %}
-        </ul>
-        {% endifequal %}
-    {% endfor %}
+
+    <div class="panel-group">
+        {% include "nomination/proj_navbar.html" %}
+        {% if url_list %}
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    {% if letter %}
+                        <h4 class="panel-title">Browse URLs that begin with {{ letter|capfirst }}</h4>
+                    {% else %}
+                        <h4 class="panel-title">Browse URLs</h4>
+                    {% endif %}
+                </div>
+                <div class="panel-body">
+                    <h4>URL</h4>
+                    {% for url_item in url_list %}
+                        <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity|urlencode }}/">{{ url_item.entity }}</a><br>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if browse_domain %}
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">Browse
+                            <a href="/nomination/{{ project.project_slug }}/surt/http://({{ browse_domain }}/">
+                                {{ browse_domain }}
+                            </a> URLs
+                        </h4>
+                    </div>
+                    <div class="panel-body">
+                        {% for top_domain,domain_list in browse_dict.items %}
+                            {% ifequal browse_domain top_domain %}
+                                <ul class="list-inline">
+                                    {% for surt_tuple in domain_list %}
+                                        {% ifequal surt_tuple.0 "A" %}<br>{% endifequal %}
+                                        <li>
+                                            {% if surt_tuple.1 %}
+                                                <a href="/nomination/{{ project.project_slug }}/surt/{{ surt_tuple.1 }}/">
+                                                    {{ surt_tuple.0 }}
+                                                </a>
+                                            {% else %}
+                                                {{ surt_tuple.0 }}
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endifequal %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h4 class="panel-title">No Matches Found</h4>
+                </div>
+                <div class="panel-body">
+                    Didn't find a SURT you were looking for? <a href="/nomination/{{ project.project_slug }}/add/">Add a URL</a>
+                </div>
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
-    <h2>URL</h2>
-    {% for url_item in url_list %}
-        <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity|urlencode }}/">{{ url_item.entity }}</a><br/>
-    {% endfor %}
-{% else %}
-    Didn't find a SURT you were looking for? <a href="/nomination/{{ project.project_slug }}/add/">Add a URL</a>
-{% endif %}
-</div>
+
 {% endblock %}
