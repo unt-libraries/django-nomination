@@ -1,42 +1,64 @@
-{% extends "nomination/index.html" %}
+{% extends "nomination/base.html" %}
+
 {% load nomination_tags %}
 
 {% block title %}Nomination Tool: Project Reports{% endblock %}
 
-{% block main_nav %}{% endblock %}
-
 {% block content %}
-         <div class="field-wrapper">
-            <h2>Available Reports</h2><br/>
-            <a href="{% url 'url_report' project.project_slug %}">URLs</a> - Unique URLs sorted by SURT<br/><br/>
-            <a href="{% url 'surt_report' project.project_slug %}">SURTs</a> - SURTs sorted by SURT<br/><br/>
-            <a href="{% url 'url_score_report' project.project_slug %}">URL Scores</a> - URLs and overall nomination score<br/><br/>
-            <a href="{% url 'url_nomination_report' project.project_slug %}">URL Nominations</a> - URLs and number of nominations<br/><br/>
-<a href="{% url 'url_date_report' project.project_slug %}">URL Dates</a> - URLs and date of each nomination
-         </div>
 
-         <div class="field-wrapper">
-            <h2>Available Nominators</h2>
-            <div class="instruction">Values for nominator and institution are available by clicking a term below. Values are sorted alphabetically.</div>
-            <a href="{% url 'nominator_report' project.project_slug "institution" %}">Institution</a><br/><br/>
-            <a href="{% url 'nominator_report' project.project_slug "nominator" %}">Nominator</a><br/><br/>
-         </div>
-
-         <div class="field-wrapper">
-            <h2>Available Fields</h2>
-            <div class="instruction">Unique values for the following fields are available by clicking a field name below. Values are sorted alphabetically.</div>
-            {% for met in metadata_fields %}
-                {% for name in met%}
-                    <a href="{% url 'field_report' project.project_slug name %}">{{ name|replaceunderscores|capfirst }}</a><br/><br/>    
-                {% endfor%}
-            {% endfor %}
-         </div>
-
-         <div class="field-wrapper">
-            <h2>Project Dump</h2>
-            <div class="instruction">URL data in JSON.</div>
-            <a href="{% url 'project_dump' project.project_slug %}">Project Dump</a><br/><br/>
-         </div>
+    <div class="panel-group">
+        {% include "nomination/proj_navbar.html" with active_tab='proj_reports' %}
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Available Reports</h4 class="panel-title">
+            </div>
+            <div class="panel-body">
+                <a href="{% url 'url_report' project.project_slug %}">URLs</a> - Unique URLs sorted by SURT
+                <br><br>
+                <a href="{% url 'surt_report' project.project_slug %}">SURTs</a> - SURTs sorted by SURT
+                <br><br>
+                <a href="{% url 'url_score_report' project.project_slug %}">URL Scores</a> - URLs and overall nomination score
+                <br><br>
+                <a href="{% url 'url_nomination_report' project.project_slug %}">URL Nominations</a> - URLs and number of nominations
+                <br><br>
+                <a href="{% url 'url_date_report' project.project_slug %}">URL Dates</a> - URLs and date of each nomination
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Available Nominators</h4 class="panel-title">
+            </div>
+            <div class="panel-body">
+                Values for nominator and institution are available by clicking a term below. Values are sorted alphabetically.
+                <br><br>
+                <a href="{% url 'nominator_report' project.project_slug "institution" %}">Institution</a>
+                <br><br>
+                <a href="{% url 'nominator_report' project.project_slug "nominator" %}">Nominator</a>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Available Fields</h4 class="panel-title">
+            </div>
+            <div class="panel-body">
+                Unique values for the following fields are available by clicking a field name below. Values are sorted alphabetically.
+                {% for met in metadata_fields %}
+                    {% for name in met%}
+                        <br><br><a href="{% url 'field_report' project.project_slug name %}">{{ name|replaceunderscores|capfirst }}</a>   
+                    {% endfor%}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Project Dump</h4 class="panel-title">
+            </div>
+            <div class="panel-body">
+                URL data in JSON.
+                <br><br>
+                <a href="{% url 'project_dump' project.project_slug %}">Project Dump</a>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
-
