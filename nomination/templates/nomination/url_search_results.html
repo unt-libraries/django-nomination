@@ -1,18 +1,23 @@
-{% extends "nomination/index.html" %}
+{% extends "nomination/base.html" %}
 
 {% block title %}Nomination Tool{% endblock %}
 
-{% block main_nav %}{% endblock %}
-
 {% block content %}
 
-        <div class="field-wrapper">
-        {% if url_list %}
-            <h2>URL</h2>
-            {% for url_item in url_list %}
-                <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity }}/">{{ url_item.entity }}</a><br/>
-            {% endfor %}
-        {% endif %}
+    <div class="panel-group">
+        {% include "nomination/proj_navbar.html" %}
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">URL</h4>
+            </div>
+            <div class="panel-body">
+                {% if url_list %}
+                    {% for url_item in url_list %}
+                        <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity }}/">{{ url_item.entity }}</a><br>
+                    {% endfor %}
+                {% endif %}
+            </div>
         </div>
+    </div>
 
 {% endblock %}
