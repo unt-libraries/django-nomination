@@ -11,7 +11,8 @@ setup(
     install_requires=[
         'simplejson>=3.8.1',
         'django-markup-deprecated>=0.0.3',
-        'markdown>=2.6.5'
+        'markdown>=2.6.5',
+        'django-widget-tweaks>=1.4.1',
     ],
     zip_safe=False,
     url='https://github.com/unt-libraries/django-nomination',

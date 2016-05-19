@@ -20,6 +20,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'markup_deprecated',
     'nomination',
+    'widget_tweaks',
 )
 
 MIDDLEWARE_CLASSES = (
