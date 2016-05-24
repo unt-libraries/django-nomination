@@ -23,40 +23,40 @@
             <div class="panel-body">
                 <ul class="list-group">
                     <li class="list-group-item col-sm-6">
-                        <b>Project Name:</b> {{ project.project_name}}
+                        <span class="bold">Project Name:</span> {{ project.project_name}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Project Abbreviation:</b> {{ project.project_slug}}
+                        <span class="bold">Project Abbreviation:</span> {{ project.project_slug}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Project Starting Date:</b> {{ project.project_start|date:"M d, Y"}}
+                        <span class="bold">Project Starting Date:</span> {{ project.project_start|date:"M d, Y"}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Project Ending Date:</b> {{ project.project_end|date:"M d, Y"}}
+                        <span class="bold">Project Ending Date:</span> {{ project.project_end|date:"M d, Y"}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Nomination Starting Date:</b> {{ project.nomination_start|date:"M d, Y"}}
+                        <span class="bold">Nomination Starting Date:</span> {{ project.nomination_start|date:"M d, Y"}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Nomination Ending Date:</b> {{ project.nomination_end|date:"M d, Y"}}
+                        <span class="bold">Nomination Ending Date:</span> {{ project.nomination_end|date:"M d, Y"}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Number of URLs Nominated:</b> {{ url_count }}
+                        <span class="bold">Number of URLs Nominated:</span> {{ url_count }}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Number of Nominators:</b> {{ nominator_count }}
+                        <span class="bold">Number of Nominators:</span> {{ nominator_count }}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Admin Name:</b> {{ project.admin_name}}
+                        <span class="bold">Admin Name:</span> {{ project.admin_name}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Admin E-mail:</b> {{ project.admin_email}}
+                        <span class="bold">Admin E-mail:</span> {{ project.admin_email}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Project URL:</b> {{ project.project_url}}
+                        <span class="bold">Project URL:</span> {{ project.project_url}}
                     </li>
                     <li class="list-group-item col-sm-6">
-                        <b>Registration Required for Project:</b> {{ project.registration_required|yesno:"Yes,No" }}
+                        <span class="bold">Registration Required for Project:</span> {{ project.registration_required|yesno:"Yes,No" }}
                     </li>
                 </ul>
             </div>
@@ -73,32 +73,34 @@
                         a bookmarklet to your toolbar that allows you to easily nominate URLs to
                         this project while you browse the Web.
                     </p>
-                    <b>Firefox</b>
-                    <p>
-                        If your Bookmarks Toolbar is not visible, navigate to menu View-&gt;Toolbars,
-                        and select "Bookmarks Toolbar." Drag this link
-                        <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
-                            {{project.project_slug}} Nominator
-                        </a> to the Bookmarks Toolbar.
-                    </p>
-                    <b>Google Chrome</b>
-                    <p>
-                        If your Bookmarks Bar is not visible, use the keyboard command
-                        <kbd>Shift+Ctrl+B</kbd> to make it so, or navigate to menu Tools and select
-                        "Always Show Bookmarks Bar." Drag this link
-                        <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
-                            {{project.project_slug}} Nominator
-                        </a> to the Bookmarks Toolbar.
-                    </p>
-                    <b>Internet Explorer</b>
-                    <p>
-                        If your Links Toolbar is not visible, right click on the menu bar and select
-                        "Links." Right click on this link
-                        <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
-                            {{project.project_slug}} Nominator
-                        </a>, and select "Add to Favorites..." For the "Create in" field, select
-                        "Links" then click "Add."
-                    </p>
+                    <dl>
+                        <dt>Firefox</dt>
+                        <dd>
+                            If your Bookmarks Toolbar is not visible, navigate to menu View-&gt;Toolbars,
+                            and select "Bookmarks Toolbar." Drag this link
+                            <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
+                                {{project.project_slug}} Nominator
+                            </a> to the Bookmarks Toolbar.
+                        </dd>
+                        <dt>Google Chrome</dt>
+                        <dd>
+                            If your Bookmarks Bar is not visible, use the keyboard command
+                            <kbd>Shift+Ctrl+B</kbd> to make it so, or navigate to menu Tools and select
+                            "Always Show Bookmarks Bar." Drag this link
+                            <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
+                                {{project.project_slug}} Nominator
+                            </a> to the Bookmarks Toolbar.
+                        </dd>
+                        <dt>Internet Explorer</dt>
+                        <dd>
+                            If your Links Toolbar is not visible, right click on the menu bar and select
+                            "Links." Right click on this link
+                            <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
+                                {{project.project_slug}} Nominator
+                            </a>, and select "Add to Favorites..." For the "Create in" field, select
+                            "Links" then click "Add."
+                        </dd>
+                    </dl>
                 </div>
             </div>
         {% endif %} 
