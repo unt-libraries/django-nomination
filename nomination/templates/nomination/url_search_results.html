@@ -12,9 +12,13 @@
             </div>
             <div class="panel-body">
                 {% if url_list %}
-                    {% for url_item in url_list %}
-                        <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity }}/">{{ url_item.entity }}</a><br>
-                    {% endfor %}
+                    <ul class="list-unstyled">
+                        {% for url_item in url_list %}
+                            <li>
+                                <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity }}/">{{ url_item.entity }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
             </div>
         </div>
