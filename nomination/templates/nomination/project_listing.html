@@ -10,11 +10,15 @@
                 <h4 class="panel-title">Active Projects</h4>
             </div>
             <div class="panel-body">
-                {% for project in active_list %}
-                    <a href="{% url 'project_urls' project.project_slug %}">
-                        {{ project.project_name }}
-                    </a><br>
-                {% endfor %}
+                <ul class="list-unstyled">
+                    {% for project in active_list %}
+                        <li>
+                            <a href="{% url 'project_urls' project.project_slug %}">
+                                {{ project.project_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
         <div class="panel panel-primary">
@@ -22,12 +26,15 @@
                 <h4 class="panel-title">Past Projects</h4>
             </div>
             <div class="panel-body">
-                {% for project in past_list %}
-                    <a href="{% url 'project_urls' project.project_slug %}">
-                        {{ project.project_name }}
-                    </a>
-                    <br>
-                {% endfor %}
+                <ul class="list-unstyled">
+                    {% for project in past_list %}
+                        <li>
+                            <a href="{% url 'project_urls' project.project_slug %}">
+                                {{ project.project_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
         <div class="panel panel-primary">
@@ -35,8 +42,11 @@
                 <h4 class="panel-title">Request a Project</h4>
             </div>
             <div class="panel-body">
-                If you would like to start a Nomination project, please send an 
-                email to lauren.ko@unt.edu to initiate the setup process.
+                <p>
+                    If you would like to start a Nomination project, please send an email to
+                    <a href="mailto:lauren.ko@unt.edu?Subject=New%20nomination%20project">Lauren Ko</a>
+                    to initiate the setup process.
+                </p>
             </div>
         </div>
     </div>
