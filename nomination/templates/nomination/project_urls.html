@@ -20,10 +20,12 @@
                         </span>
                     </div>
                     <span class="help-block" id="helpBlock">Search for an existing URL in the system.</span>
-                    <span>
-                        <input type="checkbox" name="partial-search" value="true">
-                        Allow partial matches
-                    </span>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="partial-search" value="true">
+                            Allow partial matches
+                        </label>
+                    </div>
                 </form>
             </div>
         </div>
@@ -33,11 +35,11 @@
             </div>
             <div class="panel-body">
                 <a href="{% url 'url_report' project.project_slug  %}" class="btn btn-info">
-                    <b>Number of URLs Nominated: </b>
+                    Number of URLs Nominated:
                     <span class="badge">{{ url_count }}</span>
                 </a>
                 <a href="{% url 'nominator_report' project.project_slug "nominator" %}" class="btn btn-info">
-                    <b>Number of Nominators: </b>
+                    Number of Nominators:
                     <span class="badge">{{ nominator_count }}</span>
                 </a>
             </div>
