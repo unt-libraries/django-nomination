@@ -96,6 +96,7 @@ class Project(models.Model):
     admin_name = models.CharField(max_length=80, help_text='Name of project administrator.')
     admin_email = models.CharField(max_length=80, help_text='Email address of project administrator.')
     project_url = models.CharField(max_length=255, help_text='Project affiliated URL.')
+    archive_url = models.URLField(help_text='Base URL for accessing site archives.', null=True, blank=True)
     registration_required = models.BooleanField()
     metadata = models.ManyToManyField(Metadata, through='Project_Metadata')
 
@@ -125,6 +126,10 @@ class Project(models.Model):
             return True
         else:
             return False
+
+    def clean(self):
+        if self.archive_url and not self.archive_url.endswith('/'):
+            self.archive_url = '{0}{1}'.format(self.archive_url, '/')
 
 class Project_Metadata(models.Model):
     project = models.ForeignKey(Project)
