@@ -10,52 +10,67 @@
         {% include "nomination/proj_navbar.html" with active_tab='proj_reports' %}
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <h4 class="panel-title">Available Reports</h4 class="panel-title">
+                <h4 class="panel-title">Available Reports</h4">
             </div>
             <div class="panel-body">
-                <a href="{% url 'url_report' project.project_slug %}">URLs</a> - Unique URLs sorted by SURT
-                <br><br>
-                <a href="{% url 'surt_report' project.project_slug %}">SURTs</a> - SURTs sorted by SURT
-                <br><br>
-                <a href="{% url 'url_score_report' project.project_slug %}">URL Scores</a> - URLs and overall nomination score
-                <br><br>
-                <a href="{% url 'url_nomination_report' project.project_slug %}">URL Nominations</a> - URLs and number of nominations
-                <br><br>
-                <a href="{% url 'url_date_report' project.project_slug %}">URL Dates</a> - URLs and date of each nomination
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="{% url 'url_report' project.project_slug %}">URLs</a> - Unique URLs sorted by SURT
+                    </li>
+                    <li>
+                        <a href="{% url 'surt_report' project.project_slug %}">SURTs</a> - SURTs sorted by SURT
+                    </li>
+                    <li>
+                        <a href="{% url 'url_score_report' project.project_slug %}">URL Scores</a> - URLs and overall nomination score
+                    </li>
+                    <li>
+                        <a href="{% url 'url_nomination_report' project.project_slug %}">URL Nominations</a> - URLs and number of nominations
+                    </li>
+                    <li>
+                        <a href="{% url 'url_date_report' project.project_slug %}">URL Dates</a> - URLs and date of each nomination
+                    </li>
+                </ul>
             </div>
         </div>
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <h4 class="panel-title">Available Nominators</h4 class="panel-title">
+                <h4 class="panel-title">Available Nominators</h4>
             </div>
             <div class="panel-body">
-                Values for nominator and institution are available by clicking a term below. Values are sorted alphabetically.
-                <br><br>
-                <a href="{% url 'nominator_report' project.project_slug "institution" %}">Institution</a>
-                <br><br>
-                <a href="{% url 'nominator_report' project.project_slug "nominator" %}">Nominator</a>
+                <p>Values for nominator and institution are available by clicking a term below. Values are sorted alphabetically.</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="{% url 'nominator_report' project.project_slug "institution" %}">Institution</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'nominator_report' project.project_slug "nominator" %}">Nominator</a>
+                    </li>
+                </ul>
             </div>
         </div>
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <h4 class="panel-title">Available Fields</h4 class="panel-title">
+                <h4 class="panel-title">Available Fields</h4>
             </div>
             <div class="panel-body">
-                Unique values for the following fields are available by clicking a field name below. Values are sorted alphabetically.
-                {% for met in metadata_fields %}
-                    {% for name in met%}
-                        <br><br><a href="{% url 'field_report' project.project_slug name %}">{{ name|replaceunderscores|capfirst }}</a>   
-                    {% endfor%}
-                {% endfor %}
+                <p>Unique values for the following fields are available by clicking a field name below. Values are sorted alphabetically.</p>
+                <ul class="list-unstyled">
+                    {% for met in metadata_fields %}
+                        {% for name in met%}
+                            <li>
+                                <a href="{% url 'field_report' project.project_slug name %}">{{ name|replaceunderscores|capfirst }}</a>   
+                            </li>
+                        {% endfor%}
+                    {% endfor %}
+                </ul>
             </div>
         </div>
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <h4 class="panel-title">Project Dump</h4 class="panel-title">
+                <h4 class="panel-title">Project Dump</h4>
             </div>
             <div class="panel-body">
-                URL data in JSON.
-                <br><br>
+                <p>URL data in JSON.</p>
                 <a href="{% url 'project_dump' project.project_slug %}">Project Dump</a>
             </div>
         </div>
