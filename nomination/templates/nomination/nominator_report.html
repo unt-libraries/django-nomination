@@ -11,11 +11,14 @@
                 <h4 class="panel-title">{{ field|capfirst }}s:</h4>
             </div>
             <div class="panel-body">
-                Select a nominator below to see its associated URLs.<br>
-                {% for name,cnt,nomid in valdic %}
-                    <br>
-                    <a href="{% url 'nominator_url_report' project.project_slug field nomid %}">{{ name }}</a> - {{ cnt }}
-                {% endfor %}
+                <p>Select a nominator below to see its associated URLs.</p>
+                <ul class="list-unstyled">
+                    {% for name,cnt,nomid in valdic %}
+                        <li>
+                            <a href="{% url 'nominator_url_report' project.project_slug field nomid %}">{{ name }}</a> - {{ cnt }}
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     </div>
