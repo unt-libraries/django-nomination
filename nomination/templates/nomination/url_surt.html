@@ -17,9 +17,13 @@
                 </div>
                 <div class="panel-body">
                     <h4>URL</h4>
-                    {% for url_item in url_list %}
-                        <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity|urlencode }}/">{{ url_item.entity }}</a><br>
-                    {% endfor %}
+                    <ul class="list-unstyled">
+                        {% for url_item in url_list %}
+                            <li>
+                                <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity|urlencode }}/">{{ url_item.entity }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
             {% if browse_domain %}
