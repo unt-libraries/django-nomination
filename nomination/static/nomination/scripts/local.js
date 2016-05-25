@@ -48,12 +48,12 @@ function bindSelectAll() {
             $checkboxes.each(function() {
                 $(this).prop('checked', true);
             });
-            $(this).attr('value', 'Deselect All').data('check-state', 'deselect');
+            $(this).val('Deselect All').data('check-state', 'deselect');
         } else {
             $checkboxes.each(function() {
                 $(this).prop('checked', false);
             });
-            $(this).attr('value', 'Select All').data('check-state', 'select');
+            $(this).val('Select All').data('check-state', 'select');
         }
     });
 }
