@@ -8,24 +8,6 @@
 
 {% block title %}Nomination Tool{% endblock %}
 
-{% block extra_headers %}
-
-    <script src="{% static 'nomination/scripts/jquery.cookie.pack.js' %}"></script>
-    <script src="{% static 'nomination/scripts/core.js' %}"></script>
-    <script src="{% static 'nomination/scripts/RelatedObjectLookups.js' %}"></script>
-
-    <script src="{% static 'nomination/scripts/DateTimeShortcuts.js' %}"></script>
-    <script src="{% static 'nomination/scripts/calendar.js' %}"></script>
-
-    <link rel="stylesheet" href="{% static 'nomination/styles/jquery-ui.css' %}" type="text/css" media="all" />
-    <script src="{% static 'nomination/scripts/jquery/jquery.min.js' %}"></script>
-    <script src="{% static 'nomination/scripts/jquery/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'nomination/scripts/jquery/jquery.bgiframe-2.1.1.js' %}"></script>
-    <script src="{% static 'nomination/scripts/jquery/jquery-ui-i18n.min.js' %}"></script>
-    <script src="{% static 'nomination/scripts/nominationform.js' %}"></script>
-
-{% endblock %}
-
 {% block content %}
 
     <div class="panel-group">
@@ -147,7 +129,7 @@
                                         {% endfor %}
                                     {% elif met.form_type == "checkbox" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <input type=button value="Select All" name="{{ met.metadata.name }}" onClick="this.value=checkAll(this.name)" class="btn btn-default">
+                                        <input type=button value="Select All" name="{{ met.metadata.name }}" data-check-all="true" data-check-state="select" class="btn btn-default">
                                         {% for val in vals %}
                                             {% ifnotequal val.key 'other_specify' %}
                                                 <div class="checkbox">
@@ -234,9 +216,26 @@
         {% endif %}
     </div>
 
+
+
+{% endblock %}
+
+{% block closing_scripts %}
+    {{ block.super }}
+
+    <script src="{% static 'nomination/scripts/vendor/js.cookie.js' %}"></script>
+    <script src="{% static 'nomination/scripts/RelatedObjectLookups.js' %}"></script>
+
+    <script src="{% static 'nomination/scripts/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script src="{% static 'nomination/scripts/local.js' %}"></script>
+
     <script>
-        var json_data = {{ json_data|safe }};
         var form_types = {{ form_types|safe }};
+
+        {% if json_data %}
+            var json_data = {{ json_data|safe }};
+            repopulateForm();
+        {% endif %}
     </script>
 
     <script>
@@ -244,19 +243,12 @@
     </script>
 
     <script>
-        $.noConflict();
-        jQuery(document).ready(function($){
+        $(document).ready(function(){
             $('#institution-value').autocomplete({
                 source: {{ institutions|safe }},
-                delay: 0,
+                delay: 0
             });
         });
     </script>
 
-    {% if json_data %}
-        <script>
-            repopulateForm();
-        </script>
-    {% endif %}
-
-{% endblock %}
+{% endblock closing_scripts %}
