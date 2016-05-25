@@ -28,32 +28,51 @@ function focusAddForm() {
 function initForm() {
     // Autofill user information if available
     retrieveInformation();
+    bindSelectAll();
 
     // Save comment information when form is submitted
     $("form").submit(saveInformation);
 }
 
 // Toggle for check/uncheck all
-$('input[data-check-all="true"]').on('click', function() {
+function bindSelectAll() {
+    $('input[data-check-all="true"]').on('click', function() {
 
-    // Select all checkbox siblings of button, except "other"
-    var $checkboxes = $(this).siblings('.checkbox')
-                             .find('input[type="checkbox"]')
-                             .not('[value="other_specify"]');
+        // Select all checkbox siblings of button, except "other"
+        var $checkboxes = $(this).siblings('.checkbox')
+                                 .find('input[type="checkbox"]')
+                                 .not('[value="other_specify"]');
 
-    // Use data field to determine check state
-    if( $(this).data('check-state') === 'select' ) {
-        $checkboxes.each(function() {
-            $(this).prop('checked', true);
-        });
-        $(this).attr('value', 'Deselect All').data('check-state', 'deselect');
-    } else {
-        $checkboxes.each(function() {
-            $(this).prop('checked', false);
-        });
-        $(this).attr('value', 'Select All').data('check-state', 'select');
-    }
-});
+        // Use data field to determine check state
+        if( $(this).data('check-state') === 'select' ) {
+            $checkboxes.each(function() {
+                $(this).prop('checked', true);
+            });
+            $(this).attr('value', 'Deselect All').data('check-state', 'deselect');
+        } else {
+            $checkboxes.each(function() {
+                $(this).prop('checked', false);
+            });
+            $(this).attr('value', 'Select All').data('check-state', 'select');
+        }
+    });
+}
+
+// Launch URL in new window
+function bindPreviewURL() {
+    $('#previewUrl').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var newUrl = $('#url-value').val();
+
+        if( newUrl === 'http://' || newUrl === 'https://' ) {
+            $('#invalidUrlError').removeClass('hidden');
+        } else {
+            $('#invalidUrlError').addClass('hidden');
+            window.open(newUrl, '_blank');
+        }
+    });
+}
 
 // Use json_data in template to repopulate a form after form errors
 function repopulateForm() {
