@@ -7,12 +7,18 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="shortcut icon" type="image/x-icon" href="{% static 'nomination/images/favicon.ico' %}" />
+
+        {# Stylesheets #}
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
         <link rel="stylesheet" href="{% static 'nomination/styles/local.css' %}" type="text/css" />
         {% if project %}
             <link rel="alternate" type="application/rss+xml" title="Newly Added URLs" href="{% url 'url_feed' project.project_slug %}" />
             <link rel="alternate" type="application/rss+xml" title="Recent Nominations" href="{% url 'nomination_feed' project.project_slug %}" />
         {% endif %}
+
+        {% block localized_styles %}{% endblock localized_styles %}
+
+        {# IE8 compatability #}
         <!--[if lt IE 9]>
         <script>
            /*
@@ -24,11 +30,11 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
 
     <![endif]-->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-        <script src="{% static 'nomination/scripts/jquery-1.2.6.pack.js' %}"></script>
-        <script src="{% static 'nomination/scripts/jquery.dimensions.pack.js' %}"></script>
-        <script src="{% static 'nomination/scripts/local.js' %}"></script>
+
+        {# Localized head javascript #}
+        {% block localized_scripts %}{% endblock localized_scripts %}
+
+        {# Additional items to include in head #}
         {% block extra_headers %}{% endblock %}
     </head>
 
@@ -41,6 +47,19 @@
 
             {% block content %}{% endblock %}
         </div>
+
+    {% block closing_scripts %}
+
+        {# jQuery CDN with local fallback #}
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="{% static 'nomination/scripts/vendor/jquery-1.12.4.min.js' %}"><\/script>')</script>
+
+        {# Bootstrap CDN with local fallback #}
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <script>window.jQuery.fn.modal || document.write('<script src="{% static 'nomination/scripts/vendor/bootstrap-3.3.6.min.js' %}"><\/script>')</script>
+
+    {% endblock closing_scripts %}
+
     </body>
 
 </html>

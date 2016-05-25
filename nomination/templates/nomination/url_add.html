@@ -8,24 +8,6 @@
 
 {% block title %}Nomination Tool: Add/Edit a Site{% endblock %}
 
-{% block extra_headers %}
-
-    <script src="{% static 'nomination/scripts/jquery.cookie.pack.js' %}"></script>
-    <script src="{% static 'nomination/scripts/core.js' %}"></script>
-    <script src="{% static 'nomination/scripts/RelatedObjectLookups.js' %}"></script>
-
-    <script src="{% static 'nomination/scripts/DateTimeShortcuts.js' %}"></script>
-    <script src="{% static 'nomination/scripts/calendar.js' %}"></script>
-
-    <link rel="stylesheet" href="{% static 'nomination/styles/jquery-ui.css' %}" type="text/css" media="all" />
-    <script src="{% static 'nomination/scripts/jquery/jquery.min.js' %}"></script>
-    <script src="{% static 'nomination/scripts/jquery/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'nomination/scripts/jquery/jquery.bgiframe-2.1.1.js' %}"></script>
-    <script src="{% static 'nomination/scripts/jquery/jquery-ui-i18n.min.js' %}"></script>
-    <script src="{% static 'nomination/scripts/nominationform.js' %}"></script>
-
-{% endblock %}
-
 {% block content %}
 
     <div class="panel-group">
@@ -60,13 +42,14 @@
                             {% if form_errors.url_value %}
                                 <div class="alert alert-danger" role="alert">{{ form_errors.url_value|striptags }}</div>
                             {% endif %}
+                            <div id="invalidUrlError" class="alert alert-danger hidden" role="alert">Cannot navigate to an invalid URL.</div>
                             <label for="title-value">Website URL: <span class="label label-info">Required</span></label>
                             <div class="input-group">
                                 {{ form.url_value|add_class:"form-control" }}
-                                <span class="input-group-addon">
-                                    <a href="#">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" id="previewUrl">
                                         <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
-                                    </a>
+                                    </button>
                                 </span>
                             </div>
                             <p class="help-block">The URL you wish to nominate for capture</p>
@@ -115,7 +98,7 @@
                                         {% endfor %}
                                     {% elif met.form_type == "checkbox" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <input type=button value="Select All" name="{{ met.metadata.name }}" onClick="this.value=checkAll(this.name)" class="btn btn-default">
+                                        <input type=button value="Select All" name="{{ met.metadata.name }}" data-check-all="true" data-check-state="select" class="btn btn-default">
                                         {% for val in vals %}
                                             {% ifnotequal val.key 'other_specify' %}
                                                 <div class="checkbox">
@@ -209,29 +192,37 @@
         {% endif %}
     </div>
 
-    <script>
-        var json_data = {{ json_data|safe }};
-        var form_types = {{ form_types|safe }};
-    </script>
-
-    <script>
-        $(document).ready(initForm);
-    </script>
-
-    <script>
-        $.noConflict();
-        jQuery(document).ready(function($){
-            $('#institution-value').autocomplete({
-                source: {{ institutions|safe }},
-                delay: 0,
-            });
-        });
-    </script>
-
-    {% if json_data %}
-        <script>
-            repopulateForm();
-        </script>
-    {% endif %}
-
 {% endblock %}
+
+{% block closing_scripts %}
+    {{ block.super }}
+
+    <script src="{% static 'nomination/scripts/vendor/js.cookie.js' %}"></script>
+    <script src="{% static 'nomination/scripts/local.js' %}"></script>
+    <script src="{% static 'nomination/scripts/vendor/bootstrap3-typeahead.min.js' %}"></script>
+
+    <script>
+
+        var form_types = {{ form_types|safe }};
+
+        {% if json_data %}
+            var json_data = {{ json_data|safe }};
+            repopulateForm();
+        {% endif %}
+
+    </script>
+
+    <script>
+
+        $(document).ready(function(){
+            $('#institution-value').typeahead({
+                source: {{ institutions|safe }}
+            });
+            initForm();
+            focusAddForm();
+            bindPreviewURL();
+        });
+
+    </script>
+
+{% endblock closing_scripts %}
