@@ -225,17 +225,19 @@
 
     </script>
 
-    <script>
+    {% if not project.nomination_message %}
+        <script>
 
-        $(document).ready(function(){
-            $('#institution-value').typeahead({
-                source: {{ institutions|safe }}
+            $(document).ready(function(){
+                $('#institution-value').typeahead({
+                    source: {{ institutions|safe }}
+                });
+                initForm();
+                focusAddForm();
+                bindPreviewURL();
             });
-            initForm();
-            focusAddForm();
-            bindPreviewURL();
-        });
 
-    </script>
+        </script>
+    {% endif %}
 
 {% endblock closing_scripts %}
