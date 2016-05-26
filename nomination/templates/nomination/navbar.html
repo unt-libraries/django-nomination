@@ -1,0 +1,20 @@
+<nav class='navbar navbar-inverse'>
+    <div class='container-fluid'>
+        <div class='navbar-header'>
+            <button type='button' class='navbar-toggle' data-toggle='collapse' data-target='#Navbar'>
+                <span class='icon-bar'></span>
+                <span class='icon-bar'></span>
+                <span class='icon-bar'></span>
+            </button>
+            <a class='navbar-brand' href='{% url "project_listing" %}'>
+                <span class='glyphicon glyphicon-home'></span> Nomination Tool
+            </a>
+        </div>
+        <div class='collapse navbar-collapse' id='Navbar'>
+            <ul class='nav navbar-nav navbar-right'>
+                <li><a href='{% url "nomination_about" %}'>About</a></li>
+                <li><a href='{% url "nomination_help" %}'>Help</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>

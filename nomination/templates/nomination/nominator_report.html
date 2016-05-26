@@ -1,15 +1,26 @@
-{% extends "nomination/index.html" %}
+{% extends "nomination/base.html" %}
 
 {% block title %}Nomination Tool: {{ field|capfirst }} Report{% endblock %}
 
-{% block main_nav %}{% endblock %}
-
 {% block content %}
-         <div class="field-wrapper">
-            <h2>{{ field|capfirst }}s:</h2>
-            <div class="instruction">Select a nominator below to see its associated URLs.</div>
-            {% for name,cnt,nomid in valdic %}
-                <a href="{% url 'nominator_url_report' project.project_slug field nomid %}">{{ name }}</a> - {{ cnt }} <br />
-            {% endfor %}
-         </div>
+
+    <div class="panel-group">
+        {% include "nomination/proj_navbar.html" %}
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">{{ field|capfirst }}s:</h4>
+            </div>
+            <div class="panel-body">
+                <p>Select a nominator below to see its associated URLs.</p>
+                <ul class="list-unstyled">
+                    {% for name,cnt,nomid in valdic %}
+                        <li>
+                            <a href="{% url 'nominator_url_report' project.project_slug field nomid %}">{{ name }}</a> - {{ cnt }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}

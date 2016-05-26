@@ -1,0 +1,30 @@
+<div id="project_navbar">
+    <h2>{{ project.project_name }}</h2>
+    <ul class="nav nav-tabs">
+        <li {% if active_tab == 'proj_urls' %}class="active"{% endif %}>
+            <a href="{% url 'project_urls' project.project_slug %}">Project Home</a>
+        </li>
+        <li {% if active_tab == 'proj_about' %}class="active"{% endif %}>
+            <a href="{% url 'project_about' project.project_slug %}">About This Project</a>
+        </li>
+        <li {% if active_tab == 'proj_reports' %}class="active"{% endif %}>
+            <a href="{% url 'reports_view' project.project_slug %}">Project Reports</a>
+        </li>
+        <li role="presentation" class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+              Feeds <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a href="{% url 'url_feed' project.project_slug %}">Newly Added URLs</a>
+                </li>
+                <li>
+                    <a href="{% url 'nomination_feed' project.project_slug %}">Recent Nominations</a>
+                </li>
+            </ul>
+        </li>
+        {% if project.nomination_active %}
+            <a class="btn btn-warning pull-right" href="{% url 'url_add' project.project_slug %}">Add A URL</a>
+        {% endif %}
+    </ul>
+</div>

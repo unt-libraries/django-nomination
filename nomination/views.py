@@ -558,6 +558,7 @@ def get_project_nominator_count(urls):
       'url_nominator', flat=True).distinct().count()
 
 def browse_json(request, slug, attribute):
+    """Return a page with a JSON list representing a domain tree for added URLs."""
     if request.method == 'GET':
         #Root is the id of the expand link clicked
         if 'root' in request.GET:
@@ -574,6 +575,7 @@ def browse_json(request, slug, attribute):
     return HttpResponse(json_string, content_type='application/json')
 
 def search_json(request, slug):
+    """Return a page with a JSON list of all URLs added to the specified project."""
     json_string = create_json_search(slug)
 
     return HttpResponse(json_string, content_type='application/json')

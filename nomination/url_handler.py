@@ -366,6 +366,13 @@ def addImpliedHttpIfNecessary(uri):
     return uri
 
 def create_json_browse(slug, url_attribute, root):
+    """Create a JSON list which can be used to represent a tree of the SURT domains.
+
+    If a root is specified, the JSON list will show just the tree of domains under
+    the specified base domain. Otherwise, it will show all of the domains. Each entry
+    in the JSON list is a dict which states the base domain, child domain,
+    and whether the child domain has children or not.
+    """
     json_list = []
 
     #Make sure the project exist in the database
@@ -454,6 +461,7 @@ def create_json_browse(slug, url_attribute, root):
     return simplejson.dumps(json_list)
 
 def create_json_search(slug):
+    """Create JSON list of all URLs added to the specified project."""
     try:
         project = Project.objects.get(project_slug=slug)
     except:

@@ -1,23 +1,40 @@
-{% extends "nomination/index.html" %}
+{% extends "nomination/base.html" %}
+
 {% load nomination_tags %}
+
 {% block title %}Nomination Tool: Metadata Report{% endblock %}
-{% block main_nav %}{% endblock %}
+
 {% block content %}
-<div class="field-wrapper">
-    <h2>Values for metadata field {{ field|replaceunderscores }}:</h2>
-    <div class="instruction">Select a value below to see its associated URLs.</div>
-    {% if not namelist %}
-    {% for name,cnt in valdic %}
-    {% ifnotequal name '' %}
-    <a href="{% url 'value_report' project.project_slug field name %}">{{ name }}</a> - {{ cnt }} <br />
-    {% endifnotequal %}
-    {% endfor %}
-    {% else %}
-    {% for fullname,cnt,name in namelist %}
-    {% ifnotequal name '' %}
-    <a href="{% url 'value_report' project.project_slug field name %}">{{ fullname }}</a> - {{ cnt }} <br />
-    {% endifnotequal %}
-    {% endfor %}
-    {% endif %}
-</div>
+
+    <div class="panel-group">
+        {% include "nomination/proj_navbar.html" %}
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Values for metadata field {{ field|replaceunderscores }}</h4>
+            </div>
+            <div class="panel-body">
+                <p>Select a value below to see its associated URLs.</p>
+                <ul class="list-unstyled">
+                    {% if not namelist %}
+                        {% for name,cnt in valdic %}
+                            {% ifnotequal name '' %}
+                                <li>
+                                    <a href="{% url 'value_report' project.project_slug field name %}">{{ name }}</a> - {{ cnt }} <br />
+                                </li>
+                            {% endifnotequal %}
+                        {% endfor %}
+                    {% else %}
+                        {% for fullname,cnt,name in namelist %}
+                            {% ifnotequal name '' %}
+                                <li>
+                                    <a href="{% url 'value_report' project.project_slug field name %}">{{ fullname }}</a> - {{ cnt }} <br />
+                                </li>
+                            {% endifnotequal %}
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}

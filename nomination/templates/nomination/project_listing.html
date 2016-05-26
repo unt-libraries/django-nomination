@@ -1,44 +1,54 @@
-{% extends "nomination/index.html" %}
+{% extends "nomination/base.html" %}
 
 {% block title %}Nomination Tool{% endblock %}
 
-{% block body_classes %}about-project{% endblock %}
-
-{% block project_nav %}{% endblock %}
-
-{% block main_nav %}
-            <div id="hd"><h1>Nomination Tool</h1>
-            <p id="other-projects"><a href="{% url 'nomination_help' %}">Help</a></p>
-            <ul id="navigation">
-                <li><a href="{% url 'project_listing' %}">Home</a></li>
-                <li><a href="{% url 'nomination_about' %}">About this Tool</a></li>
-            </ul>
-            </div>
-        {% endblock %}
-
 {% block content %}
 
-        <div class="field-wrapper">
-        <h2>Active Projects</h2>&nbsp;
-        <p>
-        {% for project in active_list %}
-            <a href="{% url 'project_urls' project.project_slug %}">
-                {{ project.project_name }}
-            </a><br/>
-        {% endfor %}
-        </p>
-        <h2>Past Projects</h2>&nbsp;
-        <p>
-        {% for project in past_list %}
-            <a href="{% url 'project_urls' project.project_slug %}">
-                {{ project.project_name }}
-            </a><br/>
-        {% endfor %}
-        </p>
+    <div class="panel-group">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Active Projects</h4>
+            </div>
+            <div class="panel-body">
+                <ul class="list-unstyled">
+                    {% for project in active_list %}
+                        <li>
+                            <a href="{% url 'project_urls' project.project_slug %}">
+                                {{ project.project_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-        <div class="field-wrapper">
-        <h2>Request a Project</h2>&nbsp;
-        <p>If you would like to start a Nomination project, please send an email to lauren.ko@unt.edu to initiate the setup process.</p>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Past Projects</h4>
+            </div>
+            <div class="panel-body">
+                <ul class="list-unstyled">
+                    {% for project in past_list %}
+                        <li>
+                            <a href="{% url 'project_urls' project.project_slug %}">
+                                {{ project.project_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="panel-title">Request a Project</h4>
+            </div>
+            <div class="panel-body">
+                <p>
+                    If you would like to start a Nomination project, please send an email to
+                    <a href="mailto:lauren.ko@unt.edu?Subject=New%20nomination%20project">Lauren Ko</a>
+                    to initiate the setup process.
+                </p>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
