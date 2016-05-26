@@ -118,3 +118,4 @@ Contributors
 * [Mark Phillips](https://github.com/vphill)
 * [Joey Liechty](https://github.com/yeahdef)
 * [Gio Gottardi](https://github.com/somexpert)
+* [Jason Ellis](https://github.com/jason-ellis)
