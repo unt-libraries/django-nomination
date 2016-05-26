@@ -23,10 +23,18 @@
     margin-bottom: 1.5em
 }
 
-.glyphicon-asterisk {
-    color: red;
+.required-field {
+    color: darkred;
+    font-weight: bold;
+    font-size: 1.2em;
+    vertical-align: sub;
 }
 
 #nomination_message_alert {
     margin-top: 1.5em;
+}
+
+#id_scope {
+    list-style: none;
+    padding: 0;
 }

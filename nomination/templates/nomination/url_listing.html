@@ -14,10 +14,8 @@
         {% include "nomination/proj_navbar.html" %}
 
         {% if form_errors %}
-            <div class="alert alert-danger" role="alert">Please resolve the errors indicated below.</div>
             <div class="alert alert-danger" role="alert">
-                <span class="glyphicon glyphicon-asterisk"></span>
-                indicates required fields.
+                Please resolve the errors indicated below (<span class="required-field">*</span> indicates required fields).
             </div>
         {% endif %}
 
@@ -192,7 +190,7 @@
                             {% endif %}
                             <label for="your-name-value">Your Name:</label>
                             {% if project.registration_required %}
-                                <span class="glyphicon glyphicon-asterisk"></span>
+                                <span class="required-field">*</span>
                             {% endif %}
                             {{ scope_form.nominator_name|add_class:"form-control" }}
                             <p class="help-block">Please provide your name</p>
@@ -203,7 +201,7 @@
                             {% endif %}
                             <label for="institution-value">Institution:</label>
                             {% if project.registration_required %}
-                                <span class="glyphicon glyphicon-asterisk"></span>
+                                <span class="required-field">*</span>
                             {% endif %}
                             {{ scope_form.nominator_institution|add_class:"form-control" }}
                             <p class="help-block">Please provide your institutional affiliation</p>
@@ -214,7 +212,7 @@
                             {% endif %}
                             <label for="email-value">Your E-Mail Address:</label>
                             {% if project.registration_required %}
-                                <span class="glyphicon glyphicon-asterisk"></span>
+                                <span class="required-field">*</span>
                             {% endif %}
                             {{ scope_form.nominator_email|add_class:"form-control" }}
                             <p class="help-block">Please provide an email address in order to identify your nominations in the system</p>
