@@ -91,6 +91,19 @@ Developing
     ```
 
 
+Helper Scripts
+--------------
+
+There are three scripts made available with this app that can help with batch
+uploading of project information, such as project metadata and URL nominations.
+They are located in the user_scripts subdirectory and are intended to be run
+from the machine serving the app. They require access to the settings file used
+by the Django project hosting the app. If you are serving the app using a virtual
+environment, the script will need to be run from within that same environment.
+The three scripts are well-commented and designed to be used from the
+command-line. Invoke them with the `-h` flag to see their help documentation.
+
+
 License
 -------
 
