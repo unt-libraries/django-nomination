@@ -14,7 +14,11 @@
         {% include "nomination/proj_navbar.html" %}
 
         {% if url_not_found %}
-            <div class="alert alert-info" role="alert">The requested URL was not in the system. Please nominate this URL.</div>
+            <div class="alert alert-info" role="alert">The requested URL was not in the system.
+                {% if not project.nomination_message %}
+                    Please nominate this URL.
+                {% endif %}
+            </div>
         {% endif %}
 
         {% if not project.nomination_message %}
@@ -196,7 +200,7 @@
                 <div class="panel-heading">
                     <h4 class="panel-title">Add a Site/URL</h4>
                 </div>
-                <div class="alert alert-info" role="alert">{{ project.nomination_message }}</div>
+                <div class="alert alert-info" role="alert" id="nomination_message_alert">{{ project.nomination_message }}</div>
             </div>
         {% endif %}
     </div>

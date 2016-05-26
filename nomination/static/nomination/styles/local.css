@@ -26,3 +26,7 @@
 .glyphicon-asterisk {
     color: red;
 }
+
+#nomination_message_alert {
+    margin-top: 1.5em;
+}
