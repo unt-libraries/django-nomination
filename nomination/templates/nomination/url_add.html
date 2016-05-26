@@ -20,6 +20,9 @@
         {% if not project.nomination_message %}
             {% if form_errors %}
                 <div class="alert alert-danger" role="alert">Please resolve the errors indicated below.</div>
+                <div class="alert alert-danger" role="alert">
+                    <span class="glyphicon glyphicon-asterisk"></span> indicates required fields.
+                </div>
             {% endif %}
             {% if summary_list %}
                 <div class="alert alert-success" role="alert">
@@ -43,7 +46,7 @@
                                 <div class="alert alert-danger" role="alert">{{ form_errors.url_value|striptags }}</div>
                             {% endif %}
                             <div id="invalidUrlError" class="alert alert-danger hidden" role="alert">Cannot navigate to an invalid URL.</div>
-                            <label for="title-value">Website URL: <span class="label label-info">Required</span></label>
+                            <label for="title-value">Website URL: <span class="glyphicon glyphicon-asterisk"></span></label>
                             <div class="input-group">
                                 {{ form.url_value|add_class:"form-control" }}
                                 <span class="input-group-btn">
@@ -71,7 +74,7 @@
                                     {% ifequal met.required 0 %}
                                         <label for="{{ met.metadata.name }}">{{ met.description }}:</label>
                                     {% else %}
-                                        <label for="{{ met.metadata.name }}">{{ met.description }}: <span class="label label-info">Required</span></label>
+                                        <label for="{{ met.metadata.name }}">{{ met.description }}: <span class="glyphicon glyphicon-asterisk"></span></label>
                                     {% endifequal %}
                                     {% if met.form_type == "text" %}
                                         <input class="form-control" type="text" name="{{ met.metadata.name }}" id="{{ met.metadata.name }}">
@@ -148,9 +151,6 @@
                     <div class="panel-heading">
                         <h4 class="panel-title">
                             Information About You
-                            {% if project.registration_required %}
-                                <span class="label label-info">Required</span>
-                            {% endif %}
                         </h4>
                     </div>
                     <div class="panel-body">
@@ -159,6 +159,9 @@
                                 <div class="alert alert-danger" role="alert">{{ form_errors.nominator_name|striptags }}</div>
                             {% endif %}
                             <label for="your-name-value">Your Name:</label>
+                            {% if project.registration_required %}
+                                <span class="glyphicon glyphicon-asterisk"></span>
+                            {% endif %}
                             {{ form.nominator_name|add_class:"form-control" }}
                             <p class="help-block">Please provide your name</p>
                         </div>
@@ -167,6 +170,9 @@
                                 <div class="alert alert-danger" role="alert">{{ form_errors.nominator_institution|striptags }}</div>
                             {% endif %}
                             <label for="institution-value">Institution:</label>
+                            {% if project.registration_required %}
+                                <span class="glyphicon glyphicon-asterisk"></span>
+                            {% endif %}
                             {{ form.nominator_institution|add_class:"form-control" }}
                             <p class="help-block">Please provide your institutional affiliation</p>
                         </div>
@@ -175,6 +181,9 @@
                                 <div class="alert alert-danger" role="alert">{{ form_errors.nominator_email|striptags }}</div>
                             {% endif %}
                             <label for="email-value">Your E-Mail Address:</label>
+                            {% if project.registration_required %}
+                                <span class="glyphicon glyphicon-asterisk"></span>
+                            {% endif %}
                             {{ form.nominator_email|add_class:"form-control" }}
                             <p class="help-block">Please provide an email address in order to identify your nominations in the system</p>
                         </div>
@@ -203,7 +212,11 @@
 
     <script>
 
-        var form_types = {{ form_types|safe }};
+        {% if form_types %}
+            var form_types = {{ form_types|safe }};
+        {% else %}
+            var form_types = {};
+        {% endif %}
 
         {% if json_data %}
             var json_data = {{ json_data|safe }};

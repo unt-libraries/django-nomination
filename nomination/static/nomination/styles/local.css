@@ -22,3 +22,7 @@
 .panel-group .panel {
     margin-bottom: 5px
 }
+
+.glyphicon-asterisk {
+    color: red;
+}
