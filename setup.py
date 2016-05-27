@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='django-nomination',
-    version='0.9.0',
+    version='1.0.0',
     packages=['nomination'],
     description='',
     long_description='See the home page for more information.',
