@@ -9,7 +9,7 @@ About
 
 This app is used to collect URLs for projects. Projects can declare certain
 metadata fields to be included in the information provided with each URL
-nomination. The URLs themselves are collected through nominations, which are 
+nomination. The URLs themselves are collected through nominations, which are
 entered by individuals who believe that URL to be somehow related to the
 project. Each project then maintains a list of URLs which are scored based on
 whether nominators deem those URLs to be in-scope or out-of-scope for the
@@ -56,6 +56,8 @@ Installation
     ```sh
         $ python manage.py migrate
     ```
+
+5. Change the contact information shown in the app by overriding the `contact_info.html` template.
 
 
 Developing
