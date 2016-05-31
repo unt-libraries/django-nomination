@@ -1,10 +1,10 @@
 #! /usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='django-nomination',
     version='1.0.0',
-    packages=['nomination'],
+    packages=find_packages(exclude=['tests*']),
     description='',
     long_description='See the home page for more information.',
     include_package_data=True,
