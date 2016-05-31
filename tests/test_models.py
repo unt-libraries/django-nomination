@@ -109,6 +109,29 @@ class TestProject:
 
         assert project.nomination_active() is False
 
+    @pytest.mark.parametrize('archive_url', [
+        None,
+        ''
+    ])
+    def test_archive_url_with_no_url(self, archive_url):
+        project = factories.ProjectFactory.build(
+            archive_url=archive_url
+        )
+        project.clean()
+        assert project.archive_url is archive_url
+
+    @pytest.mark.parametrize('archive_url', [
+        'http://www.example.com',
+        'http://www.example.com/'
+    ])
+    def test_archive_url(self, archive_url):
+        project = factories.ProjectFactory.build(
+            archive_url=archive_url
+        )
+        project.clean()
+
+        assert project.archive_url == 'http://www.example.com/'
+
 
 class TestProjectMetadata:
     def test_unicode(self):
