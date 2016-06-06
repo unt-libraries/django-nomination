@@ -116,8 +116,8 @@
                                     {% endif %}
                                     <label for="{{ met.metadata.name }}">{{ met.description }}:</label>
                                     {% if met.form_type == "text" %}
-                                        <input class="form-control" type="text" name="{{ met.metadata.name }}" id="{{ met.metadata.name }}" />
                                         <p class="help-block">{{ met.help }}</p>
+                                        <input class="form-control" type="text" name="{{ met.metadata.name }}" id="{{ met.metadata.name }}" />
                                     {% elif met.form_type == "radio" %}
                                         <p class="help-block">{{ met.help }}</p>
                                         {% for val in vals %}
@@ -160,25 +160,25 @@
                                             {% endifnotequal%}
                                         {% endfor %}
                                     {% elif met.form_type == "select" %}
+                                        <p class="help-block">{{ met.help }}</p>
                                         <select class="form-control" multiple size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
                                         </select>
-                                        <p class="help-block">{{ met.help }}</p>
                                     {% elif met.form_type == "selectsingle" %}
+                                        <p class="help-block">{{ met.help }}</p>
                                         <select class="form-control" size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
                                         </select>
-                                        <p class="help-block">{{ met.help }}</p>
                                     {% elif met.form_type == "textarea" %}
+                                        <p class="help-block">{{ met.help }}</p>
                                         <textarea class="form-control" name="{{ met.metadata.name }}" id="{{ met.metadata.name }}"></textarea>
-                                        <p class="help-block">{{ met.help }}</p>
                                     {% elif met.form_type == "date"  %}
-                                        <input class="form-control" type="date" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}" />
                                         <p class="help-block">{{ met.help }}</p>
+                                        <input class="form-control" type="date" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}" />
                                     {% endif %}
                                 </div>
                             {% endfor %}
@@ -201,8 +201,8 @@
                             {% if project.registration_required %}
                                 <span class="required-field">*</span>
                             {% endif %}
-                            {{ scope_form.nominator_name|add_class:"form-control" }}
                             <p class="help-block">Please provide your name</p>
+                            {{ scope_form.nominator_name|add_class:"form-control" }}
                         </div>
                         <div class="form-group">
                             {% if form_errors.nominator_institution %}
@@ -212,8 +212,8 @@
                             {% if project.registration_required %}
                                 <span class="required-field">*</span>
                             {% endif %}
-                            {{ scope_form.nominator_institution|add_class:"form-control" }}
                             <p class="help-block">Please provide your institutional affiliation</p>
+                            {{ scope_form.nominator_institution|add_class:"form-control" }}
                         </div>
                         <div class="form-group">
                             {% if form_errors.nominator_email %}
@@ -223,8 +223,8 @@
                             {% if project.registration_required %}
                                 <span class="required-field">*</span>
                             {% endif %}
-                            {{ scope_form.nominator_email|add_class:"form-control" }}
                             <p class="help-block">Please provide an email address in order to identify your nominations in the system</p>
+                            {{ scope_form.nominator_email|add_class:"form-control" }}
                         </div>
                         <input type="submit" value="submit" class="btn btn-primary" />
                     </div>
