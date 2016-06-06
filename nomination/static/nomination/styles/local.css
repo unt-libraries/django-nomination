@@ -15,6 +15,15 @@
     margin-top: 2em;
 }
 
+label {
+    margin-top: .7em;
+    margin-bottom: 0em;
+}
+
+.help-block {
+    margin-top: 0em;
+}
+
 .bold {
     font-weight: bold;
 }
