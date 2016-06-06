@@ -49,4 +49,6 @@ USE_I18N = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')
+
 SYSTEM_NOMINATOR_ID = 1

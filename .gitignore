@@ -3,6 +3,7 @@
 *.swp
 dist/
 build/
+static_files/
 .tox/
 *.sqlite3
 .cache
