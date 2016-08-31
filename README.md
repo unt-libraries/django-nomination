@@ -105,6 +105,8 @@ environment, the script will need to be run from within that same environment.
 The three scripts are well-commented and designed to be used from the
 command-line. Invoke them with the `-h` flag to see their help documentation.
 
+Further documentation is available for [running the fielded_batch_ingest.py script](https://github.com/unt-libraries/django-nomination/wiki/Fielded-Batch-Ingest-Helper-Script)
+to upload bulk URL data.
 
 License
 -------
