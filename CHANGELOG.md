@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+1.0.2
+-----
+
+* Fixed removal of double slash in https URLs when going from search to nomination form.
+* Added link to fielded_batch_ingest.py documentation.
 
 1.0.1
 -----
