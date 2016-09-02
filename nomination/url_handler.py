@@ -4,7 +4,7 @@ from django.conf import settings
 from nomination.models import Project, Nominator, URL, Metadata, Value
 
 
-HTTP_ONE_SLASH = re.compile(r'http:/([^/])')
+HTTP_ONE_SLASH = re.compile(r'https?:/([^/])')
 
 def alphabetical_browse(project):
     browse_key_list = string.digits + string.uppercase
