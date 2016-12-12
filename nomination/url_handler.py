@@ -4,7 +4,7 @@ from django.conf import settings
 from nomination.models import Project, Nominator, URL, Metadata, Value
 
 
-SCHEME_ONE_SLASH = re.compile(r'(http|ftp)s?:/([^/])')
+SCHEME_ONE_SLASH = re.compile(r'(https?|ftps?):/([^/])')
 
 def alphabetical_browse(project):
     browse_key_list = string.digits + string.uppercase
