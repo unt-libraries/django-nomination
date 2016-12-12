@@ -13,7 +13,7 @@ from nomination.models import Project, URL, Value, Nominator
 from django import forms
 from django.views.decorators.csrf import csrf_protect
 from nomination.url_handler import (add_url, create_json_browse,
-    create_url_list, create_json_search, add_metadata, fix_http_double_slash,
+    create_url_list, create_json_search, add_metadata, fix_scheme_double_slash,
     create_surt_dict, alphabetical_browse, get_metadata,
     handle_metadata, validate_date, create_url_dump)
 try:
@@ -173,7 +173,7 @@ def project_urls(request, slug):
 @csrf_protect
 def url_listing(request, slug, url_entity):
     # Add back the slash lost by Apache removing null path segments.
-    url_entity = fix_http_double_slash(url_entity) 
+    url_entity = fix_scheme_double_slash(url_entity) 
     url_exists = True
     posted_data = None
     # get the project by the project slug
@@ -346,7 +346,7 @@ def url_listing(request, slug, url_entity):
 
 def url_surt(request, slug, surt):
     # Add back the slash lost by Apache removing null path segments.
-    surt = fix_http_double_slash(surt)
+    surt = fix_scheme_double_slash(surt)
     # Get the project by the project slug.
     project = get_project(slug)
     # Create the SURT dictionary containing url_list and single_letter.
@@ -750,7 +750,7 @@ def field_report(request, slug, field):
 def value_report(request, slug, field, val):
     val = urllib.unquote(val)
     # Add back the slash lost by Apache removing null path segments.
-    val = fix_http_double_slash(val)
+    val = fix_scheme_double_slash(val)
     # Get the project by the project slug.
     project = get_project(slug)
     # If there are no URLs in the queryset, Apache rewrote the url,
