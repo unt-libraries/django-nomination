@@ -4,7 +4,7 @@ from django.conf import settings
 from nomination.models import Project, Nominator, URL, Metadata, Value
 
 
-HTTP_ONE_SLASH = re.compile(r'https?:/([^/])')
+SCHEME_ONE_SLASH = re.compile(r'(https?|ftps?):/([^/])')
 
 def alphabetical_browse(project):
     browse_key_list = string.digits + string.uppercase
@@ -609,7 +609,7 @@ def get_domain_surt(surt):
     else:
         return surt
 
-def fix_http_double_slash(http_string):
+def fix_scheme_double_slash(url):
     """Add back slash lost by Apache removing null path segments."""
-    fixed_entity = re.sub(HTTP_ONE_SLASH, r'http://\1', http_string)
+    fixed_entity = re.sub(SCHEME_ONE_SLASH, r'\1://\2', url)
     return fixed_entity
