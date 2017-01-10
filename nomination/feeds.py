@@ -11,6 +11,10 @@ class url_feed(Feed):
     def get_object(self, request, slug):
         self.slug = slug
         self.project = get_project(self.slug)
+        self.site_names = dict(self.project.url_set.filter(attribute__iexact='Site_Name').values_list('entity', 'value'))
+        self.url_titles = dict(self.project.url_set.filter(attribute__iexact='Title').values_list('entity', 'value'))
+        self.descriptions = dict(self.project.url_set.filter(attribute__iexact='Description').values_list('entity', 'value'))
+
         return  self.project
 
     def title(self, obj):
@@ -45,17 +49,17 @@ class url_feed(Feed):
         # return url if there is no title
         title = item.entity
         try:
-            title = self.project.url_set.get(entity__exact=item.entity, attribute="Site_Name").value
+            title = self.site_names[item.entity]
         except:
             try:
-                title = self.project.url_set.get(entity__exact=item.entity, attribute="Title").value
+                title = self.url_titles[item.entity]
             except:
                 pass
         return title
 
     def item_description(self, item):
         try:
-            return "%s - %s" % (item.entity, self.project.url_set.get(entity__exact=item.entity, attribute="Description").value)
+            return "%s - %s" % (item.entity, self.descriptions[item.entity])
         except:
             return item.entity
 
