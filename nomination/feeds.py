@@ -11,9 +11,9 @@ class url_feed(Feed):
     def get_object(self, request, slug):
         self.slug = slug
         self.project = get_project(self.slug)
-        self.site_names = dict(self.project.url_set.filter(attribute__iexact='Site_Name').values_list('entity', 'value'))
-        self.url_titles = dict(self.project.url_set.filter(attribute__iexact='Title').values_list('entity', 'value'))
-        self.descriptions = dict(self.project.url_set.filter(attribute__iexact='Description').values_list('entity', 'value'))
+        self.site_names = dict(self.project.url_set.filter(attribute__iexact='Site_Name').order_by('-date').values_list('entity', 'value'))
+        self.url_titles = dict(self.project.url_set.filter(attribute__iexact='Title').order_by('-date').values_list('entity', 'value'))
+        self.descriptions = dict(self.project.url_set.filter(attribute__iexact='Description').order_by('-date').values_list('entity', 'value'))
 
         return  self.project
 
