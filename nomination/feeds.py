@@ -11,7 +11,7 @@ class url_feed(Feed):
     def get_object(self, request, slug):
         self.slug = slug
         self.project = get_project(self.slug)
-        # Save these dicts of URLs/attributes so we don't have to query the DB again later.
+        # Save these dicts of URLs and attributes in the class so we can save on queries later.
         self.site_names = dict(self.project.url_set.filter(attribute__iexact='Site_Name').order_by('-date').values_list('entity', 'value'))
         self.url_titles = dict(self.project.url_set.filter(attribute__iexact='Title').order_by('-date').values_list('entity', 'value'))
         self.descriptions = dict(self.project.url_set.filter(attribute__iexact='Description').order_by('-date').values_list('entity', 'value'))
@@ -50,11 +50,9 @@ class url_feed(Feed):
         # return url if there is no title
         title = item.entity
         try:
-            # Check the saved dict of URLs/site names.
             title = self.site_names[item.entity]
         except:
             try:
-                # Check the saved dict of URLs/titles.
                 title = self.url_titles[item.entity]
             except:
                 pass
@@ -62,7 +60,6 @@ class url_feed(Feed):
 
     def item_description(self, item):
         try:
-            # Check the saved dict of URLs/descriptions.
             return "%s - %s" % (item.entity, self.descriptions[item.entity])
         except:
             return item.entity
@@ -76,11 +73,15 @@ class nomination_feed(Feed):
     def get_object(self, request, slug):
         self.slug = slug
         self.project = get_project(self.slug)
-        temp = self.project.url_set.filter(attribute__iexact='Site_Name').order_by('date').values_list('entity', 'value')
+
+        # Generate URL/attribute value dicts, excluding entities with multiple values
+        # for the same attribute (using no_dup_dict). This prevents incorrectly
+        # associating attribute values from other nominations of the same entity.
+        temp = self.project.url_set.filter(attribute__iexact='Site_Name').values_list('entity', 'value')
         self.site_names = no_dup_dict(temp)
-        temp = self.project.url_set.filter(attribute__iexact='Title').order_by('date').values_list('entity', 'value')
+        temp = self.project.url_set.filter(attribute__iexact='Title').values_list('entity', 'value')
         self.url_titles = no_dup_dict(temp)
-        temp = self.project.url_set.filter(attribute__iexact='Description').order_by('date').values_list('entity', 'value')
+        temp = self.project.url_set.filter(attribute__iexact='Description').values_list('entity', 'value')
         self.descriptions = no_dup_dict(temp)
         return  self.project
 
@@ -117,11 +118,9 @@ class nomination_feed(Feed):
         # return url if there is no title
         title = item.entity
         try:
-            # Check saved dict of URLs/site names.
             title = self.site_names[item.entity]
         except:
             try:
-                # Check saved dict of URLs/titles.
                 title = self.url_titles[item.entity]
             except:
                 pass
@@ -129,7 +128,6 @@ class nomination_feed(Feed):
 
     def item_description(self, item):
         try:
-            # Check the saved dict of URLs/descriptions.
             return "%s - %s" % (item.entity, self.descriptions[item.entity])
         except:
             return item.entity
