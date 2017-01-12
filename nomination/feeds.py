@@ -11,6 +11,7 @@ class url_feed(Feed):
     def get_object(self, request, slug):
         self.slug = slug
         self.project = get_project(self.slug)
+        # Save these dicts of URLs/attributes so we don't have to query the DB again later.
         self.site_names = dict(self.project.url_set.filter(attribute__iexact='Site_Name').order_by('-date').values_list('entity', 'value'))
         self.url_titles = dict(self.project.url_set.filter(attribute__iexact='Title').order_by('-date').values_list('entity', 'value'))
         self.descriptions = dict(self.project.url_set.filter(attribute__iexact='Description').order_by('-date').values_list('entity', 'value'))
@@ -49,9 +50,11 @@ class url_feed(Feed):
         # return url if there is no title
         title = item.entity
         try:
+            # Check the saved dict of URLs/site names.
             title = self.site_names[item.entity]
         except:
             try:
+                # Check the saved dict of URLs/titles.
                 title = self.url_titles[item.entity]
             except:
                 pass
@@ -59,6 +62,7 @@ class url_feed(Feed):
 
     def item_description(self, item):
         try:
+            # Check the saved dict of URLs/descriptions.
             return "%s - %s" % (item.entity, self.descriptions[item.entity])
         except:
             return item.entity
@@ -113,9 +117,11 @@ class nomination_feed(Feed):
         # return url if there is no title
         title = item.entity
         try:
+            # Check saved dict of URLs/site names.
             title = self.site_names[item.entity]
         except:
             try:
+                # Check saved dict of URLs/titles.
                 title = self.url_titles[item.entity]
             except:
                 pass
@@ -123,6 +129,7 @@ class nomination_feed(Feed):
 
     def item_description(self, item):
         try:
+            # Check the saved dict of URLs/descriptions.
             return "%s - %s" % (item.entity, self.descriptions[item.entity])
         except:
             return item.entity
