@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+1.0.3
+-----
+
+* Fixed feeds being excessively slow due to making too many queries.
+* Added double slashes being stripped from ftp nominations.
+* Fixed removal of 's' for ftps or https nominations.
+
 1.0.2
 -----
 
