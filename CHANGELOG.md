@@ -4,6 +4,8 @@ Change Log
 1.0.3
 -----
 
+* Fixed incorrect URL pattern matching for nominated URLs ending in strings matching other
+URL patterns. [#85](https://github.com/unt-libraries/django-nomination/issues/85)
 * Fixed feeds being excessively slow due to making too many queries.
 * Added double slashes being stripped from ftp nominations.
 * Fixed removal of 's' for ftps or https nominations.
