@@ -108,6 +108,12 @@ def test_url_listing():
     assert resolve(url).func == views.url_listing
 
 
+def test_url_listing_reports_clash():
+    """Test that a URL ending in '/reports/' uses the correct view."""
+    url = '/nomination/some_project/url/some_url/reports/'
+    assert resolve(url).func == views.url_listing
+
+
 def test_url_surt():
     url = '/nomination/some_project/surt/some_surt/'
     assert resolve(url).func == views.url_surt
