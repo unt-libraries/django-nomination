@@ -1,7 +1,9 @@
-import string
-import re
+import json
 import datetime
+import re
+import string
 import urllib
+
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django import http
@@ -9,33 +11,24 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.conf import settings
 from django.db import connection
 from django.db.models import Sum, Count, Max
-from nomination.models import Project, URL, Value, Nominator
 from django import forms
 from django.views.decorators.csrf import csrf_protect
+from django.utils.encoding import iri_to_uri
+from django.utils.http import urlquote
+from django.contrib.sites.models import Site
+
+from nomination.models import Project, URL, Value, Nominator
 from nomination.url_handler import (add_url, create_json_browse,
     create_url_list, create_json_search, add_metadata, fix_scheme_double_slash,
     create_surt_dict, alphabetical_browse, get_metadata,
     handle_metadata, validate_date, create_url_dump)
-try:
-    # the json module was included in the stdlib in python 2.6
-    # http://docs.python.org/library/json.html
-    import json
-except ImportError:
-    # simplejson 2.0.9 is available for python 2.4+
-    # http://pypi.python.org/pypi/simplejson/2.0.9
-    # simplejson 1.7.3 is available for python 2.3+
-    # http://pypi.python.org/pypi/simplejson/1.7.3
-    import simplejson as json
-from django.utils.encoding import iri_to_uri
-from django.utils.http import urlquote
-from django.contrib.sites.models import Site
 
 
 SCOPE_CHOICES = (('1', 'In Scope',),
                  ('-1', 'Out of Scope',),)
 
 class URLForm(forms.Form):
-    url_value = forms.URLField(required=True, initial='http://',
+    url_value = forms.URLField(required=True,
         widget=forms.TextInput(attrs={'name': 'url-value', 'id':'url-value',}))
     nominator_name = forms.CharField(required=False,
         widget=forms.TextInput(attrs={'name': 'your-name-value',
@@ -125,7 +118,7 @@ def url_lookup(request, slug):
                 # let next if stmt handle response
                 pass
             else:
-                if partial_search == True:
+                if partial_search:
                     return render_to_response(
                         'nomination/url_search_results.html',
                         {
@@ -134,7 +127,7 @@ def url_lookup(request, slug):
                         },
                         RequestContext(request, {}),
                         )
-        if 'search-url-value' in posted_data and partial_search == False:
+        if 'search-url-value' in posted_data and not partial_search:
             url_entity = posted_data['search-url-value'][0]
             redirect_url = iri_to_uri(u'/nomination/%s/url/%s' % (slug, urlquote(url_entity)))
             if not redirect_url.endswith('/'):

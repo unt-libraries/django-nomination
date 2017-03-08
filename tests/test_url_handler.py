@@ -218,8 +218,7 @@ class TestAddMetadata():
 @pytest.mark.parametrize('url, expected', [
     ('http://www.example.com', 'http://www.example.com'),
     ('   http://www.example.com   ', 'http://www.example.com'),
-    ('https://www.example.com', 'http://www.example.com'),
-    ('http://http://www.example.com', 'http://www.example.com'),
+    ('https://www.example.com', 'https://www.example.com'),
     ('http://www.example.com///', 'http://www.example.com')
 ])
 def test_check_url(url, expected):

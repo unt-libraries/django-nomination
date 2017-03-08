@@ -1,6 +1,13 @@
-import string, re, simplejson, itertools, datetime, time
+import datetime
+import itertools
+import json
+import re
+import string
+import time
+
 from django import http
 from django.conf import settings
+
 from nomination.models import Project, Nominator, URL, Metadata, Value
 
 
@@ -149,10 +156,6 @@ def add_metadata(project, form_data):
 
 def check_url(url):
     url = string.strip(url)
-    if url.count('http://') > 1:
-        url = url.replace('http://', '', 1)
-    if url.startswith('https://'):
-        url = url.replace('https://', 'http://', 1)
     url = addImpliedHttpIfNecessary(url)
     url = url.rstrip('/')
     return url
@@ -458,7 +461,7 @@ def create_json_browse(slug, url_attribute, root):
             if len(domain_dict) > 0:
                 json_list.append(domain_dict)
 
-    return simplejson.dumps(json_list)
+    return json.dumps(json_list)
 
 def create_json_search(slug):
     """Create JSON list of all URLs added to the specified project."""
@@ -475,7 +478,7 @@ def create_json_search(slug):
     for url_item in query_list:
         json_list.append(url_item)
 
-    return simplejson.dumps(json_list)
+    return json.dumps(json_list)
 
 def create_url_list(project, base_list):
     url_dict = {}
