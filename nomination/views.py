@@ -21,7 +21,7 @@ from nomination.models import Project, URL, Value, Nominator
 from nomination.url_handler import (add_url, create_json_browse,
     create_url_list, create_json_search, add_metadata, fix_scheme_double_slash,
     create_surt_dict, alphabetical_browse, get_metadata,
-    handle_metadata, validate_date, create_url_dump)
+    handle_metadata, validate_date, create_url_dump, strip_scheme)
 
 
 SCOPE_CHOICES = (('1', 'In Scope',),
@@ -107,31 +107,27 @@ def url_lookup(request, slug):
     #handle the post
     if request.method == 'POST':
         posted_data = dict(request.POST.copy())
-        partial_search = False
-        if 'search-url-value' in posted_data and 'partial-search' in posted_data:
-            try:
-                url_list = URL.objects.filter(url_project=project, attribute__iexact='surt', \
-                    entity__icontains=posted_data['search-url-value'][0].rstrip('/')).order_by('value')
+        if 'search-url-value' in posted_data:
+            url_entity = posted_data['search-url-value'][0].strip().rstrip('/')
+            if 'partial-search' in posted_data or not url_entity:
+                url_list = URL.objects.filter(url_project=project, attribute__iexact='surt',
+                    entity__icontains=strip_scheme(url_entity)).order_by('value')
                 if url_list:
-                    partial_search = True
-            except:
-                # let next if stmt handle response
-                pass
-            else:
-                if partial_search:
                     return render_to_response(
                         'nomination/url_search_results.html',
-                        {
-                         'project': project,
-                         'url_list': url_list,
-                        },
-                        RequestContext(request, {}),
-                        )
-        if 'search-url-value' in posted_data and not partial_search:
-            url_entity = posted_data['search-url-value'][0]
-            redirect_url = iri_to_uri(u'/nomination/%s/url/%s' % (slug, urlquote(url_entity)))
-            if not redirect_url.endswith('/'):
-                redirect_url += '/'
+                         {'project': project,
+                          'url_list': url_list},
+                         RequestContext(request, {}))
+            if 'partial-search' not in posted_data and url_entity:
+                # check for scheme agnostic url matches
+                url_list = URL.objects.filter(url_project=project, attribute__iexact='surt',
+                    entity__endswith='://'+strip_scheme(url_entity)).values_list('entity', flat=True)
+                if url_list:
+                    # allow URL with a different scheme if available
+                    if url_entity not in url_list:
+                        url_entity = url_list[0]
+            # redirect if partial-search was empty or for non partial-search
+            redirect_url = iri_to_uri(u'/nomination/%s/url/%s/' % (slug, urlquote(url_entity)))
         else:
             raise http.Http404
     else:

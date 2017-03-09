@@ -4,6 +4,7 @@ import json
 import re
 import string
 import time
+from urlparse import urlparse
 
 from django import http
 from django.conf import settings
@@ -616,3 +617,8 @@ def fix_scheme_double_slash(url):
     """Add back slash lost by Apache removing null path segments."""
     fixed_entity = re.sub(SCHEME_ONE_SLASH, r'\1://\2', url)
     return fixed_entity
+
+def strip_scheme(url):
+    """Remove scheme from URL."""
+    scheme = '{}://'.format(urlparse(url).scheme)
+    return url.replace(scheme, '', 1)
