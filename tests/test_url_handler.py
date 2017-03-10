@@ -435,6 +435,8 @@ def test_url_formatter(url, expected):
     ('http://userinfo@domain.tld:80/path?query#fragment', False,
         'http://(tld,domain,:80@userinfo)/path?query#fragment'),
     ('http://www.example.com', False, 'http://(com,example,www,)'),
+    ('ftp://www.example.com', False, 'ftp://(com,example,www,)'),
+    ('ftps://www.example.com', False, 'ftp://(com,example,www,)'),
     ('https://www.example.com', False, 'http://(com,example,www,)'),
     ('www.example.com', False, 'http://(com,example,www,)'),
     ('http://www.eXaMple.cOm', True, 'http://(cOm,eXaMple,www,)'),

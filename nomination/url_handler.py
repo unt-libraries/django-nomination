@@ -329,6 +329,8 @@ def surtize(orig_url, preserveCase=False):
     # start building surt form
     if mobj.group(1) == 'https://':
         surt = 'http://('
+    elif mobj.group(1) == 'ftps://':
+        surt = 'ftp://('
     else:
         surt = mobj.group(1) + '('
     # if dotted-quad ip match, don't reverse

@@ -614,7 +614,9 @@ def surt_report(request, slug):
 
     #get the list of URLs
     try:
-        surt_list = URL.objects.filter(attribute__iexact='surt', url_project=project).order_by('value')
+        surt_list = URL.objects.filter(attribute__iexact='surt',
+                                       url_project=project).values_list('value',
+                                                                        flat=True).distinct().order_by('value')
     except:
         raise http.Http404
 
@@ -623,7 +625,7 @@ def surt_report(request, slug):
     " project.\n#SURTs sorted by SURT\n#List generated on " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
 
     for url_item in surt_list:
-        report_text += url_item.value + "\n"
+        report_text += url_item + "\n"
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
