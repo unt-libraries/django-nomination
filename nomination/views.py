@@ -343,7 +343,7 @@ def url_surt(request, slug, surt):
     # Create the alphabetical browse dictionary.
     browse_dict = alphabetical_browse(project)
     # Add Browse by if browsing surts by letter.
-    top_domain_search = re.compile(r'^http://\(([^,]+),?').search(surt, 0)
+    top_domain_search = re.compile(r'^(?:[^:]+://)?\(([^,]+),?').search(surt, 0)
     if top_domain_search:
         top_domain = top_domain_search.group(1)
     else:

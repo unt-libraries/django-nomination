@@ -697,7 +697,7 @@ class TestBrowseJson():
 
     @pytest.mark.parametrize('request_type, kwargs, id, text', [
         ('get', {'root': 'com,'}, 'com,example,',
-         '<a href="surt/http://(com,example">com,example</a>'),
+         '<a href="surt/(com,example">com,example</a>'),
         ('get', {'root': 'source'}, 'com,', 'com'),
         ('get', {}, 'com,', 'com'),
         ('post', {}, 'com,', 'com')
