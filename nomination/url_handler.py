@@ -1,10 +1,19 @@
-import string, re, simplejson, itertools, datetime, time
+import datetime
+import itertools
+import json
+import re
+import string
+import time
+from urlparse import urlparse
+
 from django import http
 from django.conf import settings
+
 from nomination.models import Project, Nominator, URL, Metadata, Value
 
 
 SCHEME_ONE_SLASH = re.compile(r'(https?|ftps?):/([^/])')
+ANCHOR_PATTERN = re.compile(r'^<a href=\"[^>]+>([^<]+)</a>')
 
 def alphabetical_browse(project):
     browse_key_list = string.digits + string.uppercase
@@ -15,8 +24,8 @@ def alphabetical_browse(project):
         raise http.Http404
 
     #compile regex
-    topdom_rgx = re.compile(r'^http://\(([^,]+),')
-    singdom_rgx = re.compile(r'^http://\([^,]+,([^,\)]{1})')
+    topdom_rgx = re.compile(r'^[^:]+://\(([^,]+),')
+    singdom_rgx = re.compile(r'^[^:]+://(\([^,]+,([^,\)]{1}))')
 
     for url_item in surt_list:
         top_domain_search = topdom_rgx.search(url_item.value, 0)
@@ -28,11 +37,11 @@ def alphabetical_browse(project):
                     browse_dict[top_domain][key] = None
             domain_single_search = singdom_rgx.search(url_item.value, 0)
             if domain_single_search:
-                domain_single = string.upper(domain_single_search.group(1))
-                browse_dict[top_domain][domain_single] = domain_single_search.group(0)
+                domain_single = string.upper(domain_single_search.group(2))
+                browse_dict[top_domain][domain_single] = domain_single_search.group(1)
 
     sorted_dict = {}
-    for top_domain,alpha_dict in browse_dict.items():
+    for top_domain, alpha_dict in browse_dict.items():
         alpha_list = []
         for key in sorted(alpha_dict.iterkeys()):
             alpha_list.append((key, alpha_dict[key],))
@@ -149,10 +158,6 @@ def add_metadata(project, form_data):
 
 def check_url(url):
     url = string.strip(url)
-    if url.count('http://') > 1:
-        url = url.replace('http://', '', 1)
-    if url.startswith('https://'):
-        url = url.replace('https://', 'http://', 1)
     url = addImpliedHttpIfNecessary(url)
     url = url.rstrip('/')
     return url
@@ -325,6 +330,8 @@ def surtize(orig_url, preserveCase=False):
     # start building surt form
     if mobj.group(1) == 'https://':
         surt = 'http://('
+    elif mobj.group(1) == 'ftps://':
+        surt = 'ftp://('
     else:
         surt = mobj.group(1) + '('
     # if dotted-quad ip match, don't reverse
@@ -365,7 +372,7 @@ def addImpliedHttpIfNecessary(uri):
        uri = 'http://' + uri
     return uri
 
-def create_json_browse(slug, url_attribute, root):
+def create_json_browse(slug, url_attribute, root=''):
     """Create a JSON list which can be used to represent a tree of the SURT domains.
 
     If a root is specified, the JSON list will show just the tree of domains under
@@ -383,60 +390,53 @@ def create_json_browse(slug, url_attribute, root):
 
     if root != '':
         #Find all URLs with the project and domain specified
-        try:
-            url_list = URL.objects.filter(url_project=project, attribute__iexact='surt', value__icontains=root).order_by('value')
-        except:
-            return ''
+        url_list = URL.objects.filter(url_project=project, attribute__iexact='surt', value__icontains=root).order_by('value')
     else:
         #Find all URLs with the project specified (the base domains)
-        try:
-            url_list = URL.objects.filter(url_project=project, attribute__iexact='surt').order_by('value')
-        except:
-            return ''
+        url_list = URL.objects.filter(url_project=project, attribute__iexact='surt').order_by('value')
 
     if len(url_list) >= 100 and root != '':
         category_list = []
         for url_item in url_list:
-            name_search = re.compile(r'^http://\('+root+'([A-Za-z0-9]{1})').search(url_item.value, 0)
+            name_search = re.compile(r'^[^:]+://\('+root+'([A-Za-z0-9]{1})').search(url_item.value, 0)
             if name_search:
                 if not name_search.group(1) in category_list:
                     category_list.append(name_search.group(1))
         for category in category_list:
             category_dict = {'text': category,
-                                       'id': root+category,
-                                       'hasChildren': True
-                                      }
+                             'id': root+category,
+                             'hasChildren': True
+                            }
             json_list.append(category_dict)
     else:
+        name_pattern = re.compile(r'^[^:]+://\('+root+'([^,\)]+)')
+        child_pattern = re.compile(r'^[^:]+://\('+root+'[^,]+,[^,\)]+')
         for url_item in url_list:
             domain_dict = {}
             #Determine if URL is a child of the expanded node
-            name_search = re.compile(r'^http://\('+root+'([^,\)]+)').search(url_item.value, 0)
+            name_search = name_pattern.search(url_item.value, 0)
             #if the URL exists under the expanded node
             if name_search:
                 #Determine if the URL has children
-                child_found = re.compile(r'^http://\('+root+'[^,]+,[^,\)]+').search(url_item.value, 0)
+                child_found = child_pattern.search(url_item.value, 0)
                 #Create a new domain name for the new URL
-                domain_name = root+name_search.group(1)
+                domain_name = root + name_search.group(1)
                 domain_not_found = True
                 #For all URLs in the json list already
                 for existing_domain in json_list:
                     #Find the domain name within the anchor
-                    found_anchor = re.compile(r'^<a href=\"[^>]+>([^<]+)</a>').search(existing_domain['text'], 0)
+                    found_anchor = ANCHOR_PATTERN.search(existing_domain['text'], 0)
                     if found_anchor:
                         removed_anchor = found_anchor.group(1)
                     else:
                         removed_anchor = None
-                    #if the domain name already exist in the json list
+                    #if the domain name already exists in the json list
                     if existing_domain['text'] == domain_name or removed_anchor == domain_name:
                         domain_not_found = False
-                        #if the domain name already exists in the json list, and it isn't listed as having children
-                        if child_found and not 'hasChildren' in existing_domain:
-                            existing_domain['hasChildren'] = True
                 #if the domain hasn't been added already, and it has a child node
                 if domain_not_found and child_found:
                     if len(domain_name.split(',')) > 1:
-                        domain_dict = {'text': '<a href=\"surt/http://('+ \
+                        domain_dict = {'text': '<a href=\"surt/('+ \
                             domain_name+'\">'+ \
                             domain_name+'</a>',
                                        'id': domain_name+',',
@@ -449,7 +449,7 @@ def create_json_browse(slug, url_attribute, root):
                                       }
                 #otherwise if the domain hasn't been added already, and it has no child
                 elif domain_not_found:
-                    domain_dict = {'text': '<a href=\"surt/http://('+ \
+                    domain_dict = {'text': '<a href=\"surt/('+ \
                         domain_name+'\">'+ \
                         domain_name+'</a>',
                                    'id': domain_name+','
@@ -458,7 +458,7 @@ def create_json_browse(slug, url_attribute, root):
             if len(domain_dict) > 0:
                 json_list.append(domain_dict)
 
-    return simplejson.dumps(json_list)
+    return json.dumps(json_list)
 
 def create_json_search(slug):
     """Create JSON list of all URLs added to the specified project."""
@@ -475,7 +475,7 @@ def create_json_search(slug):
     for url_item in query_list:
         json_list.append(url_item)
 
-    return simplejson.dumps(json_list)
+    return json.dumps(json_list)
 
 def create_url_list(project, base_list):
     url_dict = {}
@@ -581,17 +581,29 @@ def create_url_dump(project):
     return url_dict
 
 def create_surt_dict(project, surt):
-    try:
-        url_list = URL.objects.filter(
-            url_project=project,
-            attribute__iexact='surt',
-            value__istartswith=surt
-        ).order_by('value')
-    except:
-        url_list = None
+    if strip_scheme(surt) == surt:
+        # SURTs with no scheme are ok
+        surt_pattern = r'^[^:]+://\{0}'.format(strip_scheme(surt))
+        try:
+            url_list = URL.objects.filter(
+                url_project=project,
+                attribute__iexact='surt',
+                value__iregex=surt_pattern
+            ).order_by('value')
+        except:
+            url_list = None
+    else:
+        try:
+            url_list = URL.objects.filter(
+                url_project=project,
+                attribute__iexact='surt',
+                value__istartswith=surt
+            ).order_by('value')
+        except:
+            url_list = None
 
     letter = False
-    single_letter_search = re.compile(r'^http://\([^,]+,([^,\)]+)').search(surt, 0)
+    single_letter_search = re.compile(r'^(?:[^:]+://)?\([^,]+,([^,\)]+)').search(surt, 0)
     if single_letter_search:
         result = single_letter_search.group(1)
         if len(result) == 1:
@@ -603,7 +615,7 @@ def create_surt_dict(project, surt):
     }
 
 def get_domain_surt(surt):
-    domain_surt = re.compile(r'^(http://\([^,]+,[^,]+,)').search(surt, 0)
+    domain_surt = re.compile(r'^([^:]+://\([^,]+,[^,]+,)').search(surt, 0)
     if domain_surt:
         return domain_surt.group(1)
     else:
@@ -613,3 +625,8 @@ def fix_scheme_double_slash(url):
     """Add back slash lost by Apache removing null path segments."""
     fixed_entity = re.sub(SCHEME_ONE_SLASH, r'\1://\2', url)
     return fixed_entity
+
+def strip_scheme(url):
+    """Remove scheme from URL."""
+    scheme = '{}://'.format(urlparse(url).scheme)
+    return url.replace(scheme, '', 1)

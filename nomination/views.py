@@ -1,7 +1,9 @@
-import string
-import re
+import json
 import datetime
+import re
+import string
 import urllib
+
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django import http
@@ -9,33 +11,24 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.conf import settings
 from django.db import connection
 from django.db.models import Sum, Count, Max
-from nomination.models import Project, URL, Value, Nominator
 from django import forms
 from django.views.decorators.csrf import csrf_protect
-from nomination.url_handler import (add_url, create_json_browse,
-    create_url_list, create_json_search, add_metadata, fix_scheme_double_slash,
-    create_surt_dict, alphabetical_browse, get_metadata,
-    handle_metadata, validate_date, create_url_dump)
-try:
-    # the json module was included in the stdlib in python 2.6
-    # http://docs.python.org/library/json.html
-    import json
-except ImportError:
-    # simplejson 2.0.9 is available for python 2.4+
-    # http://pypi.python.org/pypi/simplejson/2.0.9
-    # simplejson 1.7.3 is available for python 2.3+
-    # http://pypi.python.org/pypi/simplejson/1.7.3
-    import simplejson as json
 from django.utils.encoding import iri_to_uri
 from django.utils.http import urlquote
 from django.contrib.sites.models import Site
+
+from nomination.models import Project, URL, Value, Nominator
+from nomination.url_handler import (add_url, create_json_browse,
+    create_url_list, create_json_search, add_metadata, fix_scheme_double_slash,
+    create_surt_dict, alphabetical_browse, get_metadata,
+    handle_metadata, validate_date, create_url_dump, strip_scheme)
 
 
 SCOPE_CHOICES = (('1', 'In Scope',),
                  ('-1', 'Out of Scope',),)
 
 class URLForm(forms.Form):
-    url_value = forms.URLField(required=True, initial='http://',
+    url_value = forms.URLField(required=True,
         widget=forms.TextInput(attrs={'name': 'url-value', 'id':'url-value',}))
     nominator_name = forms.CharField(required=False,
         widget=forms.TextInput(attrs={'name': 'your-name-value',
@@ -114,31 +107,27 @@ def url_lookup(request, slug):
     #handle the post
     if request.method == 'POST':
         posted_data = dict(request.POST.copy())
-        partial_search = False
-        if 'search-url-value' in posted_data and 'partial-search' in posted_data:
-            try:
-                url_list = URL.objects.filter(url_project=project, attribute__iexact='surt', \
-                    entity__icontains=posted_data['search-url-value'][0].rstrip('/')).order_by('value')
+        if 'search-url-value' in posted_data:
+            url_entity = posted_data['search-url-value'][0].strip().rstrip('/')
+            if 'partial-search' in posted_data or not url_entity:
+                url_list = URL.objects.filter(url_project=project, attribute__iexact='surt',
+                    entity__icontains=strip_scheme(url_entity)).order_by('value')
                 if url_list:
-                    partial_search = True
-            except:
-                # let next if stmt handle response
-                pass
-            else:
-                if partial_search == True:
                     return render_to_response(
                         'nomination/url_search_results.html',
-                        {
-                         'project': project,
-                         'url_list': url_list,
-                        },
-                        RequestContext(request, {}),
-                        )
-        if 'search-url-value' in posted_data and partial_search == False:
-            url_entity = posted_data['search-url-value'][0]
-            redirect_url = iri_to_uri(u'/nomination/%s/url/%s' % (slug, urlquote(url_entity)))
-            if not redirect_url.endswith('/'):
-                redirect_url += '/'
+                         {'project': project,
+                          'url_list': url_list},
+                         RequestContext(request, {}))
+            if 'partial-search' not in posted_data and url_entity:
+                # check for scheme agnostic url matches
+                url_list = URL.objects.filter(url_project=project, attribute__iexact='surt',
+                    entity__endswith='://'+strip_scheme(url_entity)).values_list('entity', flat=True)
+                if url_list:
+                    # allow URL with a different scheme if available
+                    if url_entity not in url_list:
+                        url_entity = url_list[0]
+            # redirect if partial-search was empty or for non partial-search
+            redirect_url = iri_to_uri(u'/nomination/%s/url/%s/' % (slug, urlquote(url_entity)))
         else:
             raise http.Http404
     else:
@@ -354,7 +343,7 @@ def url_surt(request, slug, surt):
     # Create the alphabetical browse dictionary.
     browse_dict = alphabetical_browse(project)
     # Add Browse by if browsing surts by letter.
-    top_domain_search = re.compile(r'^http://\(([^,]+),?').search(surt, 0)
+    top_domain_search = re.compile(r'^(?:[^:]+://)?\(([^,]+),?').search(surt, 0)
     if top_domain_search:
         top_domain = top_domain_search.group(1)
     else:
@@ -625,7 +614,9 @@ def surt_report(request, slug):
 
     #get the list of URLs
     try:
-        surt_list = URL.objects.filter(attribute__iexact='surt', url_project=project).order_by('value')
+        surt_list = URL.objects.filter(attribute__iexact='surt',
+                                       url_project=project).values_list('value',
+                                                                        flat=True).distinct().order_by('value')
     except:
         raise http.Http404
 
@@ -634,7 +625,7 @@ def surt_report(request, slug):
     " project.\n#SURTs sorted by SURT\n#List generated on " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
 
     for url_item in surt_list:
-        report_text += url_item.value + "\n"
+        report_text += url_item + "\n"
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 

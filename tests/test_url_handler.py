@@ -20,9 +20,9 @@ class TestAlphabeticalBrowse():
 
     def test_returns_browse_dict(self):
         surts = {
-            'A': ('http://(org,alarm,)', 'http://(org,a'),
-            'C': ('http://(org,charlie,)', 'http://(org,c'),
-            '1': ('http://(org,123,)', 'http://(org,1')
+            'A': ('http://(org,alarm,)', '(org,a'),
+            'C': ('http://(org,charlie,)', '(org,c'),
+            '1': ('http://(org,123,)', '(org,1')
         }
         project = factories.ProjectFactory()
         # Create the surts we're expecting to see represented in the returned dict.
@@ -218,8 +218,7 @@ class TestAddMetadata():
 @pytest.mark.parametrize('url, expected', [
     ('http://www.example.com', 'http://www.example.com'),
     ('   http://www.example.com   ', 'http://www.example.com'),
-    ('https://www.example.com', 'http://www.example.com'),
-    ('http://http://www.example.com', 'http://www.example.com'),
+    ('https://www.example.com', 'https://www.example.com'),
     ('http://www.example.com///', 'http://www.example.com')
 ])
 def test_check_url(url, expected):
@@ -436,6 +435,8 @@ def test_url_formatter(url, expected):
     ('http://userinfo@domain.tld:80/path?query#fragment', False,
         'http://(tld,domain,:80@userinfo)/path?query#fragment'),
     ('http://www.example.com', False, 'http://(com,example,www,)'),
+    ('ftp://www.example.com', False, 'ftp://(com,example,www,)'),
+    ('ftps://www.example.com', False, 'ftp://(com,example,www,)'),
     ('https://www.example.com', False, 'http://(com,example,www,)'),
     ('www.example.com', False, 'http://(com,example,www,)'),
     ('http://www.eXaMple.cOm', True, 'http://(cOm,eXaMple,www,)'),
@@ -468,7 +469,7 @@ def test_addImpliedHttpIfNecessary(uri, expected):
 class TestCreateJsonBrowse():
 
     @pytest.mark.parametrize('root, text, id_group', [
-        ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
+        ('com,', '<a href="surt/(com,example">com,example</a>', 'com,example,'),
         ('', 'com', 'com,')
     ])
     def test_returns_expected(self, root, text, id_group):
@@ -477,6 +478,26 @@ class TestCreateJsonBrowse():
             url_project=project,
             entity='http://www.example.com',
             value='http://(com,example,www)'
+        )
+        expected = [{
+            'hasChildren': True,
+            'id': id_group,
+            'text': text
+        }]
+        results = url_handler.create_json_browse(project.project_slug, None, root)
+
+        assert json.loads(results) == expected
+
+    @pytest.mark.parametrize('root, text, id_group', [
+        ('com,', '<a href="surt/(com,example">com,example</a>', 'com,example,'),
+        ('', 'com', 'com,')
+    ])
+    def test_handles_non_http(self, root, text, id_group):
+        project = factories.ProjectFactory()
+        factories.SURTFactory(
+            url_project=project,
+            entity='ftp://www.example.com',
+            value='ftp://(com,example,www)'
         )
         expected = [{
             'hasChildren': True,
@@ -497,14 +518,14 @@ class TestCreateJsonBrowse():
         root = 'com,example,'
         expected = [{
             'id': 'com,example,www,',
-            'text': '<a href="surt/http://(com,example,www">com,example,www</a>'
+            'text': '<a href="surt/(com,example,www">com,example,www</a>'
         }]
         results = url_handler.create_json_browse(project.project_slug, None, root)
 
         assert json.loads(results) == expected
 
     @pytest.mark.parametrize('root, text, id_group', [
-        ('com,', '<a href="surt/http://(com,example">com,example</a>', 'com,example,'),
+        ('com,', '<a href="surt/(com,example">com,example</a>', 'com,example,'),
         ('', 'com', 'com,'),
     ])
     def test_does_not_show_duplicates(self, root, text, id_group):
@@ -514,6 +535,11 @@ class TestCreateJsonBrowse():
             url_project=project,
             entity='http://www.example.com',
             value='http://(com,example,www)'
+        )
+        factories.SURTFactory(
+            url_project=project,
+            entity='ftp://www.example.com',
+            value='ftp://(com,example,www)'
         )
         expected = [{
             'hasChildren': True,
@@ -739,3 +765,8 @@ def test_fix_scheme_double_slash_ftp():
     url = 'ftp:/www.example.com/clvl37.idx'
     expected = 'ftp://www.example.com/clvl37.idx'
     assert url_handler.fix_scheme_double_slash(url) == expected
+
+def test_strip_scheme():
+    url = 'https://example.com'
+    expected = 'example.com'
+    assert url_handler.strip_scheme(url) == expected

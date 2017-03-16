@@ -7,6 +7,7 @@ from django.http import Http404
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 from django.conf import settings
+from django.utils.http import urlquote
 
 from nomination import views, models
 from . import factories
@@ -93,6 +94,64 @@ class TestUrlLookup():
 
         assert response.status_code == 302
         assert response['Location'] == '/nomination/{0}/url/a_url/'.format(project.project_slug)
+
+    def test_empty_search_url_value_no_partial_search(self, client):
+        """Verify no URL value and no partial search returns all URLs."""
+        project = factories.ProjectFactory()
+        factories.URLFactory.create_batch(
+            3,
+            url_project=project,
+            attribute='surt'
+        )
+        response = client.post(
+            reverse('url_lookup',
+            args=[project.project_slug]),
+            {'search-url-value': ''}
+        )
+        assert len(response.context['url_list']) == 3
+
+    def test_partial_search_is_scheme_agnostic(self, client):
+        project = factories.ProjectFactory()
+        factories.URLFactory(url_project=project,
+                                        attribute='surt')
+        http_url = factories.URLFactory(url_project=project,
+                                        entity='http://example.com',
+                                        attribute='surt')
+        https_url = factories.URLFactory(url_project=project,
+                                         entity='https://example.com/stuff',
+                                         attribute='surt')
+        response = client.post(
+            reverse('url_lookup',
+                    args=[project.project_slug]),
+                    {'search-url-value': http_url.entity, 'partial-search': ''}
+        )
+        assert len(response.context['url_list']) == 2
+        assert https_url in response.context['url_list']
+
+    def test_exact_lookup_prefers_exact_scheme(self, rf):
+        project = factories.ProjectFactory()
+        url = factories.URLFactory(url_project=project,
+                                   entity='http://example.com',
+                                   attribute='surt')
+        factories.URLFactory(url_project=project,
+                             entity='https://example.com',
+                             attribute='surt')
+        request = rf.post('/', {'search-url-value': 'http://example.com'})
+        response = views.url_lookup(request, project.project_slug)
+
+        assert response['Location'] == '/nomination/{0}/url/{1}/'.format(project.project_slug,
+                                                                         urlquote(url.entity))
+
+    def test_exact_lookup_allows_alternate_scheme(self, rf):
+        project = factories.ProjectFactory()
+        url = factories.URLFactory(url_project=project,
+                                   entity='https://example.com',
+                                   attribute='surt')
+        request = rf.post('/', {'search-url-value': 'http://example.com'})
+        response = views.url_lookup(request, project.project_slug)
+
+        assert response['Location'] == '/nomination/{0}/url/{1}/'.format(project.project_slug,
+                                                                         urlquote(url.entity))
 
     def test_raises_http404_if_not_post(self, rf):
         project = factories.ProjectFactory()
@@ -638,7 +697,7 @@ class TestBrowseJson():
 
     @pytest.mark.parametrize('request_type, kwargs, id, text', [
         ('get', {'root': 'com,'}, 'com,example,',
-         '<a href="surt/http://(com,example">com,example</a>'),
+         '<a href="surt/(com,example">com,example</a>'),
         ('get', {'root': 'source'}, 'com,', 'com'),
         ('get', {}, 'com,', 'com'),
         ('post', {}, 'com,', 'com')
