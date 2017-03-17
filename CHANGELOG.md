@@ -1,6 +1,17 @@
 Change Log
 ==========
 
+1.1.0
+-----
+
+* Removed assumptions that nominations will be for URLs with http scheme.[#67](https://github.com/unt-libraries/django-nomination/issues/67)
+* Adjusted partial search to be scheme agnostic.
+* Added scheme agnostic SURT browsing.[#80](https://github.com/unt-libraries/django-nomination/issues/80)
+* Modified search by URL to allow alternate schemes when exact match is not available.
+* Moved compiling of regular expressions outside of loops.[#38](https://github.com/unt-libraries/django-nomination/issues/38)
+* Removed three unreachable branches in create_json_browse(). [#26](https://github.com/unt-libraries/django-nomination/issues/26)
+* Removed 'except' branch in url_lookup view that never catches anything. [#31](https://github.com/unt-libraries/django-nomination/issues/31)
+
 1.0.3
 -----
 
