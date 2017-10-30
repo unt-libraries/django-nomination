@@ -108,7 +108,7 @@ def validate_date(dateinput):
         '%d %B %Y', '%d %B, %Y',                # '25 October 2006', '25 October, 2006'
     )
     validdate = None
-    if dateinput is not None and len(dateinput) != 0 and not dateinput.isspace():
+    if dateinput.strip():
         for format in DEFAULT_DATE_INPUT_FORMATS:
             try:
                 validdate = datetime.date(*time.strptime(dateinput, format)[:3])
@@ -124,7 +124,7 @@ def add_url(project, form_data):
     # Get the system nominator
     try:
         system_nominator = Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
-    except Nominator.DoesNotExist, Nominator.MultipleObjectsReturned:
+    except Nominator.DoesNotExist:
         raise http.Http404
 
     # Check for or add surt
@@ -299,7 +299,7 @@ def surt_exists(project, system_nominator, url_entity):
     # Create a SURT if the url doesn't already have one
     try:
         URL.objects.get(url_project=project, entity__iexact=url_entity, attribute__iexact='surt')
-    except URL.DoesNotExist, URL.MultipleObjectsReturned:
+    except URL.DoesNotExist:
         try:
             new_surt = URL(entity=url_entity,
                            value=surtize(url_entity),
@@ -409,7 +409,7 @@ def create_json_browse(slug, url_attribute, root=''):
     # Make sure the project exist in the database
     try:
         project = Project.objects.get(project_slug=slug)
-    except Project.DoesNotExist, Project.MultipleObjectsReturned:
+    except Project.DoesNotExist:
         raise http.Http404
 
     if root != '':
@@ -483,7 +483,7 @@ def create_json_browse(slug, url_attribute, root=''):
                                    domain_name+'</a>',
                                    'id': domain_name+','}
             # if the domain dictionary isn't empty
-            if len(domain_dict) > 0:
+            if domain_dict:
                 json_list.append(domain_dict)
 
     return json.dumps(json_list)
@@ -493,7 +493,7 @@ def create_json_search(slug):
     """Create JSON list of all URLs added to the specified project."""
     try:
         project = Project.objects.get(project_slug=slug)
-    except Project.DoesNotExist, Project.MultipleObjectsReturned:
+    except Project.DoesNotExist:
         raise http.Http404
 
     json_list = []

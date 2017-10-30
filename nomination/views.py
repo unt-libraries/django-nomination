@@ -71,7 +71,7 @@ def get_project(slug):
     # get the project by the project slug
     try:
         project = Project.objects.get(project_slug=slug)
-    except Project.DoesNotExist, Project.MultipleObjectsReturned:
+    except Project.DoesNotExist:
         raise http.Http404
 
     return project
