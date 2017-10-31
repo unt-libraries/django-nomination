@@ -104,8 +104,7 @@ class TestUrlLookup():
             attribute='surt'
         )
         response = client.post(
-            reverse('url_lookup',
-            args=[project.project_slug]),
+            reverse('url_lookup', args=[project.project_slug]),
             {'search-url-value': ''}
         )
         assert len(response.context['url_list']) == 3
@@ -113,7 +112,7 @@ class TestUrlLookup():
     def test_partial_search_is_scheme_agnostic(self, client):
         project = factories.ProjectFactory()
         factories.URLFactory(url_project=project,
-                                        attribute='surt')
+                             attribute='surt')
         http_url = factories.URLFactory(url_project=project,
                                         entity='http://example.com',
                                         attribute='surt')
@@ -123,7 +122,7 @@ class TestUrlLookup():
         response = client.post(
             reverse('url_lookup',
                     args=[project.project_slug]),
-                    {'search-url-value': http_url.entity, 'partial-search': ''}
+            {'search-url-value': http_url.entity, 'partial-search': ''}
         )
         assert len(response.context['url_list']) == 2
         assert https_url in response.context['url_list']

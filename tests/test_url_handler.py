@@ -761,10 +761,12 @@ def test_fix_scheme_double_slash():
     expected = 'http://www.example.com'
     assert url_handler.fix_scheme_double_slash(url) == expected
 
+
 def test_fix_scheme_double_slash_ftp():
     url = 'ftp:/www.example.com/clvl37.idx'
     expected = 'ftp://www.example.com/clvl37.idx'
     assert url_handler.fix_scheme_double_slash(url) == expected
+
 
 def test_strip_scheme():
     url = 'https://example.com'

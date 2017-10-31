@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+
+x.x.x
+-----
+
+* Added test environments for more versions of Python and Django.
+* Made code compliant with PEP-8 style rules.
+
+
 1.1.0
 -----
 
@@ -12,6 +20,7 @@ Change Log
 * Removed three unreachable branches in create_json_browse(). [#26](https://github.com/unt-libraries/django-nomination/issues/26)
 * Removed 'except' branch in url_lookup view that never catches anything. [#31](https://github.com/unt-libraries/django-nomination/issues/31)
 
+
 1.0.3
 -----
 
@@ -21,11 +30,13 @@ URL patterns. [#85](https://github.com/unt-libraries/django-nomination/issues/85
 * Added double slashes being stripped from ftp nominations.
 * Fixed removal of 's' for ftps or https nominations.
 
+
 1.0.2
 -----
 
 * Fixed removal of double slash in https URLs when going from search to nomination form.
 * Added link to fielded_batch_ingest.py documentation.
+
 
 1.0.1
 -----
