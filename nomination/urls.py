@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from nomination.views import (
     project_listing, robot_ban, nomination_about, nomination_help, url_lookup, search_json,
     browse_json, project_dump, url_score_report, url_nomination_report, url_date_report,
@@ -7,8 +7,7 @@ from nomination.views import (
 )
 from nomination.feeds import url_feed, nomination_feed
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r"^$", project_listing, name='project_listing'),
     url(r"^robots.txt$", robot_ban, name='robot_ban'),
     url(r"^about/$", nomination_about, name='nomination_about'),
@@ -41,4 +40,4 @@ urlpatterns = patterns(
     url(r"^([^/]+)/feed/nominations/$", nomination_feed(), name='nomination_feed'),
     url(r"^([^/]+)/feed/urls/$", url_feed(), name='url_feed'),
     url(r"^([^/]+)/$", project_urls, name='project_urls'),
-)
+]

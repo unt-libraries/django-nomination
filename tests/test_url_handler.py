@@ -5,6 +5,7 @@ import datetime
 
 from django import http
 from django.conf import settings
+from django.db import transaction
 
 import pytest
 
@@ -68,7 +69,8 @@ class TestGetMetadata():
         ]
         results = url_handler.get_metadata(project)
 
-        assert str(sorted(results, key=str)) == str(sorted(expected, key=str))
+        for each in results:
+            assert (each[0], list(each[1])) in expected
 
     def test_metadata_list_includes_valueset_values(self):
         project = factories.ProjectFactory()
@@ -103,11 +105,8 @@ class TestGetMetadata():
         {'color': 'other_specify', 'color_other': 'magenta'},
         {'color': 'magenta', 'color_other': 'magenta'}
     ),
-    pytest.mark.xfail((
-        {'color': ['other_specify']},
-        {'color': 'other_specify'},
-        {}
-    ))
+    pytest.param({'color': ['other_specify']}, {'color': 'other_specify'}, {},
+                 marks=pytest.mark.xfail)
 ])
 def test_handle_metadata(rf, posted_data, processed_posted_data, expected):
     request = rf.post('/', posted_data)
@@ -391,7 +390,8 @@ class TestSaveAttribute():
 
     def test_url_cannot_be_saved(self):
         with pytest.raises(http.Http404):
-            url_handler.save_attribute(None, None, {'url_value': ''}, [], '', '',)
+            with transaction.atomic():
+                url_handler.save_attribute(None, None, {'url_value': ''}, [], '', '',)
         assert models.URL.objects.all().count() == 0
 
 

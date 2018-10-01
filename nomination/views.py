@@ -3,8 +3,7 @@ import datetime
 import re
 import urllib
 
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django import http
 from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
@@ -90,13 +89,13 @@ def project_listing(request):
     except Exception:
         raise http.Http404
 
-    return render_to_response(
+    return render(
+        request,
         'nomination/project_listing.html',
         {
             'active_list': active_list,
             'past_list': past_list,
         },
-        RequestContext(request, {}),
     )
 
 
@@ -105,16 +104,16 @@ def robot_ban(request):
 
 
 def nomination_about(request):
-    return render_to_response(
+    return render(
+        request,
         'nomination/about.html',
-        RequestContext(request, {}),
     )
 
 
 def nomination_help(request):
-    return render_to_response(
+    return render(
+        request,
         'nomination/help.html',
-        RequestContext(request, {}),
     )
 
 
@@ -134,10 +133,11 @@ def url_lookup(request, slug):
                     entity__icontains=strip_scheme(url_entity)
                 ).order_by('value')
                 if url_list:
-                    return render_to_response(
+                    return render(
+                        request,
                         'nomination/url_search_results.html',
-                        {'project': project, 'url_list': url_list},
-                        RequestContext(request, {}))
+                        {'project': project, 'url_list': url_list}
+                    )
             if 'partial-search' not in posted_data and url_entity:
                 # check for scheme agnostic url matches
                 url_list = URL.objects.filter(
@@ -172,7 +172,8 @@ def project_urls(request, slug):
     url_count = get_project_url_count(urls)
     nominator_count = get_project_nominator_count(urls)
 
-    return render_to_response(
+    return render(
+        request,
         'nomination/project_urls.html',
         {
          'project': project,
@@ -180,7 +181,6 @@ def project_urls(request, slug):
          'url_count': url_count,
          'nominator_count': nominator_count,
         },
-        RequestContext(request, {}),
         )
 
 
@@ -327,7 +327,8 @@ def url_listing(request, slug, url_entity):
         for pm in project.project_metadata_set.all():
             form_types[pm.metadata.name] = str(pm.form_type)
 
-        return render_to_response(
+        return render(
+            request,
             'nomination/url_listing.html',
             {
              'project': project,
@@ -341,12 +342,12 @@ def url_listing(request, slug, url_entity):
              'form_types': json.dumps(form_types),
              'institutions': institutions,
             },
-            RequestContext(request, {}),
             )
     else:
         default_data = {'url_value': url_entity}
         form = URLForm(default_data)
-        return render_to_response(
+        return render(
+            request,
             'nomination/url_add.html',
             {
              'project': project,
@@ -360,7 +361,6 @@ def url_listing(request, slug, url_entity):
              'institutions': institutions,
              'url_entity': url_entity,
             },
-            RequestContext(request, {}),
             )
 
 
@@ -379,7 +379,8 @@ def url_surt(request, slug, surt):
         top_domain = top_domain_search.group(1)
     else:
         top_domain = None
-    return render_to_response(
+    return render(
+        request,
         'nomination/url_surt.html',
         {
             'surt': surt,
@@ -389,7 +390,6 @@ def url_surt(request, slug, surt):
             'browse_domain': top_domain,
             'browse_dict': browse_dict,
         },
-        RequestContext(request, {}),
     )
 
 
@@ -526,7 +526,8 @@ def url_add(request, slug):
     for pm in project.project_metadata_set.all():
         form_types[pm.metadata.name] = str(pm.form_type)
 
-    return render_to_response(
+    return render(
+        request,
         'nomination/url_add.html',
         {
          'project': project,
@@ -539,7 +540,6 @@ def url_add(request, slug):
          'institutions': institutions,
          'url_entity': url_entity,
         },
-        RequestContext(request, {}),
         )
 
 
@@ -553,7 +553,8 @@ def project_about(request, slug):
     current_host = Site.objects.get(id=settings.SITE_ID)
     # figure out if we need to show bookmarklets
     show_bookmarklets = datetime.datetime.now() < project.nomination_end
-    return render_to_response(
+    return render(
+        request,
         'nomination/project_about.html',
         {
          'project': project,
@@ -562,7 +563,6 @@ def project_about(request, slug):
          'current_host': current_host,
          'show_bookmarklets': show_bookmarklets,
         },
-        RequestContext(request, {}),
         )
 
 
@@ -614,13 +614,13 @@ def reports_view(request, slug):
                   .distinct()
                   .values_list('attribute'))
 
-    return render_to_response(
+    return render(
+        request,
         'nomination/reports.html',
         {
          'project': project,
          'metadata_fields': results,
         },
-        RequestContext(request, {}),
         )
 
 
@@ -772,7 +772,8 @@ def field_report(request, slug, field):
     except Exception:
         pass
 
-    return render_to_response(
+    return render(
+        request,
         'nomination/metadata_report.html',
         {
          'project': project,
@@ -780,7 +781,6 @@ def field_report(request, slug, field):
          'namelist': namelist,
          'field': field,
         },
-        RequestContext(request, {}),
         )
 
 
@@ -822,14 +822,14 @@ def nominator_report(request, slug, field):
                   .annotate(count=Count('entity'), nomid=Max('url_nominator__id'))
                   .values_list('url_nominator__{}'.format(fieldname), 'count', 'nomid'))
 
-    return render_to_response(
+    return render(
+        request,
         'nomination/nominator_report.html',
         {
          'project': project,
          'valdic': results,
          'field': field,
         },
-        RequestContext(request, {}),
         )
 
 

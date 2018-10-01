@@ -9,7 +9,6 @@ setup(
     long_description='See the home page for more information.',
     include_package_data=True,
     install_requires=[
-        'simplejson>=3.8.1',
         'django-markup-deprecated>=0.0.3',
         'markdown>=2.6.5',
         'django-widget-tweaks>=1.4.1',

@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.syndication.views import Feed, FeedDoesNotExist
 from nomination.views import get_project
 from django.utils.feedgenerator import Atom1Feed
