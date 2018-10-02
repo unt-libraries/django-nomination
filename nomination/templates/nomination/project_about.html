@@ -1,6 +1,6 @@
 {% extends "nomination/base.html" %}
 
-{% load markup %}
+{% load nomination_tags %}
 
 {% block title %}Nomination Tool: About Project{% endblock %}
 
@@ -13,7 +13,7 @@
                 <h4 class="panel-title">Project Description</h4>
             </div>
             <div class="panel-body">
-                {{ project.project_description|markdown }}
+                {{ project.project_description|render_markdown }}
             </div>
         </div>
         <div class="panel panel-primary">

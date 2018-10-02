@@ -21,7 +21,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'markup_deprecated',
     'nomination',
     'widget_tweaks',
 )
