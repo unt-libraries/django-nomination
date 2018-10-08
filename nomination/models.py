@@ -2,6 +2,7 @@ import datetime
 from django.db import models
 from django.contrib.sites.models import Site
 from django.conf import settings
+from django.utils.encoding import python_2_unicode_compatible
 
 FORM_TYPES = (
     ('checkbox', 'checkbox'),
@@ -14,8 +15,8 @@ FORM_TYPES = (
 )
 
 
+@python_2_unicode_compatible
 class Value(models.Model):
-    # metadata = models.ForeignKey(Metadata)
     value = models.CharField(max_length=255,
                              help_text='Permitted value for associated metadata field.')
     key = models.CharField(max_length=35,
@@ -28,16 +29,17 @@ class Value(models.Model):
         verbose_name = 'metadata value'
         verbose_name_plural = 'metadata values'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.value
 
 
+@python_2_unicode_compatible
 class ValueSet(models.Model):
     """Reusable sets of metadata values."""
     name = models.CharField(max_length=75, unique=True, help_text='Name given to value set.')
     values = models.ManyToManyField(Value, through='Valueset_Values', verbose_name='values')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -45,8 +47,8 @@ class ValueSet(models.Model):
         verbose_name_plural = 'metadata value sets'
 
 
+@python_2_unicode_compatible
 class Metadata(models.Model):
-    # project = models.ForeignKey(Project)
     name = models.SlugField(
         max_length=50,
         help_text=(
@@ -72,7 +74,7 @@ class Metadata(models.Model):
         verbose_name='metadata value sets'
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -81,15 +83,16 @@ class Metadata(models.Model):
         ordering = ['name']
 
 
+@python_2_unicode_compatible
 class Metadata_Values(models.Model):
-    metadata = models.ForeignKey(Metadata)
-    value = models.ForeignKey(Value)
+    metadata = models.ForeignKey(Metadata, on_delete=models.CASCADE)
+    value = models.ForeignKey(Value, on_delete=models.CASCADE)
     value_order = models.PositiveIntegerField(
         default=1,
         help_text='Change the ordering of the value fields, ordered lowest to highest'
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s (%s)' % (self.metadata, self.value)
 
     class Meta:
@@ -98,15 +101,16 @@ class Metadata_Values(models.Model):
         ordering = ['value_order']
 
 
+@python_2_unicode_compatible
 class Valueset_Values(models.Model):
-    valueset = models.ForeignKey(ValueSet)
-    value = models.ForeignKey(Value)
+    valueset = models.ForeignKey(ValueSet, on_delete=models.CASCADE)
+    value = models.ForeignKey(Value, on_delete=models.CASCADE)
     value_order = models.PositiveIntegerField(
         default=1,
         help_text='Change the ordering of the value fields, ordered lowest to highest'
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s (%s)' % (self.valueset, self.value)
 
     class Meta:
@@ -115,6 +119,7 @@ class Valueset_Values(models.Model):
         ordering = ['value_order', 'value']
 
 
+@python_2_unicode_compatible
 class Project(models.Model):
     project_name = models.CharField(max_length=250, help_text='Name given to nomination project.')
     project_description = models.TextField(help_text='Description of project.')
@@ -136,7 +141,7 @@ class Project(models.Model):
     registration_required = models.BooleanField()
     metadata = models.ManyToManyField(Metadata, through='Project_Metadata')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.project_slug
 
     def nomination_message(self):
@@ -168,9 +173,10 @@ class Project(models.Model):
             self.archive_url = '{0}{1}'.format(self.archive_url, '/')
 
 
+@python_2_unicode_compatible
 class Project_Metadata(models.Model):
-    project = models.ForeignKey(Project)
-    metadata = models.ForeignKey(Metadata)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    metadata = models.ForeignKey(Metadata, on_delete=models.CASCADE)
     required = models.BooleanField(
         help_text='Are users required to submit data for this field when nominating a URL?'
     )
@@ -193,7 +199,7 @@ class Project_Metadata(models.Model):
         help_text='Change the ordering of the metadata fields, ordered lowest to highest'
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s (%s)' % (self.project, self.metadata)
 
     class Meta:
@@ -201,6 +207,7 @@ class Project_Metadata(models.Model):
         verbose_name_plural = 'project metadata'
 
 
+@python_2_unicode_compatible
 class Nominator(models.Model):
     nominator_name = models.CharField(max_length=100, help_text='Your name.')
     nominator_institution = models.CharField(
@@ -212,7 +219,7 @@ class Nominator(models.Model):
         help_text='An email address for identifying your nominations in the system.'
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nominator_name
 
     class Meta:
@@ -222,17 +229,18 @@ class Nominator(models.Model):
         return len(URL.objects.filter(url_nominator=self.id))
 
 
+@python_2_unicode_compatible
 class URL(models.Model):
-    url_project = models.ForeignKey(Project,
+    url_project = models.ForeignKey(Project, on_delete=models.CASCADE,
                                     help_text='The project for which you want to add a URL.')
-    url_nominator = models.ForeignKey(Nominator)
+    url_nominator = models.ForeignKey(Nominator, on_delete=models.CASCADE)
     entity = models.CharField(max_length=300, help_text='The URL to nominate for capture.')
     attribute = models.CharField(max_length=255,
                                  help_text='A property of the URL you wish to describe.')
     value = models.CharField(max_length=255, help_text='The value of the associated attribute.')
     date = models.DateTimeField(auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.entity
 
     def entity_display(self):

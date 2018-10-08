@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('value_order', models.PositiveIntegerField(default=1, help_text=b'Change the ordering of the value fields, ordered lowest to highest')),
-                ('metadata', models.ForeignKey(to='nomination.Metadata')),
+                ('metadata', models.ForeignKey(to='nomination.Metadata', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['value_order'],
@@ -79,8 +79,8 @@ class Migration(migrations.Migration):
                 ('help', models.CharField(help_text=b'String used on Web forms to prompt users for accurate data.', max_length=255, blank=True)),
                 ('description', models.CharField(help_text=b'Used as a descriptive title for the metadata field on Web forms.', max_length=255)),
                 ('metadata_order', models.PositiveIntegerField(default=1, help_text=b'Change the ordering of the metadata fields, ordered lowest to highest')),
-                ('metadata', models.ForeignKey(to='nomination.Metadata')),
-                ('project', models.ForeignKey(to='nomination.Project')),
+                ('metadata', models.ForeignKey(to='nomination.Metadata', on_delete=models.CASCADE)),
+                ('project', models.ForeignKey(to='nomination.Project', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['metadata_order'],
@@ -96,8 +96,8 @@ class Migration(migrations.Migration):
                 ('attribute', models.CharField(help_text=b'A property of the URL you wish to describe.', max_length=255)),
                 ('value', models.CharField(help_text=b'The value of the associated attribute.', max_length=255)),
                 ('date', models.DateTimeField(auto_now=True)),
-                ('url_nominator', models.ForeignKey(to='nomination.Nominator')),
-                ('url_project', models.ForeignKey(help_text=b'The project for which you want to add a URL.', to='nomination.Project')),
+                ('url_nominator', models.ForeignKey(to='nomination.Nominator', on_delete=models.CASCADE)),
+                ('url_project', models.ForeignKey(help_text=b'The project for which you want to add a URL.', to='nomination.Project', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -134,8 +134,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('value_order', models.PositiveIntegerField(default=1, help_text=b'Change the ordering of the value fields, ordered lowest to highest')),
-                ('value', models.ForeignKey(to='nomination.Value')),
-                ('valueset', models.ForeignKey(to='nomination.ValueSet')),
+                ('value', models.ForeignKey(to='nomination.Value', on_delete=models.CASCADE)),
+                ('valueset', models.ForeignKey(to='nomination.ValueSet', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['value_order', 'value'],
@@ -159,7 +159,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='metadata_values',
             name='value',
-            field=models.ForeignKey(to='nomination.Value'),
+            field=models.ForeignKey(to='nomination.Value', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(

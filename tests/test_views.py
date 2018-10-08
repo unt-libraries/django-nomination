@@ -4,7 +4,7 @@ import pytest
 import json
 
 from django.http import Http404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.sites.models import Site
 from django.conf import settings
 from django.utils.http import urlquote
@@ -315,7 +315,6 @@ class TestUrlListing():
         expected_context = {
             'project': project,
             'url_data': views.create_url_list(project, related_urls + [url]),
-            'related_url_list': related_urls,
             'metadata_vals': views.get_metadata(project),
             'institutions': views.get_look_ahead(project),
             'form_types': json.dumps({project_metadata.metadata.name: project_metadata.form_type}),
@@ -324,6 +323,8 @@ class TestUrlListing():
 
         for key in expected_context:
             assert str(response.context[key]) == str(expected_context[key])
+
+        assert list(response.context['related_url_list']) == related_urls
 
     def test_context_with_post(self, client):
         data = {
@@ -483,7 +484,7 @@ class TestUrlSurt():
 
         assert response.context['surt'] == surt_root
         assert response.context['project'] == project
-        assert str(response.context['url_list']) == str([url] if num_matching_surts else [])
+        assert list(response.context['url_list']) == ([url] if num_matching_surts else [])
         assert response.context['letter'] == letter
         assert response.context['browse_domain'] == 'com'
         assert len(response.context['browse_dict']) == 1
@@ -533,7 +534,8 @@ class TestUrlAdd():
 
         assert response.context['project'] == project
         assert type(response.context['form']) == views.URLForm
-        assert str(response.context['metadata_vals']) == str([(project_metadata, [])])
+        assert response.context['metadata_vals'][0][0] == project_metadata
+        assert list(response.context['metadata_vals'][0][1]) == []
         assert response.context['institutions'] == json.dumps(sorted(institutions))
         assert response.context['form_types'] == '{{"{0}": "{1}"}}'.format(
             project_metadata.metadata.name, project_metadata.form_type)
@@ -891,7 +893,7 @@ class TestFieldReport():
         response = client.get(reverse('field_report', args=[project.project_slug, metadata.name]))
 
         assert response.context['project'] == project
-        assert str(response.context['valdic']) == str([(value, 3)])
+        assert list(response.context['valdic']) == [(value, 3)]
         assert response.context['namelist'] == [(value, 3, value)]
         assert response.context['field'] == metadata.name
 
@@ -909,7 +911,7 @@ class TestFieldReport():
         response = client.get(reverse('field_report', args=[project.project_slug, metadata.name]))
 
         assert response.context['project'] == project
-        assert str(response.context['valdic']) == str([(value, 3)])
+        assert list(response.context['valdic']) == [(value, 3)]
         assert response.context['namelist'] == [(met_value.value, 3, value)]
         assert response.context['field'] == metadata.name
 

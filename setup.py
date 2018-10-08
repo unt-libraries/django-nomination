@@ -3,15 +3,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-nomination',
-    version='1.1.0',
+    version='2.0.0',
     packages=find_packages(exclude=['tests*']),
     description='',
     long_description='See the home page for more information.',
     include_package_data=True,
     install_requires=[
-        'simplejson>=3.8.1',
-        'django-markup-deprecated>=0.0.3',
-        'markdown>=2.6.5',
+        'markdown>=3.0.1',
         'django-widget-tweaks>=1.4.1',
     ],
     zip_safe=False,
@@ -31,8 +29,8 @@ setup(
     classifiers=[
         'Natural Language :: English',
         'Environment :: Web Environment',
-        'Framework :: Django :: 1.8',
-        'Framework :: Django :: 1.9',
+        'Framework :: Django :: 1.10',
+        'Framework :: Django :: 1.11',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
