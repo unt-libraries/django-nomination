@@ -338,8 +338,8 @@ def surtize(orig_url, preserveCase=False):
     # 6: :port
     # 7: path
     # group def.     1          2                           3
-    URI_SPLITTER = "^(\w+://)(?:([-\w\.!~\*'\(\)%;:&=+$,]+?)(@))?" + \
-        "(?:((?:\d{1,3}\.){3}\d{1,3})|(\S+?))(:\d+)?(/\S*)?$"
+    URI_SPLITTER = r"^(\w+://)(?:([-\w\.!~\*'\(\)%;:&=+$,]+?)(@))?" + \
+        r"(?:((?:\d{1,3}\.){3}\d{1,3})|(\S+?))(:\d+)?(/\S*)?$"
     #       4                         5      6      7
 
     # check URI validity
@@ -440,8 +440,8 @@ def create_json_browse(slug, url_attribute, root=''):
                              'hasChildren': True}
             json_list.append(category_dict)
     else:
-        name_pattern = re.compile(r'^[^:]+://\('+root+'([^,\)]+)')
-        child_pattern = re.compile(r'^[^:]+://\('+root+'[^,]+,[^,\)]+')
+        name_pattern = re.compile(r'^[^:]+://\('+root+r'([^,\)]+)')
+        child_pattern = re.compile(r'^[^:]+://\('+root+r'[^,]+,[^,\)]+')
         for url_item in url_list:
             domain_dict = {}
             # Determine if URL is a child of the expanded node
