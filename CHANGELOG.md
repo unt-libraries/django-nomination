@@ -2,6 +2,12 @@ Change Log
 ==========
 
 
+x.x.x
+-----
+
+* Fixed a flake8 indentation error
+
+
 2.0.0
 -----
 
