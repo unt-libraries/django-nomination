@@ -254,8 +254,8 @@ def add_other_attribute(project, nominator, form_data, summary_list):
                                                       attribute_name, oneval)
 
             elif len(form_data[attribute_name]) > 0:
-                        summary_list = save_attribute(project, nominator, form_data, summary_list,
-                                                      attribute_name, form_data[attribute_name])
+                summary_list = save_attribute(project, nominator, form_data, summary_list,
+                                              attribute_name, form_data[attribute_name])
 
     return summary_list
 
