@@ -3,7 +3,7 @@ import datetime
 import re
 import urllib
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django import http
 from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
@@ -66,16 +66,6 @@ class ScopeForm(forms.Form):
     )
 
 
-def get_project(slug):
-    # get the project by the project slug
-    try:
-        project = Project.objects.get(project_slug=slug)
-    except Project.DoesNotExist:
-        raise http.Http404
-
-    return project
-
-
 def project_listing(request):
     # get the project by the project slug
     try:
@@ -119,7 +109,7 @@ def nomination_help(request):
 
 def url_lookup(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     # handle the post
     if request.method == 'POST':
@@ -162,7 +152,7 @@ def url_lookup(request, slug):
 @csrf_protect
 def project_urls(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     # Create the alphabetical browse dictionary
     browse_tup = sorted(tuple(alphabetical_browse(project).items()))
@@ -191,7 +181,7 @@ def url_listing(request, slug, url_entity):
     url_exists = True
     posted_data = None
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     # get list of institutions to populate autocomplete
     institutions = get_look_ahead(project)
@@ -368,7 +358,7 @@ def url_surt(request, slug, surt):
     # Add back the slash lost by Apache removing null path segments.
     surt = fix_scheme_double_slash(surt)
     # Get the project by the project slug.
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
     # Create the SURT dictionary containing url_list and single_letter.
     surt_dict = create_surt_dict(project, surt)
     # Create the alphabetical browse dictionary.
@@ -396,7 +386,7 @@ def url_surt(request, slug, surt):
 @csrf_protect
 def url_add(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
     # handle the post
     form_errors = None
     # get list of institutions to populate autocomplete
@@ -545,7 +535,7 @@ def url_add(request, slug):
 
 def project_about(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
     # get general project statistics
     urls = URL.objects.filter(url_project__project_slug__exact=slug)
     url_count = get_project_url_count(urls)
@@ -605,7 +595,7 @@ def search_json(request, slug):
 
 def reports_view(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     # get list of attributes from url table for metadata report
     results = (URL.objects.filter(url_project__id=project.id)
@@ -626,7 +616,7 @@ def reports_view(request, slug):
 
 def url_report(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     # get the list of URLs
     try:
@@ -650,7 +640,7 @@ def url_report(request, slug):
 
 def surt_report(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     # get the list of URLs
     try:
@@ -674,7 +664,7 @@ def surt_report(request, slug):
 
 def url_score_report(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     results = (URL.objects.values('entity')
                   .annotate(nomination_score=Sum('value'))
@@ -696,7 +686,7 @@ def url_score_report(request, slug):
 
 def url_date_report(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     results = (URL.objects.extra(select={'nomination_date': 'date'})
                   .filter(url_project__id=project.id, attribute='nomination')
@@ -718,7 +708,7 @@ def url_date_report(request, slug):
 
 def url_nomination_report(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
 
     results = (URL.objects.values('entity')
                   .annotate(nominations=Count('entity'))
@@ -741,7 +731,7 @@ def url_nomination_report(request, slug):
 
 def field_report(request, slug, field):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
     namelist = []
 
     results = (URL.objects.filter(url_project__id=project.id, attribute=field)
@@ -789,7 +779,7 @@ def value_report(request, slug, field, val):
     # Add back the slash lost by Apache removing null path segments.
     val = fix_scheme_double_slash(val)
     # Get the project by the project slug.
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
     # If there are no URLs in the queryset, Apache rewrote the url,
     # so we need to add a trailing slash to do a lookup properly.
     urls = URL.objects.filter(url_project_id=project.id, attribute=field, value=val)
@@ -807,7 +797,7 @@ def value_report(request, slug, field, val):
 
 def nominator_report(request, slug, field):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
     if field == 'nominator':
         fieldname = 'nominator_name'
         groupby = 'id'
@@ -835,7 +825,7 @@ def nominator_report(request, slug, field):
 
 def nominator_url_report(request, slug, field, nomid):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
     if field == 'nominator':
         # get nominator name
         nomname = Nominator.objects.get(id=nomid).nominator_name
@@ -872,7 +862,7 @@ def nominator_url_report(request, slug, field, nomid):
 
 def project_dump(request, slug):
     # get the project by the project slug
-    project = get_project(slug)
+    project = get_object_or_404(Project, project_slug=slug)
     project_urls = {}
     # Create dictionary from the URLs data pulled from all URLs entries
     project_urls = create_url_dump(project)
