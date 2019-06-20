@@ -1,6 +1,5 @@
 import json
 
-from django.http import Http404
 import pytest
 
 from nomination import views, models
@@ -8,18 +7,6 @@ import factories
 
 
 pytestmark = pytest.mark.django_db
-
-
-class TestGetProject():
-
-    def test_returns_project(self):
-        project = factories.ProjectFactory()
-        result = views.get_project(project.project_slug)
-        assert result == project
-
-    def test_raises_404(self):
-        with pytest.raises(Http404):
-            views.get_project('fake_project')
 
 
 class TestGetProjectUrlCount():
