@@ -540,7 +540,7 @@ def project_about(request, slug):
     urls = URL.objects.filter(url_project__project_slug__exact=slug)
     url_count = get_project_url_count(urls)
     nominator_count = get_project_nominator_count(urls)
-    current_host = Site.objects.get(id=settings.SITE_ID)
+    current_host = get_object_or_404(Site, id=settings.SITE_ID)
     # figure out if we need to show bookmarklets
     show_bookmarklets = datetime.datetime.now() < project.nomination_end
     return render(
@@ -828,7 +828,7 @@ def nominator_url_report(request, slug, field, nomid):
     project = get_object_or_404(Project, project_slug=slug)
     if field == 'nominator':
         # get nominator name
-        nomname = Nominator.objects.get(id=nomid).nominator_name
+        nomname = get_object_or_404(Nominator, id=nomid).nominator_name
 
         results = (URL.objects.filter(url_project=project.id,
                                       url_nominator=nomid,
@@ -839,7 +839,7 @@ def nominator_url_report(request, slug, field, nomid):
                       .distinct())
     else:
         # get institution name
-        nomname = Nominator.objects.get(id=nomid).nominator_institution
+        nomname = get_object_or_404(Nominator, id=nomid).nominator_institution
 
         results = (URL.objects.filter(url_project=project.id,
                                       url_nominator__nominator_institution=nomname,
