@@ -26,7 +26,7 @@ urlpatterns = [
     url(r"^([^/]+)/reports/surts/$", surt_report, name='surt_report'),
     url(r"^([^/]+)/reports/metadata/(nominator|institution)/$", nominator_report,
         name='nominator_report'),
-    url(r"^([^/]+)/reports/metadata/(nominator|institution)/([^/]+)/$", nominator_url_report,
+    url(r"^([^/]+)/reports/metadata/(nominator|institution)/([0-9]+)/$", nominator_url_report,
         name='nominator_url_report'),
     url(r"^([^/]+)/reports/metadata/([^/]+)/$", field_report, name='field_report'),
     # commented out line below for line under that in case user input value contains '/'
