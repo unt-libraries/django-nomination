@@ -1,6 +1,7 @@
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 from django.contrib.syndication.views import Feed, FeedDoesNotExist
-from nomination.views import get_project
+from nomination.models import Project
 from django.utils.feedgenerator import Atom1Feed
 
 
@@ -11,7 +12,7 @@ class url_feed(Feed):
 
     def get_object(self, request, slug):
         self.slug = slug
-        self.project = get_project(self.slug)
+        self.project = get_object_or_404(Project, project_slug=self.slug)
         # Save these dicts of URLs and attributes in the class so we can save on queries later.
         self.site_names = dict(self.project.url_set.filter(attribute__iexact='Site_Name')
                                .order_by('-date').values_list('entity', 'value'))
@@ -76,7 +77,7 @@ class nomination_feed(Feed):
 
     def get_object(self, request, slug):
         self.slug = slug
-        self.project = get_project(self.slug)
+        self.project = get_object_or_404(Project, project_slug=self.slug)
 
         # Generate URL/attribute value dicts, excluding entities with multiple values
         # for the same attribute (using no_dup_dict). This prevents incorrectly
