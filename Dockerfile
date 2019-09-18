@@ -1,4 +1,4 @@
-FROM paternal/pythons:stretch34
+FROM paternal/pythons:stretch
 
 ENV PYTHONPATH=/app
 
