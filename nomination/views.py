@@ -1,7 +1,6 @@
 import json
 import datetime
 import re
-# import urllib.parse
 import urllib
 
 from django.shortcuts import render, get_object_or_404

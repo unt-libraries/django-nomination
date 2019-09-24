@@ -241,7 +241,7 @@ class TestGetNominator():
         assert len(models.Nominator.objects.all()) == 1
         new_nominator = url_handler.get_nominator(form_data)
         assert len(models.Nominator.objects.all()) == 2
-        for key in list(form_data.keys()):
+        for key in form_data.keys():
             assert getattr(new_nominator, key) == form_data[key]
 
     def test_cannot_create_nominator(self):
@@ -567,7 +567,7 @@ class TestCreateJsonBrowse():
         for result in json.loads(results):
             assert result in expected
 
-        # assert len(json.loads(results)) == len(expected)
+        # assert json.loads(results).sort() == expected.sort()
 
     def test_cannot_find_project(self):
         slug = 'blah'

@@ -314,7 +314,6 @@ class TestUrlListing():
         )
         expected_context = {
             'project': project,
-            # 'url_data': views.create_url_list(project, related_urls + [url]),
             'metadata_vals': views.get_metadata(project),
             'institutions': views.get_look_ahead(project),
             'form_types': json.dumps({project_metadata.metadata.name: project_metadata.form_type}),
@@ -1014,6 +1013,7 @@ class TestNominatorUrlReport():
             project.project_slug,
             field, url.url_nominator.id
         )
+
         assert '#This list of URLs' in response.content.decode()
         assert url.entity in response.content.decode()
 
