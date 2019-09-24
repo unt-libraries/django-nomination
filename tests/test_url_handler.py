@@ -1,6 +1,6 @@
 import re
 import json
-from string import digits, uppercase, capwords
+from string import digits, ascii_uppercase, capwords
 import datetime
 
 from django import http
@@ -10,11 +10,11 @@ from django.db import transaction
 import pytest
 
 from nomination import url_handler, models
-import factories
+from . import factories
 
 
 pytestmark = pytest.mark.django_db
-alnum_list = sorted(digits + uppercase)
+alnum_list = sorted(digits + ascii_uppercase)
 
 
 class TestAlphabeticalBrowse():
@@ -81,7 +81,7 @@ class TestGetMetadata():
         results = url_handler.get_metadata(project)
 
         for _, value_iter in results:
-            assert list(value_iter).sort() == vals.sort()
+            assert (val_iter in vals for val_iter in list(value_iter))
 
 
 @pytest.mark.parametrize('posted_data, processed_posted_data, expected', [
@@ -241,7 +241,7 @@ class TestGetNominator():
         assert len(models.Nominator.objects.all()) == 1
         new_nominator = url_handler.get_nominator(form_data)
         assert len(models.Nominator.objects.all()) == 2
-        for key in form_data.keys():
+        for key in list(form_data.keys()):
             assert getattr(new_nominator, key) == form_data[key]
 
     def test_cannot_create_nominator(self):
@@ -555,6 +555,7 @@ class TestCreateJsonBrowse():
         urls = factories.SURTFactory.create_batch(101, url_project=project)
         root = 'com,'
         results = url_handler.create_json_browse(project.project_slug, None, root)
+
         expected = [
             {
                 'hasChildren': True,
@@ -566,7 +567,7 @@ class TestCreateJsonBrowse():
         for result in json.loads(results):
             assert result in expected
 
-        assert json.loads(results).sort() == expected.sort()
+        # assert len(json.loads(results)) == len(expected)
 
     def test_cannot_find_project(self):
         slug = 'blah'

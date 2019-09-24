@@ -14,7 +14,7 @@ from . import factories
 
 
 pytestmark = pytest.mark.django_db
-anonymous_error = (u'You must provide name, institution, and email to affiliate your name '
+anonymous_error = ('You must provide name, institution, and email to affiliate your name '
                    'or institution with nominations. Leave all "Information About You" fields '
                    'blank to remain anonymous.')
 
@@ -296,8 +296,8 @@ class TestUrlListing():
             assert str(response.context[key]) == str(expected_context[key])
 
     def test_base_context_values(self, client):
-        entity = u'http://www.example.com'
-        entity_surt = u'http://(com,example,www,)'
+        entity = 'http://www.example.com'
+        entity_surt = 'http://(com,example,www,)'
         project = factories.ProjectFactory()
         project_metadata = factories.ProjectMetadataFactory(project=project)
         url = factories.URLFactory(url_project=project, entity=entity)
@@ -309,12 +309,12 @@ class TestUrlListing():
         related_urls = factories.SURTFactory.create_batch(
             1,
             url_project=project,
-            entity=u'{0}/main/page'.format(entity),
-            value=u'{0}/main/page'.format(entity_surt)
+            entity='{0}/main/page'.format(entity),
+            value='{0}/main/page'.format(entity_surt)
         )
         expected_context = {
             'project': project,
-            'url_data': views.create_url_list(project, related_urls + [url]),
+            # 'url_data': views.create_url_list(project, related_urls + [url]),
             'metadata_vals': views.get_metadata(project),
             'institutions': views.get_look_ahead(project),
             'form_types': json.dumps({project_metadata.metadata.name: project_metadata.form_type}),
@@ -325,6 +325,7 @@ class TestUrlListing():
             assert str(response.context[key]) == str(expected_context[key])
 
         assert list(response.context['related_url_list']) == related_urls
+        assert response.context['url_data'] == views.create_url_list(project, related_urls + [url])
 
     def test_context_with_post(self, client):
         data = {
@@ -350,8 +351,8 @@ class TestUrlListing():
             'scope_form': views.ScopeForm(data),
             'form_errors': '',
             'summary_list': [
-                u'You have successfully nominated www.example.com',
-                u'You have successfully added the metadata "2012-12-12" for www.example.com'
+                'You have successfully nominated www.example.com',
+                'You have successfully added the metadata "2012-12-12" for www.example.com'
             ],
             'json_data': None,
         }
@@ -369,14 +370,14 @@ class TestUrlListing():
             data
         )
         expected_error = {
-            'scope': [u'Select a valid choice. 2 is not one of the available choices.']
+            'scope': ['Select a valid choice. 2 is not one of the available choices.']
         }
 
         assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
         assert response.context['scope_form'].is_valid() is False
-        assert sorted(json.loads(response.context['json_data'])) == sorted(
-            [[key, [str(data[key])]] for key in data])
+        assert sorted(response.context['json_data']) == sorted(
+            [(key, [str(data[key])]) for key in data])
 
     def test_context_with_post_and_anonymous_error(self, client):
         entity = 'www.example.com'
@@ -388,7 +389,7 @@ class TestUrlListing():
             data
         )
         expected_error = {
-            'nominator_email': (u'You must provide name, institution, and email to affiliate '
+            'nominator_email': ('You must provide name, institution, and email to affiliate '
                                 'your name or institution with nominations. Leave all '
                                 '"Information About You" fields blank to remain anonymous.')
         }
@@ -396,8 +397,8 @@ class TestUrlListing():
         assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
         assert response.context['scope_form'].is_valid() is False
-        assert sorted(json.loads(response.context['json_data'])) == sorted(
-            [[key, [str(data[key])]] for key in data])
+        assert sorted(response.context['json_data']) == sorted(
+            [(key, [str(data[key])]) for key in data])
 
     def test_context_with_post_and_missing_field_error_reg_required(self, client):
         entity = 'www.example.com'
@@ -408,17 +409,17 @@ class TestUrlListing():
             reverse('url_listing', args=[project.project_slug, entity]),
             data
         )
-        expected_error = {'nominator_email': u'This field is required.'}
+        expected_error = {'nominator_email': 'This field is required.'}
 
         assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
         assert response.context['scope_form'].is_valid() is False
-        assert sorted(json.loads(response.context['json_data'])) == sorted(
-            [[key, [str(data[key])]] for key in data])
+        assert sorted(response.context['json_data']) == sorted(
+            [(key, [str(data[key])]) for key in data])
 
     def test_context_with_get(self, client):
-        entity = u'http://www.example.com'
-        entity_surt = u'http://(com,example,www,)'
+        entity = 'http://www.example.com'
+        entity_surt = 'http://(com,example,www,)'
         project = factories.ProjectFactory()
         factories.ProjectMetadataFactory(project=project)
         factories.URLFactory(url_project=project, entity=entity)
@@ -430,8 +431,8 @@ class TestUrlListing():
         factories.SURTFactory.create_batch(
             1,
             url_project=project,
-            entity=u'{0}/main/page'.format(entity),
-            value=u'{0}/main/page'.format(entity_surt)
+            entity='{0}/main/page'.format(entity),
+            value='{0}/main/page'.format(entity_surt)
         )
 
         expected_context = {
@@ -513,8 +514,8 @@ class TestUrlAdd():
         assert response.templates[0].name == 'nomination/url_add.html'
 
     def test_base_context_values(self, client):
-        entity = u'http://www.example.com'
-        entity_surt = u'http://(com,example,www,)'
+        entity = 'http://www.example.com'
+        entity_surt = 'http://(com,example,www,)'
         project = factories.ProjectFactory()
         project_metadata = factories.ProjectMetadataFactory(project=project)
         urls = []
@@ -526,8 +527,8 @@ class TestUrlAdd():
         ))
         urls.append(factories.SURTFactory(
             url_project=project,
-            entity=u'{0}/main/page'.format(entity),
-            value=u'{0}/main/page'.format(entity_surt)
+            entity='{0}/main/page'.format(entity),
+            value='{0}/main/page'.format(entity_surt)
         ))
         institutions = [url.url_nominator.nominator_institution for url in urls]
         response = client.get(reverse('url_add', args=[project.project_slug]))
@@ -577,8 +578,8 @@ class TestUrlAdd():
         expected = {
             'form_errors': '',
             'summary_list': [
-                u'You have successfully nominated http://www.example.com',
-                u'You have successfully added the metadata "2012-12-12" for http://www.example.com'
+                'You have successfully nominated http://www.example.com',
+                'You have successfully added the metadata "2012-12-12" for http://www.example.com'
             ],
             'json_data': None,
             'url_entity': entity
@@ -596,11 +597,11 @@ class TestUrlAdd():
             reverse('url_add', args=[project.project_slug]),
             data
         )
-        json_data = [[key, [data[key]]] for key in sorted(data)]
+        json_data = [(key, [data[key]]) for key in sorted(data)]
 
-        assert response.context['form_errors'] == {'url_value': [u'This field is required.']}
+        assert response.context['form_errors'] == {'url_value': ['This field is required.']}
         assert response.context['summary_list'] is None
-        assert sorted(json.loads(response.context['json_data'])) == json_data
+        assert sorted(response.context['json_data']) == json_data
         assert response.context['url_entity'] is None
 
     def test_context_with_post_and_anonymous_error(self, client):
@@ -621,15 +622,15 @@ class TestUrlAdd():
             data
         )
         expected_error = {
-            'nominator_email': (u'You must provide name, institution, and email to affiliate '
+            'nominator_email': ('You must provide name, institution, and email to affiliate '
                                 'your name or institution with nominations. Leave all '
                                 '"Information About You" fields blank to remain anonymous.')
         }
-        json_data = [[key, [data[key]]] for key in sorted(data)]
+        json_data = [(key, [data[key]]) for key in sorted(data)]
 
         assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
-        assert sorted(json.loads(response.context['json_data'])) == json_data
+        assert sorted(response.context['json_data']) == json_data
         assert response.context['url_entity'] is None
 
     def test_context_with_post_and_missing_field_error_reg_required(self, client):
@@ -646,11 +647,11 @@ class TestUrlAdd():
             reverse('url_add', args=[project.project_slug]),
             data
         )
-        json_data = [[key, [data[key]]] for key in sorted(data)]
+        json_data = [(key, [data[key]]) for key in sorted(data)]
 
-        assert response.context['form_errors'] == {'nominator_email': u'This field is required.'}
+        assert response.context['form_errors'] == {'nominator_email': 'This field is required.'}
         assert response.context['summary_list'] is None
-        assert sorted(json.loads(response.context['json_data'])) == json_data
+        assert sorted(response.context['json_data']) == json_data
         assert response.context['url_entity'] is None
 
 
@@ -772,9 +773,9 @@ class TestUrlReport():
         request = rf.get('/')
         response = views.url_report(request, project.project_slug)
 
-        assert '#This list of urls' in response.content
+        assert '#This list of urls' in response.content.decode()
         for url in urls:
-            assert url.entity in response.content
+            assert url.entity in response.content.decode()
 
 
 class TestSurtReport():
@@ -793,9 +794,9 @@ class TestSurtReport():
         request = rf.get('/')
         response = views.surt_report(request, project.project_slug)
 
-        assert '#This list of SURTs' in response.content
+        assert '#This list of SURTs' in response.content.decode()
         for url in urls:
-            assert url.value in response.content
+            assert url.value in response.content.decode()
 
 
 class TestUrlScoreReport():
@@ -814,9 +815,9 @@ class TestUrlScoreReport():
         request = rf.get('/')
         response = views.url_score_report(request, project.project_slug)
 
-        assert '#This list of URLs' in response.content
+        assert '#This list of URLs' in response.content.decode()
         for url in urls:
-            assert '{0};"{1}"\n'.format(url.value, url.entity) in response.content
+            assert '{0};"{1}"\n'.format(url.value, url.entity) in response.content.decode()
 
 
 class TestUrlDateReport():
@@ -835,13 +836,13 @@ class TestUrlDateReport():
         request = rf.get('/')
         response = views.url_date_report(request, project.project_slug)
 
-        assert '#This list of URLs' in response.content
+        assert '#This list of URLs' in response.content.decode()
         for url in urls:
             assert '{0};"{1}";{2}\n'.format(
                 url.date.replace(microsecond=0).isoformat(),
                 url.entity,
                 url.value
-            ) in response.content
+            ) in response.content.decode()
 
 
 class TestUrlNominationReport():
@@ -860,9 +861,9 @@ class TestUrlNominationReport():
         request = rf.get('/')
         response = views.url_nomination_report(request, project.project_slug)
 
-        assert '#This list of URLs' in response.content
+        assert '#This list of URLs' in response.content.decode()
         for url in urls:
-            assert '1;"{0}"\n'.format(url.entity) in response.content
+            assert '1;"{0}"\n'.format(url.entity) in response.content.decode()
 
 
 class TestFieldReport():
@@ -883,7 +884,7 @@ class TestFieldReport():
         project = factories.ProjectWithMetadataFactory(metadata2=None)
         metadata = models.Project_Metadata.objects.first().metadata
         models.Value.objects.first()
-        value = u'something'
+        value = 'something'
         factories.URLFactory.create_batch(
             3,
             url_project=project,
@@ -943,9 +944,9 @@ class TestValueReport():
         request = rf.get('/')
         response = views.value_report(request, project.project_slug, field, val)
 
-        assert '#This list of URLs' in response.content
+        assert '#This list of URLs' in response.content.decode()
         for url in urls:
-            assert url.entity in response.content
+            assert url.entity in response.content.decode()
 
 
 class TestNominatorReport():
@@ -1013,9 +1014,8 @@ class TestNominatorUrlReport():
             project.project_slug,
             field, url.url_nominator.id
         )
-
-        assert '#This list of URLs' in response.content
-        assert url.entity in response.content
+        assert '#This list of URLs' in response.content.decode()
+        assert url.entity in response.content.decode()
 
 
 class TestProjectDump():
