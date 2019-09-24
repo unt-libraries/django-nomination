@@ -83,7 +83,7 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
         new_nomination = create_url_entry(project, nominator, url_entity, 'nomination', '1')
         #Create a SURT if the url doesn't already have one
         new_surt = create_url_entry(project, system_nominator, url_entity, 'surt', surtize(url_entity))
-        for attribute_name in list(data.keys()):
+        for attribute_name in data.keys():
             if not attribute_name == 'url':
                 if data[attribute_name] != '':
                     new_entry = create_url_entry(project, nominator, url_entity, attribute_name, data[attribute_name])
@@ -106,7 +106,7 @@ def UnicodeDictReader(utf8_data, **kwargs):
     """
     csv_reader = csv.DictReader(utf8_data, **kwargs)
     for row in csv_reader:
-        yield dict((key, str(value, 'utf-8')) for key, value in row.items())
+        yield dict((key, value) for key, value in row.items())
 
 def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
     """Ingests pickled dictionary into nomination tool.
@@ -139,7 +139,7 @@ def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
             new_nomination = create_url_entry(project, nominator, url_entity, 'nomination', '1')
             #Create a SURT if the url doesn't already have one
             new_surt = create_url_entry(project, system_nominator, url_entity, 'surt', surtize(url_entity))
-            for attribute_name in list(data.keys()):
+            for attribute_name in data.keys():
                 if not attribute_name == 'url' and data[attribute_name] != '':
                     # check if the attribute has multiple values
                     if isinstance(data[attribute_name], list):
@@ -336,12 +336,12 @@ def verifyURL(url):
                 req = urllib.request.Request(url, None, headers)
                 u = urllib.request.urlopen(req)
             except:
-                print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
+                print(e + '; Response: ' + e.code + '; skipping URL ' + url)
                 return False
         else:
-            print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
+            print(e + '; Response: ' + e.code + '; skipping URL ' + url)
             return False
-    except: # urllib2.URLError, httplib.InvalidURL, etc.
+    except:  # urllib2.URLError, httplib.InvalidURL, etc.
         print('Failed HTTP response/broken link; skipping URL ' + url)
         return False
     return True

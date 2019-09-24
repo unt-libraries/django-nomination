@@ -235,7 +235,7 @@ def url_listing(request, slug, url_entity):
                             if not (cleandate >= rangestart and
                                     cleandate <= rangeend):
                                 some_errors[met.metadata.name] = \
-                                    str('The date you entered is outside the allowed range.')
+                                    'The date you entered is outside the allowed range.'
                             else:
                                 # store the valid date
                                 posted_data[met.metadata.name] = cleandate
@@ -243,7 +243,7 @@ def url_listing(request, slug, url_entity):
                             posted_data[met.metadata.name] = cleandate
                     else:
                         some_errors[met.metadata.name] = \
-                            str('Enter a valid date format.')
+                            'Enter a valid date format.'
             # check validity of standard metadata
             if scope_form.is_valid():
                 # check if nominator is required by project
@@ -253,21 +253,21 @@ def url_listing(request, slug, url_entity):
                 if project.registration_required:
                     for nominator_field in nominator_fields:
                         if not scope_form.cleaned_data[nominator_field].strip():
-                            some_errors[nominator_field] = str(
-                                'This field is required.')
+                            some_errors[nominator_field] = \
+                                'This field is required.'
                 else:
                     if scope_form.cleaned_data['nominator_name'].strip() or\
                             scope_form.cleaned_data['nominator_institution'].strip() or\
                             scope_form.cleaned_data['nominator_email'].strip():
                         for nominator_field in nominator_fields:
                             if not scope_form.cleaned_data[nominator_field].strip():
-                                some_errors[nominator_field] = str(
-                                    'You must ' +
-                                    'provide name, institution, and email ' +
-                                    'to affiliate your name or institution ' +
-                                    'with nominations. Leave all "Information ' +
-                                    'About You" fields blank to remain ' +
-                                    'anonymous.')
+                                some_errors[nominator_field] = \
+                                    'You must ' +\
+                                    'provide name, institution, and email ' +\
+                                    'to affiliate your name or institution ' +\
+                                    'with nominations. Leave all "Information ' +\
+                                    'About You" fields blank to remain ' +\
+                                    'anonymous.'
                     else:
                         # supply anonymous information
                         scope_form.cleaned_data['nominator_email'] = 'anonymous'
@@ -407,7 +407,7 @@ def url_add(request, slug):
         for met in req_fields:
             if met.metadata.name not in posted_data or len(posted_data[met.metadata.name]) == 0 \
                     or posted_data[met.metadata.name].isspace():
-                some_errors[met.metadata.name] = str('This field is required.')
+                some_errors[met.metadata.name] = 'This field is required.'
         # check validity of dates
         for met in date_fields:
             if met not in req_fields and not posted_data[met.metadata.name]:
@@ -439,14 +439,14 @@ def url_add(request, slug):
                         if not (cleandate >= rangestart and
                                 cleandate <= rangeend):
                             some_errors[met.metadata.name] = \
-                                str('The date you entered is outside the allowed range.')
+                                'The date you entered is outside the allowed range.'
                         else:
                             # store the valid date
                             posted_data[met.metadata.name] = cleandate
                     else:
                         posted_data[met.metadata.name] = cleandate
                 else:
-                    some_errors[met.metadata.name] = str('Please enter a valid date format.')
+                    some_errors[met.metadata.name] = 'Please enter a valid date format.'
 
         # check validity of standard metadata
         # check if nominator is required by project
@@ -456,21 +456,21 @@ def url_add(request, slug):
         if project.registration_required:
             for nominator_field in nominator_fields:
                 if not posted_data[nominator_field].strip():
-                    some_errors[nominator_field] = str(
-                        'This field is required.')
+                    some_errors[nominator_field] = \
+                        'This field is required.'
         else:
             if posted_data['nominator_name'].strip() or\
                     posted_data['nominator_institution'].strip() or\
                     posted_data['nominator_email'].strip():
                 for nominator_field in nominator_fields:
                     if not posted_data[nominator_field].strip():
-                        some_errors[nominator_field] = str(
-                            'You must ' +
-                            'provide name, institution, and email to ' +
-                            'affiliate your name or institution with ' +
-                            'nominations. Leave all "Information ' +
-                            'About You" fields blank to remain ' +
-                            'anonymous.')
+                        some_errors[nominator_field] = \
+                            'You must ' +\
+                            'provide name, institution, and email to ' +\
+                            'affiliate your name or institution with ' +\
+                            'nominations. Leave all "Information ' +\
+                            'About You" fields blank to remain ' +\
+                            'anonymous.'
         if form.is_valid():
             if not form.cleaned_data['url_value'].strip() == 'http://':
                 # summary_list = add_url(project, form.cleaned_data)
@@ -755,7 +755,7 @@ def field_report(request, slug, field):
                 kvdict[it['key']] = it['value']
             for row in results:
                 value, count = row
-                if value in list(kvdict.keys()):
+                if value in kvdict.keys():
                     namelist.append((kvdict[value], count, value))
                 else:
                     namelist.append((value, count, value))
@@ -791,7 +791,7 @@ def value_report(request, slug, field, val):
         '#List generated on ' + \
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
     for entity in urls.values_list('entity', flat=True).order_by('entity').distinct():
-        report_text += str(entity) + '\n'
+        report_text += entity + '\n'
     return HttpResponse(report_text, content_type='text/plain;')
 
 

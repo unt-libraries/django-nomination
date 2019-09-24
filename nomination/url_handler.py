@@ -583,21 +583,21 @@ def create_url_dump(project):
             url_dict[url_ent]['surt'] = url_object.value
             url_dict[url_ent]['domain_surt'] = get_domain_surt(url_object.value)
         else:
-            if attrib_key not in list(url_dict[url_ent]['attributes'].keys()):
+            if attrib_key not in url_dict[url_ent]['attributes'].keys():
                 url_dict[url_ent]['attributes'][attrib_key] = []
             # replace value key with value value if applicable
             try:
                 # see if the field has preset values
                 if val_dict[attrib_key]:
-                    fullval = str(val_dict[attrib_key][url_object.value])
+                    fullval = val_dict[attrib_key][url_object.value]
                     if fullval not in url_dict[url_ent]['attributes'][attrib_key]:
                         url_dict[url_ent]['attributes'][attrib_key].append(fullval)
                 else:
                     raise Exception()
             except Exception:
-                if not str(url_object.value) in \
+                if url_object.value not in \
                   url_dict[url_ent]['attributes'][attrib_key]:
-                    url_dict[url_ent]['attributes'][attrib_key].append(str(url_object.value))
+                    url_dict[url_ent]['attributes'][attrib_key].append(url_object.value)
     # sort attribute lists
     for u, udata in url_dict.items():
         if udata.get('attributes'):
