@@ -4,7 +4,7 @@ import json
 import re
 import string
 import time
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
@@ -17,7 +17,7 @@ ANCHOR_PATTERN = re.compile(r'^<a href=\"[^>]+>([^<]+)</a>')
 
 
 def alphabetical_browse(project):
-    browse_key_list = string.digits + string.uppercase
+    browse_key_list = string.digits + string.ascii_uppercase
     browse_dict = {}
     try:
         surt_list = (
@@ -40,13 +40,13 @@ def alphabetical_browse(project):
                     browse_dict[top_domain][key] = None
             domain_single_search = singdom_rgx.search(url_item.value, 0)
             if domain_single_search:
-                domain_single = string.upper(domain_single_search.group(2))
+                domain_single = domain_single_search.group(2).upper()
                 browse_dict[top_domain][domain_single] = domain_single_search.group(1)
 
     sorted_dict = {}
     for top_domain, alpha_dict in browse_dict.items():
         alpha_list = []
-        for key in sorted(alpha_dict.iterkeys()):
+        for key in sorted(alpha_dict.keys()):
             alpha_list.append((key, alpha_dict[key],))
         sorted_dict[top_domain] = alpha_list
     return sorted_dict
@@ -65,13 +65,12 @@ def get_metadata(project):
         for z in x.metadata.value_sets.all():
             all_vals = itertools.chain(z.values.all().order_by('valueset_values'), all_vals)
         metadata_vals.append((x, all_vals))
-
     return metadata_vals
 
 
 def handle_metadata(request, posted_data):
     """Handles multivalue metadata and user supplied metadata values."""
-    for k in posted_data.iterkeys():
+    for k in posted_data.keys():
         # if key has more than one value, post all
         requested_list = request.POST.getlist(k)
         if len(requested_list) > 1:
@@ -164,7 +163,7 @@ def add_metadata(project, form_data):
 
 
 def check_url(url):
-    url = string.strip(url)
+    url = url.strip()
     url = addImpliedHttpIfNecessary(url)
     url = url.rstrip('/')
     return url
@@ -174,7 +173,8 @@ def get_nominator(form_data):
     try:
         # Try to retrieve the nominator
         nominator = Nominator.objects.get(nominator_email=form_data['nominator_email'])
-    except Nominator.DoesNotExist, Nominator.MultipleObjectsReturned:
+    except Nominator.DoesNotExist as xxx_todo_changeme:
+        Nominator.MultipleObjectsReturned = xxx_todo_changeme
         try:
             # Create a new nominator object
             nominator = Nominator(nominator_email=form_data['nominator_email'],
@@ -273,7 +273,8 @@ def save_attribute(project, nominator, form_data, summary_list, attribute_name, 
                                     entity__iexact=form_data['url_value'],
                                     value__iexact=valvar,
                                     attribute__iexact=attribute_name)
-    except URL.DoesNotExist, URL.MultipleObjectsReturned:
+    except URL.DoesNotExist as xxx_todo_changeme1:
+        URL.MultipleObjectsReturned = xxx_todo_changeme1
         try:
             added_url = URL(entity=form_data['url_value'],
                             value=valvar,
@@ -317,7 +318,7 @@ def url_formatter(line):
     """
         Formats the given url into the proper url format
     """
-    url = string.strip(line)
+    url = line.strip()
     url = addImpliedHttpIfNecessary(url)
 
     return url
@@ -485,7 +486,6 @@ def create_json_browse(slug, url_attribute, root=''):
             # if the domain dictionary isn't empty
             if domain_dict:
                 json_list.append(domain_dict)
-
     return json.dumps(json_list)
 
 
@@ -583,25 +583,25 @@ def create_url_dump(project):
             url_dict[url_ent]['surt'] = url_object.value
             url_dict[url_ent]['domain_surt'] = get_domain_surt(url_object.value)
         else:
-            if attrib_key not in url_dict[url_ent]['attributes'].keys():
+            if attrib_key not in list(url_dict[url_ent]['attributes'].keys()):
                 url_dict[url_ent]['attributes'][attrib_key] = []
             # replace value key with value value if applicable
             try:
                 # see if the field has preset values
                 if val_dict[attrib_key]:
-                    fullval = unicode(val_dict[attrib_key][url_object.value])
+                    fullval = str(val_dict[attrib_key][url_object.value])
                     if fullval not in url_dict[url_ent]['attributes'][attrib_key]:
                         url_dict[url_ent]['attributes'][attrib_key].append(fullval)
                 else:
                     raise Exception()
             except Exception:
-                if not unicode(url_object.value) in \
+                if not str(url_object.value) in \
                   url_dict[url_ent]['attributes'][attrib_key]:
-                    url_dict[url_ent]['attributes'][attrib_key].append(unicode(url_object.value))
+                    url_dict[url_ent]['attributes'][attrib_key].append(str(url_object.value))
     # sort attribute lists
-    for u, udata in url_dict.iteritems():
+    for u, udata in url_dict.items():
         if udata.get('attributes'):
-            for att_key, att_vals in udata['attributes'].iteritems():
+            for att_key, att_vals in udata['attributes'].items():
                 att_vals.sort()
     return url_dict
 

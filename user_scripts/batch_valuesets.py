@@ -24,10 +24,10 @@ def addToValset(inputfile, valset):
                       value=valueobj, value_order=res.group(3))
                     new_member.save()
                 except:
-                    print "Failed to add value '%s' to value set '%s'" %\
-                      (res.group(1), valset)
+                    print("Failed to add value '%s' to value set '%s'" %\
+                      (res.group(1), valset))
     else:
-        print "specify a valueset if you want to do something here"
+        print("specify a valueset if you want to do something here")
 
     rff.close()
 

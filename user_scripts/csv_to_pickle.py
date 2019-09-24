@@ -19,7 +19,7 @@ def csvToPickle(csvfile, outfile, fdelim, multidelim):
             if row['url'] == '':
                 # we aren't inputting your metadata without a url!
                 continue
-            for k, v in row.iteritems():
+            for k, v in row.items():
                 if multidelim in v:
                     # parse multiple value with delimiter and store as list
                     newval = v.split(multidelim)

@@ -1,6 +1,7 @@
 import json
 import datetime
 import re
+# import urllib.parse
 import urllib
 
 from django.shortcuts import render, get_object_or_404
@@ -140,7 +141,7 @@ def url_lookup(request, slug):
                     if url_entity not in url_list:
                         url_entity = url_list[0]
             # redirect if partial-search was empty or for non partial-search
-            redirect_url = iri_to_uri(u'/nomination/%s/url/%s/' % (slug, urlquote(url_entity)))
+            redirect_url = iri_to_uri('/nomination/%s/url/%s/' % (slug, urlquote(url_entity)))
         else:
             raise http.Http404
     else:
@@ -235,7 +236,7 @@ def url_listing(request, slug, url_entity):
                             if not (cleandate >= rangestart and
                                     cleandate <= rangeend):
                                 some_errors[met.metadata.name] = \
-                                    unicode('The date you entered is outside the allowed range.')
+                                    str('The date you entered is outside the allowed range.')
                             else:
                                 # store the valid date
                                 posted_data[met.metadata.name] = cleandate
@@ -243,7 +244,7 @@ def url_listing(request, slug, url_entity):
                             posted_data[met.metadata.name] = cleandate
                     else:
                         some_errors[met.metadata.name] = \
-                            unicode('Enter a valid date format.')
+                            str('Enter a valid date format.')
             # check validity of standard metadata
             if scope_form.is_valid():
                 # check if nominator is required by project
@@ -253,7 +254,7 @@ def url_listing(request, slug, url_entity):
                 if project.registration_required:
                     for nominator_field in nominator_fields:
                         if not scope_form.cleaned_data[nominator_field].strip():
-                            some_errors[nominator_field] = unicode(
+                            some_errors[nominator_field] = str(
                                 'This field is required.')
                 else:
                     if scope_form.cleaned_data['nominator_name'].strip() or\
@@ -261,7 +262,7 @@ def url_listing(request, slug, url_entity):
                             scope_form.cleaned_data['nominator_email'].strip():
                         for nominator_field in nominator_fields:
                             if not scope_form.cleaned_data[nominator_field].strip():
-                                some_errors[nominator_field] = unicode(
+                                some_errors[nominator_field] = str(
                                     'You must ' +
                                     'provide name, institution, and email ' +
                                     'to affiliate your name or institution ' +
@@ -310,7 +311,7 @@ def url_listing(request, slug, url_entity):
         # in case of a user input error, send back data to repopulate form
         json_data = None
         if posted_data:
-            json_data = json.dumps(posted_data.lists())
+            json_data = posted_data.lists()
 
         # send form types for use to repopulate form
         form_types = {}
@@ -407,7 +408,7 @@ def url_add(request, slug):
         for met in req_fields:
             if met.metadata.name not in posted_data or len(posted_data[met.metadata.name]) == 0 \
                     or posted_data[met.metadata.name].isspace():
-                some_errors[met.metadata.name] = unicode('This field is required.')
+                some_errors[met.metadata.name] = str('This field is required.')
         # check validity of dates
         for met in date_fields:
             if met not in req_fields and not posted_data[met.metadata.name]:
@@ -439,14 +440,14 @@ def url_add(request, slug):
                         if not (cleandate >= rangestart and
                                 cleandate <= rangeend):
                             some_errors[met.metadata.name] = \
-                                unicode('The date you entered is outside the allowed range.')
+                                str('The date you entered is outside the allowed range.')
                         else:
                             # store the valid date
                             posted_data[met.metadata.name] = cleandate
                     else:
                         posted_data[met.metadata.name] = cleandate
                 else:
-                    some_errors[met.metadata.name] = unicode('Please enter a valid date format.')
+                    some_errors[met.metadata.name] = str('Please enter a valid date format.')
 
         # check validity of standard metadata
         # check if nominator is required by project
@@ -456,7 +457,7 @@ def url_add(request, slug):
         if project.registration_required:
             for nominator_field in nominator_fields:
                 if not posted_data[nominator_field].strip():
-                    some_errors[nominator_field] = unicode(
+                    some_errors[nominator_field] = str(
                         'This field is required.')
         else:
             if posted_data['nominator_name'].strip() or\
@@ -464,7 +465,7 @@ def url_add(request, slug):
                     posted_data['nominator_email'].strip():
                 for nominator_field in nominator_fields:
                     if not posted_data[nominator_field].strip():
-                        some_errors[nominator_field] = unicode(
+                        some_errors[nominator_field] = str(
                             'You must ' +
                             'provide name, institution, and email to ' +
                             'affiliate your name or institution with ' +
@@ -509,7 +510,7 @@ def url_add(request, slug):
     # in case of an error, send back data to repopulate form
     json_data = None
     if posted_data:
-        json_data = json.dumps(posted_data.lists())
+        json_data = posted_data.lists()
 
     # send form types for use to repopulate form
     form_types = {}
@@ -679,7 +680,7 @@ def url_score_report(request, slug):
 
     for row in results:
         nomination_score, entity = row
-        report_text += u'{0};"{1}"\n'.format(int(nomination_score), entity)
+        report_text += '{0};"{1}"\n'.format(int(nomination_score), entity)
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
@@ -700,8 +701,8 @@ def url_date_report(request, slug):
 
     for row in results:
         date, entity, value = row
-        report_text += u'{0};"{1}";{2}\n'.format(date.strftime('%Y-%m-%dT%H:%M:%S'),
-                                                 entity, value)
+        report_text += '{0};"{1}";{2}\n'.format(date.strftime('%Y-%m-%dT%H:%M:%S'),
+                                                entity, value)
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
@@ -724,7 +725,7 @@ def url_nomination_report(request, slug):
 
     for row in results:
         nominations, entity = row
-        report_text += u'{0};"{1}"\n'.format(int(nominations), entity)
+        report_text += '{0};"{1}"\n'.format(int(nominations), entity)
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
@@ -755,7 +756,7 @@ def field_report(request, slug, field):
                 kvdict[it['key']] = it['value']
             for row in results:
                 value, count = row
-                if value in kvdict.keys():
+                if value in list(kvdict.keys()):
                     namelist.append((kvdict[value], count, value))
                 else:
                     namelist.append((value, count, value))
@@ -775,7 +776,7 @@ def field_report(request, slug, field):
 
 
 def value_report(request, slug, field, val):
-    val = urllib.unquote(val)
+    val = urllib.parse.unquote(val)
     # Add back the slash lost by Apache removing null path segments.
     val = fix_scheme_double_slash(val)
     # Get the project by the project slug.
@@ -791,7 +792,7 @@ def value_report(request, slug, field, val):
         '#List generated on ' + \
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
     for entity in urls.values_list('entity', flat=True).order_by('entity').distinct():
-        report_text += unicode(entity) + '\n'
+        report_text += str(entity) + '\n'
     return HttpResponse(report_text, content_type='text/plain;')
 
 
@@ -855,7 +856,7 @@ def nominator_url_report(request, slug, field, nomid):
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + '\n\n'
 
     for entity in results:
-        report_text += unicode(entity) + '\n'
+        report_text += str(entity) + '\n'
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 

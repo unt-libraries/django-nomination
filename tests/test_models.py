@@ -13,39 +13,39 @@ pytestmark = pytest.mark.django_db
 class TestValue:
     def test_unicode(self):
         value = factories.ValueFactory.build()
-        assert unicode(value) == value.value
+        assert str(value) == value.value
 
 
 class TestValueSet:
     def test_unicode(self):
         valueset = factories.ValuesetFactory.build()
-        assert unicode(valueset) == valueset.name
+        assert str(valueset) == valueset.name
 
 
 class TestMetadata:
     def test_unicode(self):
         metadata = factories.MetadataFactory.create()
-        assert unicode(metadata) == metadata.name
+        assert str(metadata) == metadata.name
 
 
 class TestMetadataValues:
     def test_unicode(self):
         metadata_values = factories.MetadataValuesFactory.create()
-        assert unicode(metadata_values) == '{0} ({1})'.format(
+        assert str(metadata_values) == '{0} ({1})'.format(
             metadata_values.metadata, metadata_values.value)
 
 
 class TestValuesetValues:
     def test_unicode(self):
         valueset_values = factories.ValuesetValuesFactory.create()
-        assert unicode(valueset_values) == '{0} ({1})'.format(
+        assert str(valueset_values) == '{0} ({1})'.format(
             valueset_values.valueset, valueset_values.value)
 
 
 class TestProject:
     def test_unicode(self):
         project = factories.ProjectFactory.build()
-        assert unicode(project) == project.project_slug
+        assert str(project) == project.project_slug
 
     def test_nomination_message_before_nomination_window(self):
         project = factories.ProjectFactory.build(
@@ -136,14 +136,14 @@ class TestProject:
 class TestProjectMetadata:
     def test_unicode(self):
         project_metadata = factories.ProjectMetadataFactory.create()
-        assert unicode(project_metadata) == '{0} ({1})'.format(
+        assert str(project_metadata) == '{0} ({1})'.format(
             project_metadata.project, project_metadata.metadata)
 
 
 class TestNominator:
     def test_unicode(self):
         nominator = factories.NominatorFactory.build()
-        assert unicode(nominator) == nominator.nominator_name
+        assert str(nominator) == nominator.nominator_name
 
     def test_nominations(self):
         num_nominations = 10
@@ -162,7 +162,7 @@ class TestURL:
 
     def test_unicode(self):
         url = factories.URLFactory.create()
-        assert unicode(url) == url.entity
+        assert str(url) == url.entity
 
     def test_entity_display(self):
         url = factories.URLFactory.create()

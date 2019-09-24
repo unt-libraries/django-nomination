@@ -93,7 +93,7 @@ class Metadata_Values(models.Model):
     )
 
     def __str__(self):
-        return u'%s (%s)' % (self.metadata, self.value)
+        return '%s (%s)' % (self.metadata, self.value)
 
     class Meta:
         verbose_name = 'metadata values'
@@ -111,7 +111,7 @@ class Valueset_Values(models.Model):
     )
 
     def __str__(self):
-        return u'%s (%s)' % (self.valueset, self.value)
+        return '%s (%s)' % (self.valueset, self.value)
 
     class Meta:
         verbose_name = 'valueset values'
@@ -200,7 +200,7 @@ class Project_Metadata(models.Model):
     )
 
     def __str__(self):
-        return u'%s (%s)' % (self.project, self.metadata)
+        return '%s (%s)' % (self.project, self.metadata)
 
     class Meta:
         ordering = ['metadata_order']
