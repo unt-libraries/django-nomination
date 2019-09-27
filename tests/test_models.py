@@ -10,42 +10,7 @@ from . import factories
 pytestmark = pytest.mark.django_db
 
 
-class TestValue:
-    def test_unicode(self):
-        value = factories.ValueFactory.build()
-        assert str(value) == value.value
-
-
-class TestValueSet:
-    def test_unicode(self):
-        valueset = factories.ValuesetFactory.build()
-        assert str(valueset) == valueset.name
-
-
-class TestMetadata:
-    def test_unicode(self):
-        metadata = factories.MetadataFactory.create()
-        assert str(metadata) == metadata.name
-
-
-class TestMetadataValues:
-    def test_unicode(self):
-        metadata_values = factories.MetadataValuesFactory.create()
-        assert str(metadata_values) == '{0} ({1})'.format(
-            metadata_values.metadata, metadata_values.value)
-
-
-class TestValuesetValues:
-    def test_unicode(self):
-        valueset_values = factories.ValuesetValuesFactory.create()
-        assert str(valueset_values) == '{0} ({1})'.format(
-            valueset_values.valueset, valueset_values.value)
-
-
 class TestProject:
-    def test_unicode(self):
-        project = factories.ProjectFactory.build()
-        assert str(project) == project.project_slug
 
     def test_nomination_message_before_nomination_window(self):
         project = factories.ProjectFactory.build(
@@ -133,17 +98,7 @@ class TestProject:
         assert project.archive_url == 'http://www.example.com/'
 
 
-class TestProjectMetadata:
-    def test_unicode(self):
-        project_metadata = factories.ProjectMetadataFactory.create()
-        assert str(project_metadata) == '{0} ({1})'.format(
-            project_metadata.project, project_metadata.metadata)
-
-
 class TestNominator:
-    def test_unicode(self):
-        nominator = factories.NominatorFactory.build()
-        assert str(nominator) == nominator.nominator_name
 
     def test_nominations(self):
         num_nominations = 10
@@ -159,10 +114,6 @@ class TestURL:
     )
     project_link_html = "<a href='http://example.com/admin/nomination/project/{0}'>{1}</a>"
     nominator_link_html = "<a href='http://example.com/admin/nomination/nominator/{0}'>{1}</a>"
-
-    def test_unicode(self):
-        url = factories.URLFactory.create()
-        assert str(url) == url.entity
 
     def test_entity_display(self):
         url = factories.URLFactory.create()
