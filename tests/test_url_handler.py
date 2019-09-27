@@ -81,7 +81,7 @@ class TestGetMetadata():
         results = url_handler.get_metadata(project)
 
         for _, value_iter in results:
-            assert (val_iter in vals for val_iter in list(value_iter))
+            assert all(value in vals for value in list(value_iter))
 
 
 @pytest.mark.parametrize('posted_data, processed_posted_data, expected', [
@@ -566,8 +566,6 @@ class TestCreateJsonBrowse():
 
         for result in json.loads(results):
             assert result in expected
-
-        # assert json.loads(results).sort() == expected.sort()
 
     def test_cannot_find_project(self):
         slug = 'blah'

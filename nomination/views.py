@@ -262,18 +262,15 @@ def url_listing(request, slug, url_entity):
                         for nominator_field in nominator_fields:
                             if not scope_form.cleaned_data[nominator_field].strip():
                                 some_errors[nominator_field] = \
-                                    'You must ' +\
-                                    'provide name, institution, and email ' +\
-                                    'to affiliate your name or institution ' +\
-                                    'with nominations. Leave all "Information ' +\
-                                    'About You" fields blank to remain ' +\
-                                    'anonymous.'
+                                    ('You must provide name, institution, and email '
+                                     'to affiliate your name or institution '
+                                     'with nominations. Leave all "Information '
+                                     'About You" fields blank to remain anonymous.')
                     else:
                         # supply anonymous information
                         scope_form.cleaned_data['nominator_email'] = 'anonymous'
                         scope_form.cleaned_data['nominator_name'] = 'Anonymous'
-                        scope_form.cleaned_data['nominator_institution'] = \
-                            'Anonymous'
+                        scope_form.cleaned_data['nominator_institution'] = 'Anonymous'
                 if not some_errors:
                     # combine cleaned form class data with project specific data
                     posted_data.update(scope_form.cleaned_data)
@@ -310,7 +307,7 @@ def url_listing(request, slug, url_entity):
         # in case of a user input error, send back data to repopulate form
         json_data = None
         if posted_data:
-            json_data = posted_data.lists()
+            json_data = json.dumps(list(posted_data.lists()))
 
         # send form types for use to repopulate form
         form_types = {}
@@ -465,12 +462,10 @@ def url_add(request, slug):
                 for nominator_field in nominator_fields:
                     if not posted_data[nominator_field].strip():
                         some_errors[nominator_field] = \
-                            'You must ' +\
-                            'provide name, institution, and email to ' +\
-                            'affiliate your name or institution with ' +\
-                            'nominations. Leave all "Information ' +\
-                            'About You" fields blank to remain ' +\
-                            'anonymous.'
+                            ('You must provide name, institution, and email to '
+                             'affiliate your name or institution with '
+                             'nominations. Leave all "Information '
+                             'About You" fields blank to remain anonymous.')
         if form.is_valid():
             if not form.cleaned_data['url_value'].strip() == 'http://':
                 # summary_list = add_url(project, form.cleaned_data)
@@ -509,7 +504,7 @@ def url_add(request, slug):
     # in case of an error, send back data to repopulate form
     json_data = None
     if posted_data:
-        json_data = posted_data.lists()
+        json_data = json.dumps(list(posted_data.lists()))
 
     # send form types for use to repopulate form
     form_types = {}
@@ -629,8 +624,8 @@ def url_report(request, slug):
 
     # Create the first two lines of the report file
     report_text = '#This list of urls was created for the ' + project.project_name + \
-        " project.\n#Unique URLs sorted by SURT\n#List generated on " + \
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
+                  ' project.\n#Unique URLs sorted by SURT\n#List generated on ' + \
+                  datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%SZ') + '\n\n'
 
     for url_item in url_list:
         report_text += url_item.entity + "\n"
@@ -653,8 +648,8 @@ def surt_report(request, slug):
 
     # Create the first two lines of the report file
     report_text = '#This list of SURTs was created for the ' + project.project_name + \
-        " project.\n#SURTs sorted by SURT\n#List generated on " + \
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
+                  ' project.\n#SURTs sorted by SURT\n#List generated on ' + \
+                  datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%SZ') + '\n\n'
 
     for url_item in surt_list:
         report_text += url_item + "\n"
@@ -673,9 +668,9 @@ def url_score_report(request, slug):
                   .values_list('nomination_score', 'entity'))
 
     report_text = '#This list of URLs was created for the ' + project.project_name + \
-        ' project.\n#URLs and overall nomination score\n' + \
-        '#List generated on ' + \
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
+                  ' project.\n#URLs and overall nomination score\n' + \
+                  '#List generated on ' + \
+                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
 
     for row in results:
         nomination_score, entity = row
@@ -694,9 +689,9 @@ def url_date_report(request, slug):
                   .values_list('nomination_date', 'entity', 'value'))
 
     report_text = '#This list of URLs was created for the ' + project.project_name + \
-        ' project.\n#Nomination date, URL, and in/out of scope are given\n' + \
-        '#List generated on ' + \
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
+                  ' project.\n#Nomination date, URL, and in/out of scope are given\n' +\
+                  '#List generated on ' + \
+                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
 
     for row in results:
         date, entity, value = row
@@ -717,10 +712,10 @@ def url_nomination_report(request, slug):
                   .values_list('nominations', 'entity'))
 
     report_text = '#This list of URLs was created for the ' + project.project_name + \
-        ' project.\n#URLs and number of nominations ' + \
-        '(could be either positive or negative nominations)\n' + \
-        '#List generated on ' + \
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
+                  ' project.\n#URLs and number of nominations ' + \
+                  '(could be either positive or negative nominations)\n' + \
+                  '#List generated on ' + \
+                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
 
     for row in results:
         nominations, entity = row
@@ -787,9 +782,10 @@ def value_report(request, slug, field, val):
         val = val + '/'
         urls = URL.objects.filter(url_project_id=project.id, attribute=field, value=val)
     report_text = '#This list of URLs was created for the ' + project.project_name + \
-        ' project.\n#URLs for value "' + val + '" in metadata field "' + field + '"\n' + \
-        '#List generated on ' + \
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
+                  ' project.\n#URLs for value "' + val + '" in metadata field "' + \
+                  field + '"\n' + \
+                  '#List generated on ' + \
+                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + "\n\n"
     for entity in urls.values_list('entity', flat=True).order_by('entity').distinct():
         report_text += entity + '\n'
     return HttpResponse(report_text, content_type='text/plain;')
@@ -849,13 +845,12 @@ def nominator_url_report(request, slug, field, nomid):
                       .values_list('entity', flat=True)
                       .distinct())
 
-    report_text = '#This list of URLs was created for the ' + project.project_name + \
-        ' project.\n#URLs for ' + field + ' "' + nomname + '"\n' + \
-        '#List generated on ' + \
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + '\n\n'
-
+    report_text = ('#This list of URLs was created for the ' + project.project_name +
+                   ' project.\n#URLs for ' + field + ' "' + nomname + '"\n' +
+                   '#List generated on ' +
+                   datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%SZ") + '\n\n')
     for entity in results:
-        report_text += str(entity) + '\n'
+        report_text += entity + '\n'
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 

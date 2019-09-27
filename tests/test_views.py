@@ -375,8 +375,8 @@ class TestUrlListing():
         assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
         assert response.context['scope_form'].is_valid() is False
-        assert sorted(response.context['json_data']) == sorted(
-            [(key, [str(data[key])]) for key in data])
+        assert sorted(json.loads(response.context['json_data'])) == \
+            sorted([[key, [str(data[key])]] for key in data])
 
     def test_context_with_post_and_anonymous_error(self, client):
         entity = 'www.example.com'
@@ -396,8 +396,8 @@ class TestUrlListing():
         assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
         assert response.context['scope_form'].is_valid() is False
-        assert sorted(response.context['json_data']) == sorted(
-            [(key, [str(data[key])]) for key in data])
+        assert sorted(json.loads(response.context['json_data'])) == sorted(
+            [[key, [str(data[key])]] for key in data])
 
     def test_context_with_post_and_missing_field_error_reg_required(self, client):
         entity = 'www.example.com'
@@ -413,8 +413,8 @@ class TestUrlListing():
         assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
         assert response.context['scope_form'].is_valid() is False
-        assert sorted(response.context['json_data']) == sorted(
-            [(key, [str(data[key])]) for key in data])
+        assert sorted(json.loads(response.context['json_data'])) == sorted(
+            [[key, [str(data[key])]] for key in data])
 
     def test_context_with_get(self, client):
         entity = 'http://www.example.com'
@@ -596,11 +596,11 @@ class TestUrlAdd():
             reverse('url_add', args=[project.project_slug]),
             data
         )
-        json_data = [(key, [data[key]]) for key in sorted(data)]
+        json_data = [[key, [data[key]]] for key in sorted(data)]
 
         assert response.context['form_errors'] == {'url_value': ['This field is required.']}
         assert response.context['summary_list'] is None
-        assert sorted(response.context['json_data']) == json_data
+        assert sorted(json.loads(response.context['json_data'])) == json_data
         assert response.context['url_entity'] is None
 
     def test_context_with_post_and_anonymous_error(self, client):
@@ -625,11 +625,11 @@ class TestUrlAdd():
                                 'your name or institution with nominations. Leave all '
                                 '"Information About You" fields blank to remain anonymous.')
         }
-        json_data = [(key, [data[key]]) for key in sorted(data)]
+        json_data = [[key, [data[key]]] for key in sorted(data)]
 
         assert response.context['form_errors'] == expected_error
         assert response.context['summary_list'] is None
-        assert sorted(response.context['json_data']) == json_data
+        assert sorted(json.loads(response.context['json_data'])) == json_data
         assert response.context['url_entity'] is None
 
     def test_context_with_post_and_missing_field_error_reg_required(self, client):
@@ -646,11 +646,11 @@ class TestUrlAdd():
             reverse('url_add', args=[project.project_slug]),
             data
         )
-        json_data = [(key, [data[key]]) for key in sorted(data)]
+        json_data = [[key, [data[key]]] for key in sorted(data)]
 
         assert response.context['form_errors'] == {'nominator_email': 'This field is required.'}
         assert response.context['summary_list'] is None
-        assert sorted(response.context['json_data']) == json_data
+        assert sorted(json.loads(response.context['json_data'])) == json_data
         assert response.context['url_entity'] is None
 
 

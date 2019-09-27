@@ -173,8 +173,7 @@ def get_nominator(form_data):
     try:
         # Try to retrieve the nominator
         nominator = Nominator.objects.get(nominator_email=form_data['nominator_email'])
-    except Nominator.DoesNotExist as xxx_todo_changeme:
-        Nominator.MultipleObjectsReturned = xxx_todo_changeme
+    except (Nominator.DoesNotExist, Nominator.MultipleObjectsReturned):
         try:
             # Create a new nominator object
             nominator = Nominator(nominator_email=form_data['nominator_email'],
@@ -273,8 +272,7 @@ def save_attribute(project, nominator, form_data, summary_list, attribute_name, 
                                     entity__iexact=form_data['url_value'],
                                     value__iexact=valvar,
                                     attribute__iexact=attribute_name)
-    except URL.DoesNotExist as xxx_todo_changeme1:
-        URL.MultipleObjectsReturned = xxx_todo_changeme1
+    except (URL.DoesNotExist, URL.MultipleObjectsReturned):
         try:
             added_url = URL(entity=form_data['url_value'],
                             value=valvar,
@@ -429,11 +427,13 @@ def create_json_browse(slug, url_attribute, root=''):
 
     if len(url_list) >= 100 and root != '':
         category_list = []
+        count = 0
         for url_item in url_list:
             name_search = re.compile(r'^[^:]+://\('+root+'([A-Za-z0-9]{1})').search(
                 url_item.value, 0)
             if name_search:
                 if not name_search.group(1) in category_list:
+                    count += 1
                     category_list.append(name_search.group(1))
         for category in category_list:
             category_dict = {'text': category,
