@@ -336,10 +336,10 @@ def verifyURL(url):
                 req = urllib.request.Request(url, None, headers)
                 u = urllib.request.urlopen(req)
             except:
-                print(e + '; Response: ' + e.code + '; skipping URL ' + url)
+                print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
                 return False
         else:
-            print(e + '; Response: ' + e.code + '; skipping URL ' + url)
+            print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
             return False
     except:  # urllib2.URLError, httplib.InvalidURL, etc.
         print('Failed HTTP response/broken link; skipping URL ' + url)
