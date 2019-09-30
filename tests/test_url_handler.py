@@ -554,18 +554,19 @@ class TestCreateJsonBrowse():
         project = factories.ProjectFactory()
         urls = factories.SURTFactory.create_batch(101, url_project=project)
         root = 'com,'
+        expected = []
         results = url_handler.create_json_browse(project.project_slug, None, root)
-
-        expected = [
-            {
+        for url in urls:
+            surt_dict = {
                 'hasChildren': True,
                 'id': root + url.value[url.value.find(root) + 4],
                 'text': url.value[url.value.find(root) + 4]
-            } for url in urls
-        ]
+            }
+            if surt_dict not in expected:
+                expected.append(surt_dict)
 
-        for result in json.loads(results):
-            assert result in expected
+        assert sorted(json.loads(results), key=lambda x: x['id']) == \
+            sorted(expected, key=lambda x: x['id'])
 
     def test_cannot_find_project(self):
         slug = 'blah'

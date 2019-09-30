@@ -427,13 +427,11 @@ def create_json_browse(slug, url_attribute, root=''):
 
     if len(url_list) >= 100 and root != '':
         category_list = []
-        count = 0
         for url_item in url_list:
             name_search = re.compile(r'^[^:]+://\('+root+'([A-Za-z0-9]{1})').search(
                 url_item.value, 0)
             if name_search:
                 if not name_search.group(1) in category_list:
-                    count += 1
                     category_list.append(name_search.group(1))
         for category in category_list:
             category_dict = {'text': category,
