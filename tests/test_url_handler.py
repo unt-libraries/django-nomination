@@ -337,8 +337,7 @@ class TestAddOtherAttribute():
             'You have successfully added the {0} "{1}" for {2}'.format(met_name, value, entity)
             for met_name in metadata_names
         ]
-
-        assert results.sort() == expected.sort()
+        assert sorted(results) == sorted(expected)
 
     def test_returns_expected_with_multiple_attribute_values(self, setup):
         project, metadata_names, nominator = setup
@@ -356,7 +355,7 @@ class TestAddOtherAttribute():
             for value in values
         ]
 
-        assert results.sort() == expected.sort()
+        assert sorted(results) == sorted(expected)
 
 
 class TestSaveAttribute():
