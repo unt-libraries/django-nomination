@@ -79,9 +79,10 @@ class TestGetMetadata():
         metadata = factories.MetadataFactory(value_sets=[valset])
         factories.ProjectMetadataFactory(project=project, metadata=metadata)
         results = url_handler.get_metadata(project)
-
         for _, value_iter in results:
-            assert all(value in vals for value in list(value_iter))
+            value_list = list(value_iter)
+            assert all(value in vals for value in value_list)
+            assert len(value_list) == 3
 
 
 @pytest.mark.parametrize('posted_data, processed_posted_data, expected', [
