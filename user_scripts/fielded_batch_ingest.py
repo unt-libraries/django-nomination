@@ -1,5 +1,5 @@
 import sys, re, string, csv, optparse
-import urllib2
+import urllib.request, urllib.error
 import pickle
 from django.conf import settings
 from nomination.models import URL, Nominator, Project
@@ -9,7 +9,7 @@ def usage():
     """
         Prints a usage statement describing how to use the script
     """
-    print """fielded_batch_ingest - Adds urls from a text file into the URL table
+    print("""fielded_batch_ingest - Adds urls from a text file into the URL table
 
     example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename
     
@@ -22,7 +22,7 @@ def usage():
     -c, import the file as a csv file
     -d, import file is pickled dictionary format
     -h, --help, display help
-    -v, --verify, verify url is valid and available"""
+    -v, --verify, verify url is valid and available""")
 
 def url_ingest(file_name, nominator_id, project_slug, verify_url):
     """
@@ -57,8 +57,8 @@ def url_ingest(file_name, nominator_id, project_slug, verify_url):
         if new_surt:
             surt_entries +=1
         entry_count += 1
-    print "Created %s new url surt entries." % (surt_entries)
-    print "Created %s new url nomination entries out of %s possible entries." % (new_entries, entry_count)
+    print("Created %s new url surt entries." % (surt_entries))
+    print("Created %s new url nomination entries out of %s possible entries." % (new_entries, entry_count))
 
 def csv_ingest(file_name, nominator_id, project_slug, verify_url):
     #Make sure the project and nominator exist in the database
@@ -94,9 +94,9 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
             nomination_count += 1
         if new_surt:
             surt_count +=1
-    print "Created %s new SURT entries." % (surt_count)
-    print "Created %s new nomination entries." % (nomination_count)
-    print "Created %s other attribute entries." % (entry_count)
+    print("Created %s new SURT entries." % (surt_count))
+    print("Created %s new nomination entries." % (nomination_count))
+    print("Created %s other attribute entries." % (entry_count))
 
 def UnicodeDictReader(utf8_data, **kwargs):
     """Encodes temporarily as UTF-8.
@@ -106,7 +106,7 @@ def UnicodeDictReader(utf8_data, **kwargs):
     """
     csv_reader = csv.DictReader(utf8_data, **kwargs)
     for row in csv_reader:
-        yield dict((key, unicode(value, 'utf-8')) for key, value in row.iteritems())
+        yield dict((key, value) for key, value in row.items())
 
 def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
     """Ingests pickled dictionary into nomination tool.
@@ -159,9 +159,9 @@ def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
         except EOFError:
           break
 
-    print "Created %s new SURT entries." % (surt_count)
-    print "Created %s new nomination entries." % (nomination_count)
-    print "Created %s other attribute entries." % (entry_count)
+    print("Created %s new SURT entries." % (surt_count))
+    print("Created %s new nomination entries." % (nomination_count))
+    print("Created %s other attribute entries." % (entry_count))
     rff.close()
 
 
@@ -169,7 +169,7 @@ def get_nominator(nominator_id):
     try:
         nominator = Nominator.objects.get(id=nominator_id)
     except:
-        print "Nominator ID:%s was not found in the Nominator table. Please add the nominator, or use the correct ID." % (nominator_id)
+        print("Nominator ID:%s was not found in the Nominator table. Please add the nominator, or use the correct ID." % (nominator_id))
         sys.exit()
 
     return nominator
@@ -178,7 +178,7 @@ def get_system_nominator():
     try:
         system_nominator = Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
     except:
-        print "Could not get the system nominator."
+        print("Could not get the system nominator.")
         sys.exit()
 
     return system_nominator
@@ -187,7 +187,7 @@ def get_project(slug):
     try:
         project = Project.objects.get(project_slug=slug)
     except:
-        print "%s was not found in the Project table. Please add the project to the Project table." % (slug)
+        print("%s was not found in the Project table. Please add the project to the Project table." % (slug))
         sys.exit()
 
     return project
@@ -218,7 +218,7 @@ def create_url_entry(project, nominator, url_entity, url_attribute, url_value):
                                     )
             new_url.save()
         except:
-            print "Failed to create a new entry for url: %s attribute: %s value: %s" % (url_entity, url_attribute, url_value)
+            print("Failed to create a new entry for url: %s attribute: %s value: %s" % (url_entity, url_attribute, url_value))
             return False
     else:
         return False
@@ -304,7 +304,7 @@ def addImpliedHttpIfNecessary(uri):
        uri = 'http://' + uri
     return uri
 
-class HeadRequest(urllib2.Request):
+class HeadRequest(urllib.request.Request):
     def get_method(self):
         return "HEAD"
 
@@ -312,8 +312,8 @@ def verifyURL(url):
     """Tests status response from URL."""
     try:
         url = url.encode('utf-8')
-    except UnicodeEncodeError, e:
-        print str(e) + '; skipping URL ' + url
+    except UnicodeEncodeError as e:
+        print(str(e) + '; skipping URL ' + url)
         return False
     headers = {
         "Accept": "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5",
@@ -324,25 +324,25 @@ def verifyURL(url):
     }    
     try:
         req = HeadRequest(url, None, headers)
-        u = urllib2.urlopen(req)
-    except ValueError, e:
-        print str(e) + '; skipping invalid URL ' + url
+        u = urllib.request.urlopen(req)
+    except ValueError as e:
+        print(str(e) + '; skipping invalid URL ' + url)
         return False
-    except urllib2.HTTPError, e:
+    except urllib.error.HTTPError as e:
         if e.code in (405, 501):
             # Try a GET request (HEAD refused)
             # See also: http://www.w3.org/Protocols/rfc2616/rfc2616.html
             try:
-                req = urllib2.Request(url, None, headers)
-                u = urllib2.urlopen(req)
+                req = urllib.request.Request(url, None, headers)
+                u = urllib.request.urlopen(req)
             except:
-                print str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url
+                print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
                 return False
         else:
-            print str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url
+            print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
             return False
-    except: # urllib2.URLError, httplib.InvalidURL, etc.
-        print 'Failed HTTP response/broken link; skipping URL ' + url
+    except:  # urllib2.URLError, httplib.InvalidURL, etc.
+        print('Failed HTTP response/broken link; skipping URL ' + url)
         return False
     return True
 

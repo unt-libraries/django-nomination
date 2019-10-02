@@ -1,6 +1,6 @@
 import re
 import json
-from string import digits, uppercase, capwords
+from string import digits, ascii_uppercase, capwords
 import datetime
 
 from django import http
@@ -10,11 +10,11 @@ from django.db import transaction
 import pytest
 
 from nomination import url_handler, models
-import factories
+from . import factories
 
 
 pytestmark = pytest.mark.django_db
-alnum_list = sorted(digits + uppercase)
+alnum_list = sorted(digits + ascii_uppercase)
 
 
 class TestAlphabeticalBrowse():
@@ -79,9 +79,10 @@ class TestGetMetadata():
         metadata = factories.MetadataFactory(value_sets=[valset])
         factories.ProjectMetadataFactory(project=project, metadata=metadata)
         results = url_handler.get_metadata(project)
-
         for _, value_iter in results:
-            assert list(value_iter).sort() == vals.sort()
+            value_list = list(value_iter)
+            assert all(value in vals for value in value_list)
+            assert len(value_list) == 3
 
 
 @pytest.mark.parametrize('posted_data, processed_posted_data, expected', [
@@ -337,8 +338,7 @@ class TestAddOtherAttribute():
             'You have successfully added the {0} "{1}" for {2}'.format(met_name, value, entity)
             for met_name in metadata_names
         ]
-
-        assert results.sort() == expected.sort()
+        assert sorted(results) == sorted(expected)
 
     def test_returns_expected_with_multiple_attribute_values(self, setup):
         project, metadata_names, nominator = setup
@@ -356,7 +356,7 @@ class TestAddOtherAttribute():
             for value in values
         ]
 
-        assert results.sort() == expected.sort()
+        assert sorted(results) == sorted(expected)
 
 
 class TestSaveAttribute():
@@ -554,19 +554,19 @@ class TestCreateJsonBrowse():
         project = factories.ProjectFactory()
         urls = factories.SURTFactory.create_batch(101, url_project=project)
         root = 'com,'
+        expected = []
         results = url_handler.create_json_browse(project.project_slug, None, root)
-        expected = [
-            {
+        for url in urls:
+            surt_dict = {
                 'hasChildren': True,
                 'id': root + url.value[url.value.find(root) + 4],
                 'text': url.value[url.value.find(root) + 4]
-            } for url in urls
-        ]
+            }
+            if surt_dict not in expected:
+                expected.append(surt_dict)
 
-        for result in json.loads(results):
-            assert result in expected
-
-        assert json.loads(results).sort() == expected.sort()
+        assert sorted(json.loads(results), key=lambda x: x['id']) == \
+            sorted(expected, key=lambda x: x['id'])
 
     def test_cannot_find_project(self):
         slug = 'blah'
