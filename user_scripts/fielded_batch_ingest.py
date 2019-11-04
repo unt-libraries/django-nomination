@@ -229,7 +229,7 @@ def url_formatter(line):
     """
         Formats the given url into the proper url format
     """
-    url = string.strip(line)
+    url = line.strip()
     if url.startswith('https://'):
         url = url.replace('https://', 'http://', 1)
     url = addImpliedHttpIfNecessary(url)
