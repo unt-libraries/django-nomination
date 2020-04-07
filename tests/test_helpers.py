@@ -3,7 +3,7 @@ import json
 import pytest
 
 from nomination import views, models
-import factories
+from . import factories
 
 
 pytestmark = pytest.mark.django_db
