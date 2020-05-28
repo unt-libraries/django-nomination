@@ -12,6 +12,7 @@ from django.utils.http import urlquote
 from nomination import views, models
 from . import factories
 
+from dateutil.relativedelta import relativedelta
 
 pytestmark = pytest.mark.django_db
 anonymous_error = ('You must provide name, institution, and email to affiliate your name '
@@ -31,13 +32,15 @@ class TestProjectListing():
         assert response.templates[0].name == 'nomination/project_listing.html'
 
     def test_context(self, client):
-        active_project = factories.ProjectFactory()
+        active_project = factories.ProjectFactory(
+            project_start=date(2015, 1, 1),
+            project_end=datetime.now() + relativedelta(years=5)
+        )
         past_project = factories.ProjectFactory(
             project_start=date(2015, 1, 1),
             project_end=date(2015, 1, 2)
         )
         response = client.get(reverse('project_listing'))
-
         assert len(response.context['active_list']) == 1
         assert response.context['active_list'][0] == active_project
         assert len(response.context['past_list']) == 1
