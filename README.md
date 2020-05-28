@@ -24,8 +24,8 @@ crawls for certain archival projects.
 Requirements
 ------------
 
-* Python 2.7
-* Django 1.10 - 1.11
+* Python 3.7
+* Django 1.11
 
 
 Installation
@@ -123,3 +123,4 @@ Contributors
 * [Joey Liechty](https://github.com/yeahdef)
 * [Gio Gottardi](https://github.com/somexpert)
 * [Jason Ellis](https://github.com/jason-ellis)
+* [Madhulika Bayyavarapu](https://github.com/madhulika95b)
