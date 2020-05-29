@@ -12,8 +12,6 @@ from django.utils.http import urlquote
 from nomination import views, models
 from . import factories
 
-from dateutil.relativedelta import relativedelta
-
 pytestmark = pytest.mark.django_db
 anonymous_error = ('You must provide name, institution, and email to affiliate your name '
                    'or institution with nominations. Leave all "Information About You" fields '
@@ -32,10 +30,7 @@ class TestProjectListing():
         assert response.templates[0].name == 'nomination/project_listing.html'
 
     def test_context(self, client):
-        active_project = factories.ProjectFactory(
-            project_start=date(2015, 1, 1),
-            project_end=datetime.now() + relativedelta(years=5)
-        )
+        active_project = factories.ProjectFactory()
         past_project = factories.ProjectFactory(
             project_start=date(2015, 1, 1),
             project_end=date(2015, 1, 2)
