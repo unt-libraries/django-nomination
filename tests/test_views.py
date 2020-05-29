@@ -12,7 +12,6 @@ from django.utils.http import urlquote
 from nomination import views, models
 from . import factories
 
-
 pytestmark = pytest.mark.django_db
 anonymous_error = ('You must provide name, institution, and email to affiliate your name '
                    'or institution with nominations. Leave all "Information About You" fields '
@@ -37,7 +36,6 @@ class TestProjectListing():
             project_end=date(2015, 1, 2)
         )
         response = client.get(reverse('project_listing'))
-
         assert len(response.context['active_list']) == 1
         assert response.context['active_list'][0] == active_project
         assert len(response.context['past_list']) == 1

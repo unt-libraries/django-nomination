@@ -1,4 +1,5 @@
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 import factory
 from factory import fuzzy
@@ -63,9 +64,11 @@ class ProjectFactory(factory.django.DjangoModelFactory):
     project_description = fuzzy.FuzzyText(length=20)
     project_slug = fuzzy.FuzzyText(length=20)
     project_start = fuzzy.FuzzyNaiveDateTime(datetime(2006, 1, 1))
-    project_end = fuzzy.FuzzyNaiveDateTime(datetime.now(), datetime(2020, 1, 1))
+    project_end = fuzzy.FuzzyNaiveDateTime(datetime.now(),
+                                           datetime.now()+relativedelta(years=5))
     nomination_start = fuzzy.FuzzyNaiveDateTime(datetime(2006, 1, 1))
-    nomination_end = fuzzy.FuzzyNaiveDateTime(datetime.now(), datetime(2020, 1, 1))
+    nomination_end = fuzzy.FuzzyNaiveDateTime(datetime.now(),
+                                              datetime.now()+relativedelta(years=5))
     admin_name = fuzzy.FuzzyText(length=12)
     admin_email = factory.LazyAttribute(lambda x: '{0}@email.com'.format(x.admin_name))
     project_url = factory.LazyAttribute(lambda x: 'http://{0}.com'.format(x.project_slug))
