@@ -136,14 +136,14 @@
                                         {% endfor %}
                                     {% elif met.form_type == "select" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <select class="multi-select" multiple size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                                        <select multiple size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
                                         </select>
                                     {% elif met.form_type == "selectsingle" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <select class="form-control" size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                                        <select size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
@@ -252,7 +252,7 @@
                 {% if metadata_vals %}
                     {% for met,vals in metadata_vals %}
                         {% if met.form_type == "select" or met.form_type == "selectsingle" %}
-                            new SlimSelect({select: '.multi-select'});
+                            new SlimSelect({select: '#{{ met.metadata.name }}'});
                         {% endif %}
                     {% endfor %}
                 {% endif %}
