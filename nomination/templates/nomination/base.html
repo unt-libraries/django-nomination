@@ -11,6 +11,8 @@
         {# Stylesheets #}
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
         <link rel="stylesheet" href="{% static 'nomination/styles/local.css' %}" type="text/css" />
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.css" rel="stylesheet"></link>
         {% if project %}
             <link rel="alternate" type="application/rss+xml" title="Newly Added URLs" href="{% url 'url_feed' project.project_slug %}" />
             <link rel="alternate" type="application/rss+xml" title="Recent Nominations" href="{% url 'nomination_feed' project.project_slug %}" />

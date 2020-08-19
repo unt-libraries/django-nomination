@@ -125,7 +125,7 @@
                                         {% endfor %}
                                     {% elif met.form_type == "select" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <select class="form-control" multiple size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                                        <select class="multi-select" multiple size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
@@ -238,6 +238,7 @@
                 initForm();
                 focusAddForm();
                 bindPreviewURL();
+							  new SlimSelect({select: '.multi-select'});
             });
 
         </script>
