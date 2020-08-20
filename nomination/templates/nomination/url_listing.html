@@ -9,15 +9,9 @@
 {% block title %}Nomination Tool{% endblock %}
 
 {% block localized_styles %}
-    {% if metadata_vals %}
-        {% for met,vals in metadata_vals %}
-            {% if met.form_type == "select" or met.form_type == "selectsingle" %}
-                {% ifchanged %}{% comment %}This is a bit of a hacky way to prevent grabbing slimselect multiple times.{% endcomment %}
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.js"></script>
-                    <link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.css" rel="stylesheet"></link>
-                {% endifchanged %}
-            {% endif %}
-        {% endfor %}
+    {% if form_types|has_value:"select" or form_types|has_value:"selectsingle" %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.css" rel="stylesheet"></link>
     {% endif %}
 {% endblock %}
 
