@@ -175,7 +175,7 @@
                                         </select>
                                     {% elif met.form_type == "selectsingle" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <select size="17" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                                        <select size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
