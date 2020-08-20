@@ -12,8 +12,10 @@
     {% if metadata_vals %}
         {% for met,vals in metadata_vals %}
             {% if met.form_type == "select" or met.form_type == "selectsingle" %}
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.js"></script>
-                <link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.css" rel="stylesheet"></link>
+                {% ifchanged %}{% comment %}This is a bit of a hacky way to prevent grabbing slimselect multiple times.{% endcomment %}
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.js"></script>
+                    <link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.css" rel="stylesheet"></link>
+                {% endifchanged %}
             {% endif %}
         {% endfor %}
     {% endif %}
@@ -179,7 +181,7 @@
                                         </select>
                                     {% elif met.form_type == "selectsingle" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <select size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                                        <select size="17" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
@@ -275,13 +277,13 @@
                 source: {{ institutions|safe }}
             });
             initForm();
-            {% if metadata_vals %}
-                {% for met,vals in metadata_vals %}
-                    {% if met.form_type == "select" or met.form_type == "selectsingle" %}
-                        new SlimSelect({select: '#{{ met.metadata.name }}'});
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
+            for (field in form_types){
+                if (form_types[field] == 'select'){
+                    new SlimSelect({select: '#' + field});
+                } else if (form_types[field] == 'selectsingle'){
+                    new SlimSelect({select: '#' + field, allowDeselect: true});
+                }
+            };
         });
 
     </script>
