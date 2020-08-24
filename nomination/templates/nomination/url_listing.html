@@ -8,6 +8,13 @@
 
 {% block title %}Nomination Tool{% endblock %}
 
+{% block localized_styles %}
+    {% if form_types|has_value:"select" or form_types|has_value:"selectsingle" %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.css" rel="stylesheet">
+    {% endif %}
+{% endblock %}
+
 {% block content %}
 
     <div class="panel-group">
@@ -161,14 +168,14 @@
                                         {% endfor %}
                                     {% elif met.form_type == "select" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <select class="form-control" multiple size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                                        <select multiple size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
                                         </select>
                                     {% elif met.form_type == "selectsingle" %}
                                         <p class="help-block">{{ met.help }}</p>
-                                        <select class="form-control" size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
+                                        <select size="6" id="{{ met.metadata.name }}" name="{{ met.metadata.name }}">
                                             {% for val in vals %}
                                                 <option value="{{ val.key }}">{{ val.value }}</option>
                                             {% endfor %}
@@ -264,6 +271,13 @@
                 source: {{ institutions|safe }}
             });
             initForm();
+            for (field in form_types){
+                if (form_types[field] == 'select'){
+                    new SlimSelect({select: '#' + field});
+                } else if (form_types[field] == 'selectsingle'){
+                    new SlimSelect({select: '#' + field, allowDeselect: true});
+                }
+            };
         });
 
     </script>
