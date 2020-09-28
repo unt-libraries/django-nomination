@@ -285,7 +285,7 @@ class TestUrlListing():
             'form_errors': None,
             'summary_list': None,
             'json_data': None,
-            'form_types': None,
+            'form_types': json.dumps({project_metadata.metadata.name: project_metadata.form_type}),
             'institutions': views.get_look_ahead(project),
             'url_entity': entity,
         }
