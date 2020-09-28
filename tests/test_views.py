@@ -276,6 +276,7 @@ class TestUrlListing():
     def test_context_url_not_found(self, client):
         entity = 'http://www.example.com'
         project = factories.ProjectFactory()
+        project_metadata = factories.ProjectMetadataFactory(project=project)
         response = client.get(reverse('url_listing', args=[project.project_slug, entity]))
         expected_context = {
             'project': project,
