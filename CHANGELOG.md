@@ -8,6 +8,10 @@ x.x.x
 * Improved a URL regex to only accept numbers for a numerical ID.
 * Used get_object_or_404 where appropriate to mitigate server errors.
 * Fixed a flake8 indentation error.
+* Upgraded compatibility to  Python 3.7
+* Removed compatibility with Django 1.10
+* Removed compatibility with Python 2
+* Added slim-select for improved select inputs
 
 
 2.0.0
