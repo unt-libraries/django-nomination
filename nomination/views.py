@@ -183,6 +183,11 @@ def url_listing(request, slug, url_entity):
     # get the project by the project slug
     project = get_object_or_404(Project, project_slug=slug)
 
+    # send form types for use to repopulate form and for slim-select instantiation
+    form_types = {}
+    for pm in project.project_metadata_set.all():
+        form_types[pm.metadata.name] = str(pm.form_type)
+
     # get list of institutions to populate autocomplete
     institutions = get_look_ahead(project)
 
@@ -309,11 +314,6 @@ def url_listing(request, slug, url_entity):
         if posted_data:
             json_data = json.dumps(list(posted_data.lists()))
 
-        # send form types for use to repopulate form
-        form_types = {}
-        for pm in project.project_metadata_set.all():
-            form_types[pm.metadata.name] = str(pm.form_type)
-
         return render(
             request,
             'nomination/url_listing.html',
@@ -344,7 +344,7 @@ def url_listing(request, slug, url_entity):
              'form_errors': None,
              'summary_list': None,
              'json_data': None,
-             'form_types': None,
+             'form_types': json.dumps(form_types),
              'institutions': institutions,
              'url_entity': url_entity,
             },
