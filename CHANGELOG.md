@@ -12,6 +12,7 @@ x.x.x
 * Removed compatibility with Django 1.10
 * Removed compatibility with Python 2
 * Added slim-select for improved select inputs
+* Prevent duplicates in url_report if a surt is duplicated in the data.
 
 
 2.0.0

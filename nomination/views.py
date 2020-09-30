@@ -618,7 +618,7 @@ def url_report(request, slug):
         url_list = URL.objects.filter(
             attribute__iexact='surt',
             url_project=project
-        ).order_by('value')
+        ).order_by('value').values_list('entity', flat=True).distinct()
     except Exception:
         raise http.Http404
 
@@ -628,7 +628,7 @@ def url_report(request, slug):
                   datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%SZ') + '\n\n'
 
     for url_item in url_list:
-        report_text += url_item.entity + "\n"
+        report_text += url_item + '\n'
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
@@ -652,7 +652,7 @@ def surt_report(request, slug):
                   datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%SZ') + '\n\n'
 
     for url_item in surt_list:
-        report_text += url_item + "\n"
+        report_text += url_item + '\n'
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
