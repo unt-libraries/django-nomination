@@ -623,12 +623,11 @@ def url_report(request, slug):
         raise http.Http404
 
     # Create the first two lines of the report file
-    report_text = '#This list of urls was created for the ' + project.project_name + \
-                  ' project.\n#Unique URLs sorted by SURT\n#List generated on ' + \
-                  datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%SZ') + '\n\n'
+    report_header = '#This list of urls was created for the ' + project.project_name + \
+                    ' project.\n#Unique URLs sorted by SURT\n#List generated on ' + \
+                    datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%SZ') + '\n\n'
 
-    for url_item in url_list:
-        report_text += url_item + '\n'
+    report_text = report_header + '\n'.join(url_list)
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
@@ -647,12 +646,11 @@ def surt_report(request, slug):
         raise http.Http404
 
     # Create the first two lines of the report file
-    report_text = '#This list of SURTs was created for the ' + project.project_name + \
-                  ' project.\n#SURTs sorted by SURT\n#List generated on ' + \
-                  datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%SZ') + '\n\n'
+    report_header = '#This list of SURTs was created for the ' + project.project_name + \
+                    ' project.\n#SURTs sorted by SURT\n#List generated on ' + \
+                    datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%SZ') + '\n\n'
 
-    for url_item in surt_list:
-        report_text += url_item + '\n'
+    report_text = report_header + '\n'.join(surt_list)
 
     return HttpResponse(report_text, content_type='text/plain; charset="UTF-8"')
 
