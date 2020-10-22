@@ -2,7 +2,7 @@ import sys
 import re
 import csv
 import optparse
-import urllib.request
+from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 import pickle
 from django.conf import settings
@@ -323,7 +323,7 @@ def addImpliedHttpIfNecessary(uri):
     return uri
 
 
-class HeadRequest(urllib.request.Request):
+class HeadRequest(Request):
     def get_method(self):
         return "HEAD"
 
@@ -345,17 +345,17 @@ def verifyURL(url):
     }
     try:
         req = HeadRequest(url, None, headers)
-        urllib.request.urlopen(req)
+        urlopen(req)
     except ValueError as e:
         print(str(e) + '; skipping invalid URL ' + url)
         return False
-    except urllib.error.HTTPError as e:
+    except HTTPError as e:
         if e.code in (405, 501):
             # Try a GET request (HEAD refused)
             # See also: http://www.w3.org/Protocols/rfc2616/rfc2616.html
             try:
-                req = urllib.request.Request(url, None, headers)
-                urllib.request.urlopen(req)
+                req = Request(url, None, headers)
+                urlopen(req)
             except (URLError, HTTPError):
                 print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
                 return False

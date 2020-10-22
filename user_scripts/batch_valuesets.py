@@ -1,7 +1,7 @@
 import sys
 import re
-from nomination.models import Value, ValueSet, Valueset_Values
 from optparse import OptionParser
+from nomination.models import Value, ValueSet, Valueset_Values
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import IntegrityError
 
