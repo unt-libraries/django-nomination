@@ -32,7 +32,7 @@ def usage():
 def url_ingest(file_name, nominator_id, project_slug, verify_url):
     """
         Get all the urls from the file and add them as a table entry to the
-        URL table (not repeating if there is a prior entry with a surt.
+        URL table (not repeating if there is a prior entry with a surt).
     """
 
     # Make sure the project and nominator exist in the database
@@ -122,7 +122,6 @@ def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
 
     Useful for multivalue attributes that can be stored in the dictionary
     as lists.
-
     """
     # Make sure the project and nominator exist in the database
     project = get_project(project_slug)
@@ -266,10 +265,10 @@ def surtize(orig_url, preserveCase=False):
     # 5: other host
     # 6: :port
     # 7: path
-    # group def.     1          2                           3
+    # group def.      1          2                           3
     URI_SPLITTER = r"^(\w+://)(?:([-\w\.!~\*'\(\)%;:&=+$,]+?)(@))?" + \
                    r"(?:((?:\d{1,3}\.){3}\d{1,3})|(\S+?))(:\d+)?(/\S*)?$"
-    #       4                         5      6      7
+    #                   4                         5      6      7
 
     # check URI validity
     m = re.compile(URI_SPLITTER)
@@ -362,7 +361,7 @@ def verifyURL(url):
         else:
             print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
             return False
-    except (URLError, HTTPError):  # urllib2.URLError, httplib.InvalidURL, etc.
+    except (URLError, HTTPError):
         print('Failed HTTP response/broken link; skipping URL ' + url)
         return False
     return True
