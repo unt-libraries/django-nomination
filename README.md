@@ -25,7 +25,7 @@ Requirements
 ------------
 
 * Python 3.7
-* Django 1.11
+* Django 2.2
 
 
 Installation
@@ -47,8 +47,8 @@ Installation
 3. Add the URL patterns.
     ```python
         urlpatterns = [
-            url(r'^admin/', admin.site.urls),
-            url(r'^nomination/', include('nomination.urls')),
+            path('admin/', admin.site.urls),
+            path('nomination/', include('nomination.urls')),
         ]
     ```
 

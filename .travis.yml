@@ -3,7 +3,7 @@ sudo: false
 python: 3.7
 env:
     matrix:
-        - TOX_ENV=py37-django111
+        - TOX_ENV=py37-django22
         - TOX_ENV=py37-flake8
 install:
     - pip install tox-travis
