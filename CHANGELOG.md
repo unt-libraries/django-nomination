@@ -2,9 +2,11 @@ Change Log
 ==========
 
 
-x.x.x
+3.0.0
 -----
 
+* Upgraded to Django 2.2.
+* Dropped support to Django 1.11 and versions below.
 * Improved a URL regex to only accept numbers for a numerical ID.
 * Used get_object_or_404 where appropriate to mitigate server errors.
 * Fixed a flake8 indentation error.

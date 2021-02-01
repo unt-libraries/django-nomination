@@ -7,7 +7,6 @@ from django.utils.feedgenerator import Atom1Feed
 
 class url_feed(Feed):
 
-    Atom1Feed.mime_type = 'application/xml'
     feed_type = Atom1Feed
 
     def get_object(self, request, slug):
@@ -72,7 +71,6 @@ class url_feed(Feed):
 
 class nomination_feed(Feed):
 
-    Atom1Feed.mime_type = 'application/xml'
     feed_type = Atom1Feed
 
     def get_object(self, request, slug):

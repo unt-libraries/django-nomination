@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-nomination',
-    version='2.0.0',
+    version='3.0.0',
     packages=find_packages(exclude=['tests*']),
     description='',
     long_description='See the home page for more information.',
@@ -29,7 +29,7 @@ setup(
     classifiers=[
         'Natural Language :: English',
         'Environment :: Web Environment',
-        'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2.2',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
