@@ -14,7 +14,7 @@ urlpatterns = [
     path("help/", nomination_help, name='nomination_help'),
     path("<slug>/lookup/", url_lookup, name='url_lookup'),
     path("<slug>/search.json", search_json, name='search_json'),
-    path("<slug>/browse/<str>/browse.json", browse_json, name='browse_json'),
+    re_path(r"^([^/]+)/browse/([^/]+)/browse.json$", browse_json, name='browse_json'),
     path("<slug>/reports/projectdump/", project_dump, name='project_dump'),
     path("<slug>/reports/urls/score/", url_score_report, name='url_score_report'),
     path("<slug>/reports/urls/nomination/", url_nomination_report,
