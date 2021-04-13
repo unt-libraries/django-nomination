@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 from nomination.models import Project, Nominator, URL, Value
 
@@ -121,10 +122,7 @@ def add_url(project, form_data):
     summary_list = []
     form_data['url_value'] = check_url(form_data['url_value'])
     # Get the system nominator
-    try:
-        system_nominator = Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
-    except Nominator.DoesNotExist:
-        raise http.Http404
+    system_nominator = get_object_or_404(Nominator, id=settings.SYSTEM_NOMINATOR_ID)
 
     # Check for or add surt
     surt_successful = surt_exists(project, system_nominator, form_data['url_value'])
@@ -406,10 +404,7 @@ def create_json_browse(slug, url_attribute, root=''):
     json_list = []
 
     # Make sure the project exist in the database
-    try:
-        project = Project.objects.get(project_slug=slug)
-    except Project.DoesNotExist:
-        raise http.Http404
+    project = get_object_or_404(Project, project_slug=slug)
 
     if root != '':
         # Find all URLs with the project and domain specified
@@ -489,10 +484,7 @@ def create_json_browse(slug, url_attribute, root=''):
 
 def create_json_search(slug):
     """Create JSON list of all URLs added to the specified project."""
-    try:
-        project = Project.objects.get(project_slug=slug)
-    except Project.DoesNotExist:
-        raise http.Http404
+    project = get_object_or_404(Project, project_slug=slug)
 
     json_list = []
     query_list = (URL.objects.filter(url_project=project)
