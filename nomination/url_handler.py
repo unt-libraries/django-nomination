@@ -171,16 +171,12 @@ def check_url(url):
 def get_nominator(form_data):
     try:
         # Try to retrieve the nominator
-        nominators = Nominator.objects.all()
-        for nom in nominators:
-            print('nominator emails retrieved: ', nom.nominator_email)
-        print('Nominator email from form data: ', form_data['nominator_email'])
         nominator, created = Nominator.objects.get_or_create(
-                                 nominator_email=form_data['nominator_email'],
-                                 defaults={
-                                           'nominator_name': form_data['nominator_name'],
-                                           'nominator_institution': form_data['nominator_institution']
-                                          })
+                             nominator_email=form_data['nominator_email'],
+                             defaults={
+                                       'nominator_name': form_data['nominator_name'],
+                                       'nominator_institution': form_data['nominator_institution']
+                                      })
 
     except Nominator.MultipleObjectsReturned:
         # Retrieve unique nominator
@@ -200,15 +196,18 @@ def nominate_url(project, nominator, form_data, scope_value):
     try:
         # Check if user has already nominated the URL
         nomination_url, created = URL.objects.get_or_create(url_nominator__id__iexact=nominator.id,
-                                         url_project=project,
-                                         entity__iexact=form_data['url_value'],
-                                         attribute__iexact='nomination',
-                                         defaults={'value': scope_value, 'url_nominator': nominator})
+                                                            url_project=project,
+                                                            entity__iexact=form_data['url_value'],
+                                                            attribute__iexact='nomination',
+                                                            defaults={
+                                                                      'value': scope_value,
+                                                                      'url_nominator': nominator
+                                                                     })
     except Exception:
         raise http.Http404
 
     if created:
-            summary_list.append('You have successfully nominated ' + form_data['url_value'])
+        summary_list.append('You have successfully nominated ' + form_data['url_value'])
     else:
         if nomination_url.value == scope_value:
             if scope_value == '1':
@@ -269,17 +268,17 @@ def save_attribute(project, nominator, form_data, summary_list, attribute_name, 
     try:
         # Check if URL attribute and value already exist
         added_url, created = URL.objects.get_or_create(url_nominator=nominator,
-                                    url_project=project,
-                                    entity__iexact=form_data['url_value'],
-                                    value__iexact=valvar,
-                                    attribute__iexact=attribute_name)
+                                                       url_project=project,
+                                                       entity__iexact=form_data['url_value'],
+                                                       value__iexact=valvar,
+                                                       attribute__iexact=attribute_name)
     except Exception:
         raise http.Http404
 
     if created:
-            summary_list.append('You have successfully added the '
-                                + attribute_name + ' \"' + valvar + '\" for '
-                                + form_data['url_value'])
+        summary_list.append('You have successfully added the '
+                            + attribute_name + ' \"' + valvar + '\" for '
+                            + form_data['url_value'])
     else:
         summary_list.append('You have already added the '
                             + attribute_name + ' \"' + valvar + '\" for '
@@ -297,7 +296,7 @@ def surt_exists(project, system_nominator, url_entity):
                                                   defaults={
                                                             'value': surtize(url_entity),
                                                             'url_nominator': system_nominator
-                                                 })
+                                                           })
     except Exception:
         raise http.Http404
 
