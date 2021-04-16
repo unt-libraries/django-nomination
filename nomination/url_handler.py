@@ -290,13 +290,13 @@ def save_attribute(project, nominator, form_data, summary_list, attribute_name, 
 def surt_exists(project, system_nominator, url_entity):
     # Create a SURT if the url doesn't already have one
     try:
-        surt, created = URL.objects.get_or_create(url_project=project,
-                                                  entity__iexact=url_entity,
-                                                  attribute__iexact='surt',
-                                                  defaults={
-                                                            'value': surtize(url_entity),
-                                                            'url_nominator': system_nominator
-                                                           })
+        URL.objects.get_or_create(url_project=project,
+                                  entity=url_entity,
+                                  attribute='surt',
+                                  defaults={
+                                            'value': surtize(url_entity),
+                                            'url_nominator': system_nominator
+                                           })
     except Exception:
         raise http.Http404
 
