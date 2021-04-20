@@ -200,9 +200,11 @@ def nominate_url(project, nominator, form_data, scope_value):
                                                             entity__iexact=form_data['url_value'],
                                                             attribute__iexact='nomination',
                                                             defaults={
-                                                                      'value': scope_value,
-                                                                      'url_nominator': nominator
-                                                                     })
+                                                                  'entity': form_data['url_value'],
+                                                                  'attribute': 'nomination',
+                                                                  'value': scope_value,
+                                                                  'url_nominator': nominator,
+                                                                 })
     except Exception:
         raise http.Http404
 
@@ -291,9 +293,11 @@ def surt_exists(project, system_nominator, url_entity):
     # Create a SURT if the url doesn't already have one
     try:
         URL.objects.get_or_create(url_project=project,
-                                  entity=url_entity,
-                                  attribute='surt',
+                                  entity__iexact=url_entity,
+                                  attribute__iexact='surt',
                                   defaults={
+                                            'entity': url_entity,
+                                            'attribute': 'surt',
                                             'value': surtize(url_entity),
                                             'url_nominator': system_nominator
                                            })
