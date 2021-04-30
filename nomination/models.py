@@ -208,6 +208,7 @@ class Nominator(models.Model):
     )
     nominator_email = models.CharField(
         max_length=100,
+        unique=True,
         help_text='An email address for identifying your nominations in the system.'
     )
 
