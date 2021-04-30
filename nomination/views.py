@@ -481,6 +481,10 @@ def url_add(request, slug):
                     posted_data = handle_metadata(request, posted_data)
 
                     summary_list = add_url(project, posted_data)
+                    if not summary_list:
+                        return HttpResponse('It looks like you have multiple accounts. Please'
+                                            'contact the project admin for further assistantance.',
+                                            content_type='application/json')
                     # send url value to provide metadata link
                     url_entity = posted_data['url_value']
                     # clear out posted data, so it is not sent back to form

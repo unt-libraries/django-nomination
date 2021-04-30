@@ -257,9 +257,8 @@ class TestGetNominator():
             'nominator_name': None,
             'nominator_institution': None
         }
-        new_nominator = url_handler.get_nominator(form_data)
-
-        assert new_nominator is False
+        with pytest.raises(http.Http404):
+            url_handler.get_nominator(form_data)
 
 
 class TestNominateURL():

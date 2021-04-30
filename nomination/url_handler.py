@@ -131,9 +131,13 @@ def add_url(project, form_data):
         raise http.Http404
 
     # Get/Add a nominator
-    nominator = get_nominator(form_data)
-    if not nominator:
+    try:
+        nominator = get_nominator(form_data)
+    except http.Http404:
         raise http.Http404
+
+    if not nominator:
+        return False
 
     # Nominate a URL
     summary_list = nominate_url(project, nominator, form_data, '1')
@@ -147,7 +151,11 @@ def add_url(project, form_data):
 def add_metadata(project, form_data):
     summary_list = []
     # Get/Add a nominator
-    nominator = get_nominator(form_data)
+    try:
+        nominator = get_nominator(form_data)
+    except http.Http404:
+        raise http.Http404
+
     if not nominator:
         raise http.Http404
 
@@ -180,12 +188,17 @@ def get_nominator(form_data):
 
     except Nominator.MultipleObjectsReturned:
         # Retrieve unique nominator
-        nominator = Nominator.objects.get(nominator_email=form_data['nominator_email'],
-                                          nominator_name=form_data['nominator_name'],
-                                          nominator_institution=form_data['nominator_institution'])
+        try:
+            nominator = Nominator.objects.get(
+                            nominator_email=form_data['nominator_email'],
+                            nominator_name=form_data['nominator_name'],
+                            nominator_institution=form_data['nominator_institution'])
+
+        except Nominator.MultipleObjectsReturned:
+            return False
 
     except (IntegrityError, KeyError):
-        return False
+        raise http.Http404
 
     return nominator
 
