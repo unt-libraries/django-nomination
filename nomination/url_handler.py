@@ -286,7 +286,12 @@ def save_attribute(project, nominator, form_data, summary_list, attribute_name, 
                                                        url_project=project,
                                                        entity__iexact=form_data['url_value'],
                                                        value__iexact=valvar,
-                                                       attribute__iexact=attribute_name)
+                                                       attribute__iexact=attribute_name,
+                                                       defaults={
+                                                                 'entity': form_data['url_value'],
+                                                                 'value': valvar,
+                                                                 'attribute': attribute_name,
+                                                                })
     except Exception:
         raise http.Http404
 
