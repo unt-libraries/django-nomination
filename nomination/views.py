@@ -482,9 +482,10 @@ def url_add(request, slug):
 
                     summary_list = add_url(project, posted_data)
                     if not summary_list:
-                        return HttpResponse('There was a problem processing your nominator details. Please contact '
-                                            '{admin_email} for assistance and provide the name, email address, and '
-                                            'institution you are using for nominations.'
+                        return HttpResponse('There was a problem processing your nominator '
+                                            'details. Please contact {admin_email} for '
+                                            'assistance and provide the name, email address,'
+                                            ' and institution you are using for nominations.'
                                             .format(admin_email=project.admin_email),
                                             content_type='text/plain')
                     # send url value to provide metadata link
