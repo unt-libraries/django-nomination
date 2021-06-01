@@ -481,6 +481,13 @@ def url_add(request, slug):
                     posted_data = handle_metadata(request, posted_data)
 
                     summary_list = add_url(project, posted_data)
+                    if not summary_list:
+                        return HttpResponse('There was a problem processing your nominator '
+                                            'details. Please contact {admin_email} for '
+                                            'assistance and provide the name, email address,'
+                                            ' and institution you are using for nominations.'
+                                            .format(admin_email=project.admin_email),
+                                            content_type='text/plain')
                     # send url value to provide metadata link
                     url_entity = posted_data['url_value']
                     # clear out posted data, so it is not sent back to form

@@ -195,6 +195,8 @@ class TestAddMetadata():
         value = 'some_value'
         form_data = {
             'nominator_email': nominator.nominator_email,
+            'nominator_institution': nominator.nominator_institution,
+            'nominator_name': nominator.nominator_name,
             'scope': '1',
             'url_value': 'http://www.example.com',
             attribute_name: value
@@ -229,7 +231,11 @@ class TestGetNominator():
 
     def test_returns_nominator(self):
         nominator = factories.NominatorFactory()
-        form_data = {'nominator_email': nominator.nominator_email}
+        form_data = {
+            'nominator_email': nominator.nominator_email,
+            'nominator_name': nominator.nominator_name,
+            'nominator_institution': nominator.nominator_institution
+        }
         assert url_handler.get_nominator(form_data) == nominator
 
     def test_creates_and_returns_nominator(self):
@@ -251,9 +257,8 @@ class TestGetNominator():
             'nominator_name': None,
             'nominator_institution': None
         }
-        new_nominator = url_handler.get_nominator(form_data)
-
-        assert new_nominator is False
+        with pytest.raises(http.Http404):
+            url_handler.get_nominator(form_data)
 
 
 class TestNominateURL():

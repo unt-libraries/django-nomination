@@ -2,6 +2,7 @@ import datetime
 from django.db import models
 from django.contrib.sites.models import Site
 from django.conf import settings
+from django.utils.safestring import mark_safe
 
 FORM_TYPES = (
     ('checkbox', 'checkbox'),
@@ -207,6 +208,7 @@ class Nominator(models.Model):
     )
     nominator_email = models.CharField(
         max_length=100,
+        unique=True,
         help_text='An email address for identifying your nominations in the system.'
     )
 
@@ -234,7 +236,7 @@ class URL(models.Model):
         return self.entity
 
     def entity_display(self):
-        return(
+        return mark_safe(
             "<a href=\'http://%s/admin/nomination/url/%s\'>%s</a>&nbsp;"
             "<a href=\'%s\'><img src=\'%snomination/images/external-link.gif\'/></a>"
             % (Site.objects.get_current().domain, self.id, self.entity, self.entity,
@@ -244,13 +246,15 @@ class URL(models.Model):
     entity_display.allow_tags = True
 
     def get_project(self):
-        return "<a href=\'http://%s/admin/nomination/project/%s\'>%s</a>" % \
-                    (Site.objects.get_current().domain, self.url_project.id, self.url_project)
+        return mark_safe(
+            "<a href=\'http://%s/admin/nomination/project/%s\'>%s</a>" %
+            (Site.objects.get_current().domain, self.url_project.id, self.url_project))
     get_project.short_description = 'Project'
     get_project.allow_tags = True
 
     def get_nominator(self):
-        return "<a href=\'http://%s/admin/nomination/nominator/%s\'>%s</a>" % \
-                    (Site.objects.get_current().domain, self.url_nominator.id, self.url_nominator)
+        return mark_safe(
+            "<a href=\'http://%s/admin/nomination/nominator/%s\'>%s</a>" %
+            (Site.objects.get_current().domain, self.url_nominator.id, self.url_nominator))
     get_nominator.short_description = 'Nominator'
     get_nominator.allow_tags = True

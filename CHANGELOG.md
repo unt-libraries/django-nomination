@@ -15,7 +15,9 @@ Change Log
 * Removed compatibility with Python 2
 * Added slim-select for improved select inputs
 * Prevent duplicates in url_report if a surt is duplicated in the data.
-
+* nominator_email is made unique.
+* Fixed admin links.
+* Used get_or_create and get_object_or_404 where appropriate.
 
 2.0.0
 -----

@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.db import IntegrityError
 
 from nomination.models import Project, Nominator, URL, Value
 
@@ -121,10 +123,7 @@ def add_url(project, form_data):
     summary_list = []
     form_data['url_value'] = check_url(form_data['url_value'])
     # Get the system nominator
-    try:
-        system_nominator = Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
-    except Nominator.DoesNotExist:
-        raise http.Http404
+    system_nominator = get_object_or_404(Nominator, id=settings.SYSTEM_NOMINATOR_ID)
 
     # Check for or add surt
     surt_successful = surt_exists(project, system_nominator, form_data['url_value'])
@@ -134,7 +133,7 @@ def add_url(project, form_data):
     # Get/Add a nominator
     nominator = get_nominator(form_data)
     if not nominator:
-        raise http.Http404
+        return False
 
     # Nominate a URL
     summary_list = nominate_url(project, nominator, form_data, '1')
@@ -172,16 +171,26 @@ def check_url(url):
 def get_nominator(form_data):
     try:
         # Try to retrieve the nominator
-        nominator = Nominator.objects.get(nominator_email=form_data['nominator_email'])
-    except (Nominator.DoesNotExist, Nominator.MultipleObjectsReturned):
+        nominator, created = Nominator.objects.get_or_create(
+                             nominator_email=form_data['nominator_email'],
+                             defaults={
+                                       'nominator_name': form_data['nominator_name'],
+                                       'nominator_institution': form_data['nominator_institution']
+                                      })
+
+    except Nominator.MultipleObjectsReturned:
+        # Retrieve unique nominator
         try:
-            # Create a new nominator object
-            nominator = Nominator(nominator_email=form_data['nominator_email'],
-                                  nominator_name=form_data['nominator_name'],
-                                  nominator_institution=form_data['nominator_institution'])
-            nominator.save()
-        except Exception:
+            nominator = Nominator.objects.get(
+                            nominator_email=form_data['nominator_email'],
+                            nominator_name=form_data['nominator_name'],
+                            nominator_institution=form_data['nominator_institution'])
+
+        except (Nominator.MultipleObjectsReturned, Nominator.DoesNotExist):
             return False
+
+    except (IntegrityError, KeyError):
+        raise http.Http404
 
     return nominator
 
@@ -191,23 +200,21 @@ def nominate_url(project, nominator, form_data, scope_value):
     # Nominate URL
     try:
         # Check if user has already nominated the URL
-        nomination_url = URL.objects.get(url_nominator__id__iexact=nominator.id,
-                                         url_project=project,
-                                         entity__iexact=form_data['url_value'],
-                                         attribute__iexact='nomination')
+        nomination_url, created = URL.objects.get_or_create(url_nominator__id__iexact=nominator.id,
+                                                            url_project=project,
+                                                            entity__iexact=form_data['url_value'],
+                                                            attribute__iexact='nomination',
+                                                            defaults={
+                                                                  'entity': form_data['url_value'],
+                                                                  'attribute': 'nomination',
+                                                                  'value': scope_value,
+                                                                  'url_nominator': nominator,
+                                                                 })
     except Exception:
-        try:
-            # Nominate URL
-            nomination_url = URL(entity=form_data['url_value'],
-                                 value=scope_value,
-                                 attribute='nomination',
-                                 url_project=project,
-                                 url_nominator=nominator)
-            nomination_url.save()
-        except Exception:
-            raise http.Http404
-        else:
-            summary_list.append('You have successfully nominated ' + form_data['url_value'])
+        raise http.Http404
+
+    if created:
+        summary_list.append('You have successfully nominated ' + form_data['url_value'])
     else:
         if nomination_url.value == scope_value:
             if scope_value == '1':
@@ -267,25 +274,23 @@ def save_attribute(project, nominator, form_data, summary_list, attribute_name, 
     """
     try:
         # Check if URL attribute and value already exist
-        added_url = URL.objects.get(url_nominator=nominator,
-                                    url_project=project,
-                                    entity__iexact=form_data['url_value'],
-                                    value__iexact=valvar,
-                                    attribute__iexact=attribute_name)
-    except (URL.DoesNotExist, URL.MultipleObjectsReturned):
-        try:
-            added_url = URL(entity=form_data['url_value'],
-                            value=valvar,
-                            attribute=attribute_name,
-                            url_project=project,
-                            url_nominator=nominator)
-            added_url.save()
-        except Exception:
-            raise http.Http404
-        else:
-            summary_list.append('You have successfully added the '
-                                + attribute_name + ' \"' + valvar + '\" for '
-                                + form_data['url_value'])
+        added_url, created = URL.objects.get_or_create(url_nominator=nominator,
+                                                       url_project=project,
+                                                       entity__iexact=form_data['url_value'],
+                                                       value__iexact=valvar,
+                                                       attribute__iexact=attribute_name,
+                                                       defaults={
+                                                                 'entity': form_data['url_value'],
+                                                                 'value': valvar,
+                                                                 'attribute': attribute_name,
+                                                                })
+    except Exception:
+        raise http.Http404
+
+    if created:
+        summary_list.append('You have successfully added the '
+                            + attribute_name + ' \"' + valvar + '\" for '
+                            + form_data['url_value'])
     else:
         summary_list.append('You have already added the '
                             + attribute_name + ' \"' + valvar + '\" for '
@@ -297,17 +302,17 @@ def save_attribute(project, nominator, form_data, summary_list, attribute_name, 
 def surt_exists(project, system_nominator, url_entity):
     # Create a SURT if the url doesn't already have one
     try:
-        URL.objects.get(url_project=project, entity__iexact=url_entity, attribute__iexact='surt')
-    except URL.DoesNotExist:
-        try:
-            new_surt = URL(entity=url_entity,
-                           value=surtize(url_entity),
-                           attribute='surt',
-                           url_project=project,
-                           url_nominator=system_nominator)
-            new_surt.save()
-        except Exception:
-            raise http.Http404
+        URL.objects.get_or_create(url_project=project,
+                                  entity__iexact=url_entity,
+                                  attribute__iexact='surt',
+                                  defaults={
+                                            'entity': url_entity,
+                                            'attribute': 'surt',
+                                            'value': surtize(url_entity),
+                                            'url_nominator': system_nominator
+                                           })
+    except Exception:
+        raise http.Http404
 
     return True
 
@@ -406,10 +411,7 @@ def create_json_browse(slug, url_attribute, root=''):
     json_list = []
 
     # Make sure the project exist in the database
-    try:
-        project = Project.objects.get(project_slug=slug)
-    except Project.DoesNotExist:
-        raise http.Http404
+    project = get_object_or_404(Project, project_slug=slug)
 
     if root != '':
         # Find all URLs with the project and domain specified
@@ -489,10 +491,7 @@ def create_json_browse(slug, url_attribute, root=''):
 
 def create_json_search(slug):
     """Create JSON list of all URLs added to the specified project."""
-    try:
-        project = Project.objects.get(project_slug=slug)
-    except Project.DoesNotExist:
-        raise http.Http404
+    project = get_object_or_404(Project, project_slug=slug)
 
     json_list = []
     query_list = (URL.objects.filter(url_project=project)
