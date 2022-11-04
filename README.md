@@ -1,7 +1,7 @@
 Django Nomination
 =================
 
-[![Build Status](https://travis-ci.org/unt-libraries/django-nomination.svg?branch=master)](https://travis-ci.org/unt-libraries/django-nomination)
+[![Build Status](https://github.com/unt-libraries/django-nomination/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/unt-libraries/django-nomination/actions)
 
 
 About
@@ -24,7 +24,7 @@ crawls for certain archival projects.
 Requirements
 ------------
 
-* Python 3.7
+* Python 3.7-3.9
 * Django 2.2
 
 
@@ -124,3 +124,4 @@ Contributors
 * [Gio Gottardi](https://github.com/somexpert)
 * [Jason Ellis](https://github.com/jason-ellis)
 * [Madhulika Bayyavarapu](https://github.com/madhulika95b)
+* [Gracie Flores-Hays](https://github.com/gracieflores)
