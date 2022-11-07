@@ -162,5 +162,5 @@ def no_dup_dict(url_set):
             attr_dict[entity] = attribute
     # For all the entities that had duplicates, delete the dict entry.
     for entity in set(del_list):
-        del(attr_dict[entity])
+        del attr_dict[entity]
     return attr_dict

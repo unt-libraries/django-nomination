@@ -370,7 +370,8 @@ def verifyURL(url):
 if __name__ == "__main__":
 
     # Create option parser
-    parser = optparse.OptionParser("""fielded_batch_ingest - Adds urls from a text file into the URL table
+    parser = optparse.OptionParser(
+        """fielded_batch_ingest - Adds urls from a text file into the URL table
 
     example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename
 

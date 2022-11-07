@@ -18,6 +18,9 @@ Change Log
 * nominator_email is made unique.
 * Fixed admin links.
 * Used get_or_create and get_object_or_404 where appropriate.
+* Replaced Travis with GitHub Actions.
+* Added support for Python 3.8-3.9.
+
 
 2.0.0
 -----
