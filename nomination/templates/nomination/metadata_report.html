@@ -17,19 +17,19 @@
                 <ul class="list-unstyled">
                     {% if not namelist %}
                         {% for name,cnt in valdic %}
-                            {% ifnotequal name '' %}
+                            {% if name %}
                                 <li>
                                     <a href="{% url 'value_report' project.project_slug field name %}">{{ name }}</a> - {{ cnt }} <br />
                                 </li>
-                            {% endifnotequal %}
+                            {% endif %}
                         {% endfor %}
                     {% else %}
                         {% for fullname,cnt,name in namelist %}
-                            {% ifnotequal name '' %}
+                            {% if name %}
                                 <li>
                                     <a href="{% url 'value_report' project.project_slug field name %}">{{ fullname }}</a> - {{ cnt }} <br />
                                 </li>
-                            {% endifnotequal %}
+                            {% endif %}
                         {% endfor %}
                     {% endif %}
                 </ul>
