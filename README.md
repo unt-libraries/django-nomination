@@ -24,8 +24,8 @@ crawls for certain archival projects.
 Requirements
 ------------
 
-* Python 3.7-3.9
-* Django 2.2
+* Python 3.8-3.10
+* Django 4.1
 
 
 Installation
