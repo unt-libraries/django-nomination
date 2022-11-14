@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from urllib.parse import quote
 
 import pytest
 import json
@@ -7,7 +8,6 @@ from django.http import Http404
 from django.urls import reverse
 from django.contrib.sites.models import Site
 from django.conf import settings
-from django.utils.http import urlquote
 
 from nomination import views, models
 from . import factories
@@ -137,7 +137,7 @@ class TestUrlLookup():
         response = views.url_lookup(request, project.project_slug)
 
         assert response['Location'] == '/nomination/{0}/url/{1}/'.format(project.project_slug,
-                                                                         urlquote(url.entity))
+                                                                         quote(url.entity))
 
     def test_exact_lookup_allows_alternate_scheme(self, rf):
         project = factories.ProjectFactory()
@@ -148,7 +148,7 @@ class TestUrlLookup():
         response = views.url_lookup(request, project.project_slug)
 
         assert response['Location'] == '/nomination/{0}/url/{1}/'.format(project.project_slug,
-                                                                         urlquote(url.entity))
+                                                                         quote(url.entity))
 
     def test_raises_http404_if_not_post(self, rf):
         project = factories.ProjectFactory()
