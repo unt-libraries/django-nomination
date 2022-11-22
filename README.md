@@ -92,6 +92,38 @@ Developing
         $ docker-compose run --rm web tox
     ```
 
+If you are on RHEL, your installation and commands may be different.
+
+1. [Install or Enable Podman](https://podman.io/getting-started/installation).
+
+2. [Install Podman Compose](https://github.com/containers/podman-compose).
+    ```sh
+        $ sudo dnf install podman-compose
+    ```
+
+3. Clone the repository.
+    ```sh
+        $ git clone https://github.com/unt-libraries/django-nomination
+    ```
+
+4. If you have SELinux, you may need to temporarily add `:Z` to the web volume in the docker-compose.yml. It will look like `.:/app/:Z`.
+
+5. Start the container as a daemon.
+    ```sh
+        $ sudo podman-compose up -d
+        # Use 'sudo podman-compose stop' to stop the container.
+    ```
+    At this point you should be able to access your local instance of the site by visiting `<dockerhost>:8000/nomination/`.
+
+6. Create a superuser for access to the admin sites.
+    ```sh
+        $ sudo podman-compose run --rm web python manage.py createsuperuser
+    ```
+
+7. If desired, run the tests.
+    ```sh
+        $ sudo podman-compose run --rm web tox
+    ```
 
 Helper Scripts
 --------------
