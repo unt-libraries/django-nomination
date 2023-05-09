@@ -81,18 +81,18 @@
                                     {% if met.metadata.name in form_errors %}
                                         <div class="alert alert-danger" role="alert">{{ form_errors|get_item:met.metadata.name|striptags }}</div>
                                     {% endif %}
-                                    {% ifequal met.required 0 %}
+                                    {% if met.required == 0 %}
                                         <label for="{{ met.metadata.name }}">{{ met.description }}:</label>
                                     {% else %}
                                         <label for="{{ met.metadata.name }}">{{ met.description }}: <span class="required-field">*</span></label>
-                                    {% endifequal %}
+                                    {% endif %}
                                     {% if met.form_type == "text" %}
                                         <p class="help-block">{{ met.help }}</p>
                                         <input class="form-control" type="text" name="{{ met.metadata.name }}" id="{{ met.metadata.name }}">
                                     {% elif met.form_type == "radio" %}
                                         <p class="help-block">{{ met.help }}</p>
                                         {% for val in vals %}
-                                            {% ifnotequal val.key 'other_specify' %}
+                                            {% if val.key != 'other_specify' %}
                                                 <div class="radio">
                                                     <label>
                                                         <input type="radio" name="{{ met.metadata.name }}" value="{{ val.key }}">
@@ -107,13 +107,13 @@
                                                     </label>
                                                     <input class="form-control" type="text" name="{{ met.metadata.name }}_other" id="{{ met.metadata.name }}_other" />
                                                 </div>
-                                            {% endifnotequal %}
+                                            {% endif %}
                                         {% endfor %}
                                     {% elif met.form_type == "checkbox" %}
                                         <p class="help-block">{{ met.help }}</p>
                                         <input type=button value="Select All" name="{{ met.metadata.name }}" data-check-all="true" data-check-state="select" class="btn btn-default">
                                         {% for val in vals %}
-                                            {% ifnotequal val.key 'other_specify' %}
+                                            {% if val.key != 'other_specify' %}
                                                 <div class="checkbox">
                                                     <label>
                                                         <input type="checkbox" name="{{ met.metadata.name }}" value="{{ val.key }}">
@@ -128,7 +128,7 @@
                                                     </label>
                                                     <input class="form-control" type="text" name="{{ met.metadata.name }}_other" id="{{ met.metadata.name }}_other" />
                                                 </div>
-                                            {% endifnotequal%}
+                                            {% endif%}
                                         {% endfor %}
                                     {% elif met.form_type == "select" %}
                                         <p class="help-block">{{ met.help }}</p>

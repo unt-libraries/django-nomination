@@ -128,7 +128,7 @@
                                     {% elif met.form_type == "radio" %}
                                         <p class="help-block">{{ met.help }}</p>
                                         {% for val in vals %}
-                                            {% ifnotequal val.key 'other_specify' %}
+                                            {% if val.key != 'other_specify' %}
                                                 <div class="radio">
                                                     <label>
                                                         <input type="radio" name="{{ met.metadata.name }}" value="{{ val.key }}">
@@ -143,13 +143,13 @@
                                                     </label>
                                                     <input class="form-control" type="text" name="{{ met.metadata.name }}_other" id="{{ met.metadata.name }}_other" />
                                                 </div>
-                                            {% endifnotequal %}
+                                            {% endif %}
                                         {% endfor %}
                                     {% elif met.form_type == "checkbox" %}
                                         <p class="help-block">{{ met.help }}</p>
                                         <input type=button value="Select All" name="{{ met.metadata.name }}" data-check-all="true" data-check-state="select" class="btn btn-default">
                                         {% for val in vals %}
-                                            {% ifnotequal val.key 'other_specify' %}
+                                            {% if val.key != 'other_specify' %}
                                                 <div class="checkbox">
                                                     <label>
                                                         <input type="checkbox" name="{{ met.metadata.name }}" value="{{ val.key }}">
@@ -164,7 +164,7 @@
                                                     </label>
                                                     <input class="form-control" type="text" name="{{ met.metadata.name }}_other" id="{{ met.metadata.name }}_other" />
                                                 </div>
-                                            {% endifnotequal%}
+                                            {% endif%}
                                         {% endfor %}
                                     {% elif met.form_type == "select" %}
                                         <p class="help-block">{{ met.help }}</p>

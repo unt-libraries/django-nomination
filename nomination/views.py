@@ -1,7 +1,8 @@
 import json
 import datetime
 import re
-import urllib
+
+from urllib.parse import quote, unquote
 
 from django.shortcuts import render, get_object_or_404
 from django import http
@@ -11,7 +12,6 @@ from django.db.models import Sum, Count, Max
 from django import forms
 from django.views.decorators.csrf import csrf_protect
 from django.utils.encoding import iri_to_uri
-from django.utils.http import urlquote
 from django.contrib.sites.models import Site
 
 from nomination.models import Project, URL, Nominator
@@ -140,7 +140,7 @@ def url_lookup(request, slug):
                     if url_entity not in url_list:
                         url_entity = url_list[0]
             # redirect if partial-search was empty or for non partial-search
-            redirect_url = iri_to_uri('/nomination/%s/url/%s/' % (slug, urlquote(url_entity)))
+            redirect_url = iri_to_uri('/nomination/%s/url/%s/' % (slug, quote(url_entity)))
         else:
             raise http.Http404
     else:
@@ -775,7 +775,7 @@ def field_report(request, slug, field):
 
 
 def value_report(request, slug, field, val):
-    val = urllib.parse.unquote(val)
+    val = unquote(val)
     # Add back the slash lost by Apache removing null path segments.
     val = fix_scheme_double_slash(val)
     # Get the project by the project slug.

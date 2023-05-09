@@ -54,7 +54,7 @@
                         <hr>
                         <ul class="list-inline">
                             {% for surt_tuple in domain_list %}
-                                {% ifequal surt_tuple.0 "A" %}<br/>{% endifequal %}
+                                {% if surt_tuple.0 == "A" %}<br/>{% endif %}
                                 <li>
                                     {% if surt_tuple.1 %}
                                         <a href="/nomination/{{ project.project_slug }}/surt/{{ surt_tuple.1 }}/">
