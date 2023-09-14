@@ -532,7 +532,7 @@ class TestUrlAdd():
         response = client.get(reverse('url_add', args=[project.project_slug]))
 
         assert response.context['project'] == project
-        assert type(response.context['form']) == views.URLForm
+        assert isinstance(response.context['form'], views.URLForm)
         assert response.context['metadata_vals'][0][0] == project_metadata
         assert list(response.context['metadata_vals'][0][1]) == []
         assert response.context['institutions'] == json.dumps(sorted(institutions))
