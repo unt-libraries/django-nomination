@@ -229,7 +229,7 @@ class URL(models.Model):
     entity = models.CharField(max_length=300, help_text='The URL to nominate for capture.')
     attribute = models.CharField(max_length=255,
                                  help_text='A property of the URL you wish to describe.')
-    value = models.CharField(max_length=255, help_text='The value of the associated attribute.')
+    value = models.CharField(max_length=305, help_text='The value of the associated attribute.')
     date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
