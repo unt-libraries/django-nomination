@@ -6,6 +6,8 @@ Change Log
 -----
 
 * Upgraded to Django 4.2.
+* Fixed nominating URLs of length 255-300 chars by ensuring `value` is big enough to hold the URL's SURT value. [#114](https://github.com/unt-libraries/django-nomination/issues/114)
+* Fixed browsing from listing page to top-level domain SURT URLs. [#115](https://github.com/unt-libraries/django-nomination/issues/115)
 
 
 4.0.0
