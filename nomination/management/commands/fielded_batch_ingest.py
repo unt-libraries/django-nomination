@@ -1,14 +1,15 @@
 import csv
-import optparse
-import os
+import pickle
 import re
 import sys
-from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
-import pickle
+from urllib.request import Request, urlopen
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.management.base import BaseCommand
 from django.db import IntegrityError
+
 from nomination.models import URL, Nominator, Project
 
 
@@ -17,22 +18,38 @@ surts_set = set()
 nominator_urls_set = set()
 
 
-def usage():
-    """Print usage statement describing how to use the script."""
-    print("""fielded_batch_ingest - Adds urls from a text file into the URL table
+class Command(BaseCommand):
+
+    help = """fielded_batch_ingest - Adds urls from a text file into the URL table
 
     example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename
 
     Takes a list of urls from a text file (with a required project and nominator specified)
-    and adds the urls to the URL table, adding a surt attribute if none exists.
+    and adds the urls to the URL table, adding a surt attribute if none exists."""
 
-    Optional arguments are:
-    -p, specifies the project slug (required)
-    -n, specifies the nominator id (required)
-    -c, import the file as a csv file
-    -d, import file is pickled dictionary format
-    -h, --help, display help
-    -v, --verify, verify url is valid and available""")
+    def add_arguments(self, parser):
+        """Set command-line arguments."""
+        parser.add_argument("file_name", help="input file")
+        parser.add_argument("-n", "--nominator", dest="nominator_id", type=int, required=True,
+                            help="identifies the nominator id number (required)")
+        parser.add_argument("-p", "--project", dest="project_slug", required=True,
+                            help="identifies the project slug (required)")
+        parser.add_argument("-c", "--csv", action="store_true", dest="csv_file", default=False,
+                            help="file is csv format")
+        parser.add_argument("-d", "--dict", action="store_true", dest="dict_file", default=False,
+                            help="file is pickled dictionary format")
+        parser.add_argument("--verify", action="store_true", dest="verify_url",
+                            default=False, help="verify url is valid and available")
+
+    def handle(self, *args, **options):
+        """Ingest URLs from plain text, CSV, or pickled dictionary format file."""
+        ingest_function = url_ingest
+        if options["csv_file"]:
+            ingest_function = csv_ingest
+        elif options["dict_file"]:
+            ingest_function = pydict_ingest
+        ingest_function(options["file_name"], options["nominator_id"],
+                        options["project_slug"], options["verify_url"])
 
 
 def url_ingest(file_name, nominator_id, project_slug, verify_url):
@@ -83,10 +100,13 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
                                              url_nominator=nominator).values('entity',
                                                                              'attribute',
                                                                              'value'))
-    nominator_urls = ['{}{}{}'.format(i['entity'].lower(), i['attribute'].lower(), i['value'].lower()) for i in nominator_urls]
+    nominator_urls = ['{}{}{}'.format(i['entity'].lower(),
+                                      i['attribute'].lower(),
+                                      i['value'].lower()) for i in nominator_urls]
     global nominator_urls_set
     nominator_urls_set = set(nominator_urls)
-    surts = list(URL.objects.filter(url_project=project, attribute='surt').values_list('entity', flat=True))
+    surts = list(URL.objects.filter(url_project=project,
+                                    attribute='surt').values_list('entity', flat=True))
     surts = [s.lower() for s in surts]
     global surts_set
     surts_set = set(surts)
@@ -407,48 +427,3 @@ def verifyURL(url):
         print('Failed HTTP response/broken link; skipping URL ' + url)
         return False
     return True
-
-
-if __name__ == "__main__":
-
-    # Create option parser
-    parser = optparse.OptionParser(
-        """fielded_batch_ingest - Adds urls from a text file into the URL table
-
-    example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename
-
-    Takes a list of urls from a text file (with a required project and nominator specified)
-    and adds the urls to the URL table, adding a surt attribute if none exists.""")
-    parser.add_option("-n", "--nominator", dest="nominator_id",
-                      help="identifies the nominator id number (required)")
-    parser.add_option("-p", "--project", dest="project_slug",
-                      help="identifies the project slug (required)")
-    parser.add_option("-c", "--csv", action="store_const", const=1, dest="csv_file",
-                      help="file is csv format")
-    parser.add_option("-d", "--dict", action="store_const", const=1, dest="dict_file",
-                      help="file is pickled dictionary format")
-    parser.add_option("-v", "--verify", action="store_true", dest="verify_url",
-                      default=False, help="verify url is valid and available")
-    try:
-        (opt_dict, other_args) = parser.parse_args()
-    except optparse.OptionError:
-        usage()
-        sys.exit()
-
-    # Options
-    # project and nominator options
-    if opt_dict.nominator_id is not None and opt_dict.project_slug is not None:
-        nominator_id = int(opt_dict.nominator_id)
-        project_slug = opt_dict.project_slug
-    else:
-        usage()
-        sys.exit()
-
-    if not len(other_args) > 1:
-        file_name = other_args[0]
-        if opt_dict.csv_file == 1:
-            csv_ingest(file_name, nominator_id, project_slug, opt_dict.verify_url)
-        elif opt_dict.dict_file == 1:
-            pydict_ingest(file_name, nominator_id, project_slug, opt_dict.verify_url)
-        else:
-            url_ingest(file_name, nominator_id, project_slug, opt_dict.verify_url)
