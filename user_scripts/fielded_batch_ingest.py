@@ -1,7 +1,8 @@
-import sys
-import re
 import csv
 import optparse
+import os
+import re
+import sys
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 import pickle
@@ -9,6 +10,11 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import IntegrityError
 from nomination.models import URL, Nominator, Project
+
+
+# Global vars to speed up checking for existing records
+surts_set = set()
+nominator_urls_set = set()
 
 
 def usage():
@@ -73,27 +79,39 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
     nominator = get_nominator(nominator_id)
     # Get the system nominator
     system_nominator = get_system_nominator()
-    csv_file = open(file_name, 'r')
+    nominator_urls = list(URL.objects.filter(url_project=project,
+                                             url_nominator=nominator).values('entity',
+                                                                             'attribute',
+                                                                             'value'))
+    nominator_urls = ['{}{}{}'.format(i['entity'].lower(), i['attribute'].lower(), i['value'].lower()) for i in nominator_urls]
+    global nominator_urls_set
+    nominator_urls_set = set(nominator_urls)
+    surts = list(URL.objects.filter(url_project=project, attribute='surt').values_list('entity', flat=True))
+    surts = [s.lower() for s in surts]
+    global surts_set
+    surts_set = set(surts)
+    csv_file = open(file_name, 'r', newline='')
     nomination_count = 0
     entry_count = 0
     surt_count = 0
     new_entry = None
-    csv_reader = UnicodeDictReader(csv_file)
+    csv_reader = csv.DictReader(csv_file)
     for data in csv_reader:
         url_entity = url_formatter(data['url'])
         if verify_url:
             if not verifyURL(url_entity):
                 continue
         # Attempt to create new url nomination entry
-        new_nomination = create_url_entry(project, nominator, url_entity, 'nomination', '1')
+        new_nomination = create_url_entry_less_db(project, nominator, url_entity, 'nomination',
+                                                  '1')
         # Create a SURT if the url doesn't already have one
-        new_surt = create_url_entry(project, system_nominator, url_entity, 'surt',
-                                    surtize(url_entity))
+        new_surt = create_url_entry_less_db(project, system_nominator, url_entity, 'surt',
+                                            surtize(url_entity))
         for attribute_name in data.keys():
             if not attribute_name == 'url':
                 if data[attribute_name] != '':
-                    new_entry = create_url_entry(project, nominator, url_entity,
-                                                 attribute_name, data[attribute_name])
+                    new_entry = create_url_entry_less_db(project, nominator, url_entity,
+                                                         attribute_name, data[attribute_name])
                 if new_entry:
                     entry_count += 1
 
@@ -104,17 +122,6 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
     print("Created %s new SURT entries." % (surt_count))
     print("Created %s new nomination entries." % (nomination_count))
     print("Created %s other attribute entries." % (entry_count))
-
-
-def UnicodeDictReader(utf8_data, **kwargs):
-    """Encode temporarily as UTF-8.
-
-    csv.py doesn't do Unicode. Code from
-    http://stackoverflow.com/questions/5004687/python-csv-dictreader-with-utf-8-data.
-    """
-    csv_reader = csv.DictReader(utf8_data, **kwargs)
-    for row in csv_reader:
-        yield dict((key, value) for key, value in row.items())
 
 
 def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
@@ -243,11 +250,46 @@ def create_url_entry(project, nominator, url_entity, url_attribute, url_value):
     return True
 
 
+def create_url_entry_less_db(project, nominator, url_entity, url_attribute, url_value):
+    """Create a new url entry if it doesn't already exist.
+
+    This version of create_url_entry is much faster for large batches because
+    of the reduction in database lookups, but to retain data integrity,
+    do not process more than one file with this script per project at a time.
+    """
+    global surts_set
+    global nominator_urls_set
+    if url_attribute == 'surt':
+        if url_entity.lower() in surts_set:
+            return False
+        else:
+            # Add it for future lookups to surts_set.
+            surts_set.add(url_entity.lower())
+    else:
+        key = '{}{}{}'.format(url_entity.lower(), url_attribute.lower(), url_value.lower())
+        if key in nominator_urls_set:
+            return False
+        else:
+            # Add it for future value lookups.
+            nominator_urls_set.add(key)
+
+    try:
+        URL.objects.create(url_project=project,
+                           url_nominator=nominator,
+                           entity=url_entity,
+                           attribute=url_attribute,
+                           value=url_value,
+                           )
+    except IntegrityError:
+        print("Failed to create a new entry for url: %s attribute: %s value: %s"
+              % (url_entity, url_attribute, url_value))
+        return False
+    return True
+
+
 def url_formatter(line):
     """Format the given url into the proper url format."""
-    url = line.strip()
-    if url.startswith('https://'):
-        url = url.replace('https://', 'http://', 1)
+    url = line.strip().replace(' ', '%20')
     url = addImpliedHttpIfNecessary(url)
     url = url.rstrip('/')
     return url
@@ -344,7 +386,7 @@ def verifyURL(url):
     }
     try:
         req = HeadRequest(url, None, headers)
-        urlopen(req)
+        urlopen(req, timeout=5)
     except ValueError as e:
         print(str(e) + '; skipping invalid URL ' + url)
         return False
@@ -354,7 +396,7 @@ def verifyURL(url):
             # See also: http://www.w3.org/Protocols/rfc2616/rfc2616.html
             try:
                 req = Request(url, None, headers)
-                urlopen(req)
+                urlopen(req, timeout=5)
             except (URLError, HTTPError):
                 print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
                 return False
