@@ -29,27 +29,27 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         """Set command-line arguments."""
-        parser.add_argument("file_name", help="input file")
-        parser.add_argument("-n", "--nominator", dest="nominator_id", type=int, required=True,
-                            help="identifies the nominator id number (required)")
-        parser.add_argument("-p", "--project", dest="project_slug", required=True,
-                            help="identifies the project slug (required)")
-        parser.add_argument("-c", "--csv", action="store_true", dest="csv_file", default=False,
-                            help="file is csv format")
-        parser.add_argument("-d", "--dict", action="store_true", dest="dict_file", default=False,
-                            help="file is pickled dictionary format")
-        parser.add_argument("--verify", action="store_true", dest="verify_url",
-                            default=False, help="verify url is valid and available")
+        parser.add_argument('file_name', help='input file')
+        parser.add_argument('-n', '--nominator', dest='nominator_id', type=int, required=True,
+                            help='identifies the nominator id number (required)')
+        parser.add_argument('-p', '--project', dest='project_slug', required=True,
+                            help='identifies the project slug (required)')
+        parser.add_argument('-c', '--csv', action='store_true', dest='csv_file', default=False,
+                            help='file is csv format')
+        parser.add_argument('-d', '--dict', action='store_true', dest='dict_file', default=False,
+                            help='file is pickled dictionary format')
+        parser.add_argument('--verify', action='store_true', dest='verify_url',
+                            default=False, help='verify url is valid and available')
 
     def handle(self, *args, **options):
         """Ingest URLs from plain text, CSV, or pickled dictionary format file."""
         ingest_function = url_ingest
-        if options["csv_file"]:
+        if options['csv_file']:
             ingest_function = csv_ingest
-        elif options["dict_file"]:
+        elif options['dict_file']:
             ingest_function = pydict_ingest
-        ingest_function(options["file_name"], options["nominator_id"],
-                        options["project_slug"], options["verify_url"])
+        ingest_function(options['file_name'], options['nominator_id'],
+                        options['project_slug'], options['verify_url'])
 
 
 def url_ingest(file_name, nominator_id, project_slug, verify_url):
