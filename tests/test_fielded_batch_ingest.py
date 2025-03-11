@@ -3,6 +3,7 @@ import pathlib
 from unittest.mock import patch, Mock
 
 from django.core.management import call_command
+from django.db import IntegrityError
 import pytest
 
 from nomination.management.commands import fielded_batch_ingest
@@ -78,7 +79,7 @@ EXPECTED = [
      'attribute': 'List_Name',
      'value': 'file2.txt',
      'date': MOCKED_DATETIME}]
- 
+
 
 @pytest.mark.django_db
 @patch('django.utils.timezone.now', Mock(return_value=MOCKED_DATETIME))
@@ -109,7 +110,6 @@ class TestCSVIngest():
                                 'Created 2 new nomination entries.\n'
                                 'Created 5 other attribute entries.\n')
         assert list(URL.objects.all().values()) == EXPECTED
-
 
     def test_csv_ingest_reingest_does_nothing(self, capsys):
         """Verify running the same file a second time does nothing."""
@@ -145,22 +145,104 @@ class TestCSVIngest():
 @pytest.mark.django_db
 class TestCreateURLEntryLessDB:
 
+    @patch('django.utils.timezone.now', Mock(return_value=MOCKED_DATETIME))
+    @patch('nomination.management.commands.fielded_batch_ingest.surts_set', set())
+    def test_create_url_entry_less_db_creates_surt(self):
+        """Verify we create a SURT entry for a newly-nominated URL."""
+        project = factories.ProjectFactory()
+        nominator = factories.NominatorFactory()
+        url = 'https://example1.com'
+        attribute = 'surt'
+        value = 'http://(com,example1,)'
+        result = fielded_batch_ingest.create_url_entry_less_db(project,
+                                                               nominator,
+                                                               url,
+                                                               attribute,
+                                                               value)
+        assert result
+        assert list(URL.objects.all().values()) == [{'id': 1,
+                                                     'url_project_id': project.id,
+                                                     'url_nominator_id': nominator.id,
+                                                     'entity': url,
+                                                     'attribute': attribute,
+                                                     'value': value,
+                                                     'date': MOCKED_DATETIME}]
+        assert fielded_batch_ingest.surts_set == {url}
+
     @patch('nomination.management.commands.fielded_batch_ingest.surts_set',
            {'https://example1.com'})
     def test_create_url_entry_less_db_surt_exists(self):
         """Verify we don't create another SURT for an already-nominated URL."""
         project = factories.ProjectFactory()
         nominator = factories.NominatorFactory()
+        url = 'https://example1.com'
+        attribute = 'surt'
+        value = 'http://(com,example1,)'
         result = fielded_batch_ingest.create_url_entry_less_db(project,
                                                                nominator,
-                                                              'https://example1.com',
-                                                              'surt',
-                                                              'http://(com,example1,)')
+                                                               url,
+                                                               attribute,
+                                                               value)
         assert not result
+
+    @patch('django.utils.timezone.now', Mock(return_value=MOCKED_DATETIME))
+    def test_create_url_entry_less_db_non_surt_new_nomination(self):
+        project = factories.ProjectFactory()
+        nominator = factories.NominatorFactory()
+        url = 'https://example4.com'
+        attribute = 'nomination'
+        value = '1'
+        result = fielded_batch_ingest.create_url_entry_less_db(project,
+                                                               nominator,
+                                                               url,
+                                                               attribute,
+                                                               value)
+        assert result
+        assert list(URL.objects.all().values()) == [{'id': 1,
+                                                     'url_project_id': project.id,
+                                                     'url_nominator_id': nominator.id,
+                                                     'entity': url,
+                                                     'attribute': attribute,
+                                                     'value': value,
+                                                     'date': MOCKED_DATETIME}]
+        assert f'{url}{attribute}{value}' in fielded_batch_ingest.nominator_urls_set
+
+    @patch('django.utils.timezone.now', Mock(return_value=MOCKED_DATETIME))
+    @patch('nomination.management.commands.fielded_batch_ingest.nominator_urls_set',
+           {'https://example4.comnomination1'})
+    def test_create_url_entry_less_db_non_surt_duplicate_nomination(self):
+        project = factories.ProjectFactory()
+        nominator = factories.NominatorFactory()
+        # Nomination appears to be a duplicate, so don't create a nomination.
+        result = fielded_batch_ingest.create_url_entry_less_db(project,
+                                                               nominator,
+                                                               'https://example4.com',
+                                                               'nomination',
+                                                               '1')
+        assert not result
+
+    @patch('nomination.models.URL.objects.create', side_effect=IntegrityError())
+    def test_create_url_entry_less_db_raises_IntegrityError(self, mocked_create, capsys):
+        project = factories.ProjectFactory()
+        nominator = factories.NominatorFactory()
+        url = 'https://example5.com'
+        attribute = 'nomination'
+        value = '1'
+        result = fielded_batch_ingest.create_url_entry_less_db(project,
+                                                               nominator,
+                                                               url,
+                                                               attribute,
+                                                               value)
+        assert not result
+        captured = capsys.readouterr()
+        assert captured.out == (f'Failed to create a new entry for url: {url} '
+                                f'attribute: {attribute} value: {value}\n')
+        mocked_create.assert_called_once_with(url_project=project, url_nominator=nominator,
+                                              entity=url, attribute=attribute, value=value)
 
 
 class TestURLFormatter:
-    
+
     test_data = [
         (' www.example.com ', 'http://www.example.com'),
         ('http://www.example.com/pdfs/a file.pdf', 'http://www.example.com/pdfs/a%20file.pdf'),
