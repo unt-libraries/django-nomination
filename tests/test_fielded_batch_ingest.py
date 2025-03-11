@@ -14,7 +14,6 @@ from . import factories
 TEST_DIR = pathlib.Path(__file__).resolve().parent
 CSV = TEST_DIR / 'data/test.csv'
 MOCKED_DATETIME = datetime.datetime(2025, 3, 10, 10, 15, 0)
-
 EXPECTED = [
     {'id': 1,
      'url_project_id': 1,
@@ -79,6 +78,42 @@ EXPECTED = [
      'attribute': 'List_Name',
      'value': 'file2.txt',
      'date': MOCKED_DATETIME}]
+
+
+class TestCommandHandle():
+
+    nominator = 12
+    slug = 'project1'
+
+    @patch('nomination.management.commands.fielded_batch_ingest.url_ingest')
+    def test_command_handle_url_ingest(self, mocked_url_ingest):
+        input_file = 'seeds.txt'
+        call_command('fielded_batch_ingest',
+                     input_file,
+                     f'--nominator={self.nominator}',
+                     f'--project={self.slug}',
+                     '--verify')
+        mocked_url_ingest.assert_called_once_with(input_file, self.nominator, self.slug, True)
+
+    @patch('nomination.management.commands.fielded_batch_ingest.csv_ingest')
+    def test_command_handle_csv_ingest(self, mocked_csv_ingest):
+        input_file = 'seeds.csv'
+        call_command('fielded_batch_ingest',
+                     input_file,
+                     f'--nominator={self.nominator}',
+                     f'--project={self.slug}',
+                     '--csv')
+        mocked_csv_ingest.assert_called_once_with(input_file, self.nominator, self.slug, False)
+
+    @patch('nomination.management.commands.fielded_batch_ingest.pydict_ingest')
+    def test_command_handle_pydict_ingest(self, mocked_pydict_ingest):
+        input_file = 'data.pkl'
+        call_command('fielded_batch_ingest',
+                     input_file,
+                     f'--nominator={self.nominator}',
+                     f'--project={self.slug}',
+                     '--dict')
+        mocked_pydict_ingest.assert_called_once_with(input_file, self.nominator, self.slug, False)
 
 
 @pytest.mark.django_db
