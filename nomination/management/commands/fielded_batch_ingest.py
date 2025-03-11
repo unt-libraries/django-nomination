@@ -85,8 +85,8 @@ def url_ingest(file_name, nominator_id, project_slug, verify_url):
         if new_surt:
             surt_entries += 1
         entry_count += 1
-    print("Created %s new url surt entries." % (surt_entries))
-    print("Created %s new url nomination entries out of %s possible entries."
+    print('Created %s new url surt entries.' % (surt_entries))
+    print('Created %s new url nomination entries out of %s possible entries.'
           % (new_entries, entry_count))
 
 
@@ -139,9 +139,9 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
             nomination_count += 1
         if new_surt:
             surt_count += 1
-    print("Created %s new SURT entries." % (surt_count))
-    print("Created %s new nomination entries." % (nomination_count))
-    print("Created %s other attribute entries." % (entry_count))
+    print('Created %s new SURT entries.' % (surt_count))
+    print('Created %s new nomination entries.' % (nomination_count))
+    print('Created %s other attribute entries.' % (entry_count))
 
 
 def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
@@ -195,9 +195,9 @@ def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
         except EOFError:
             break
 
-    print("Created %s new SURT entries." % (surt_count))
-    print("Created %s new nomination entries." % (nomination_count))
-    print("Created %s other attribute entries." % (entry_count))
+    print('Created %s new SURT entries.' % (surt_count))
+    print('Created %s new nomination entries.' % (nomination_count))
+    print('Created %s other attribute entries.' % (entry_count))
     rff.close()
 
 
@@ -205,8 +205,8 @@ def get_nominator(nominator_id):
     try:
         nominator = Nominator.objects.get(id=nominator_id)
     except ObjectDoesNotExist:
-        print("Nominator ID:%s was not found in the Nominator table. Please add the nominator,"
-              " or use the correct ID." % (nominator_id))
+        print('Nominator ID:%s was not found in the Nominator table. Please add the nominator,'
+              ' or use the correct ID.' % (nominator_id))
         sys.exit()
 
     return nominator
@@ -216,7 +216,7 @@ def get_system_nominator():
     try:
         system_nominator = Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
     except ObjectDoesNotExist:
-        print("Could not get the system nominator.")
+        print('Could not get the system nominator.')
         sys.exit()
 
     return system_nominator
@@ -226,8 +226,8 @@ def get_project(slug):
     try:
         project = Project.objects.get(project_slug=slug)
     except ObjectDoesNotExist:
-        print("%s was not found in the Project table. Please add the project to the"
-              " Project table." % (slug))
+        print('%s was not found in the Project table. Please add the project to the'
+              ' Project table.' % (slug))
         sys.exit()
 
     return project
@@ -258,11 +258,11 @@ def create_url_entry(project, nominator, url_entity, url_attribute, url_value):
                                value=url_value,
                                )
         except IntegrityError:
-            print("Failed to create a new entry for url: %s attribute: %s value: %s"
+            print('Failed to create a new entry for url: %s attribute: %s value: %s'
                   % (url_entity, url_attribute, url_value))
             return False
     except MultipleObjectsReturned:
-        print("Failed to create a new entry for url: %s attribute: %s value: %s"
+        print('Failed to create a new entry for url: %s attribute: %s value: %s'
               % (url_entity, url_attribute, url_value))
         return False
     else:
@@ -301,7 +301,7 @@ def create_url_entry_less_db(project, nominator, url_entity, url_attribute, url_
                            value=url_value,
                            )
     except IntegrityError:
-        print("Failed to create a new entry for url: %s attribute: %s value: %s"
+        print('Failed to create a new entry for url: %s attribute: %s value: %s'
               % (url_entity, url_attribute, url_value))
         return False
     return True
@@ -386,7 +386,7 @@ def addImpliedHttpIfNecessary(uri):
 
 class HeadRequest(Request):
     def get_method(self):
-        return "HEAD"
+        return 'HEAD'
 
 
 def verifyURL(url):
@@ -397,12 +397,12 @@ def verifyURL(url):
         print(str(e) + '; skipping URL ' + url)
         return False
     headers = {
-        "Accept": "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,"
-                  "text/plain;q=0.8,image/png,*/*;q=0.5",
-        "Accept-Language": "en-us,en;q=0.5",
-        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
-        "Connection": "close",
-        "User-Agent": "Mozilla/5.0 (X11; Linux i686)",
+        'Accept': 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,'
+                  'text/plain;q=0.8,image/png,*/*;q=0.5',
+        'Accept-Language': 'en-us,en;q=0.5',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+        'Connection': 'close',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux i686)',
     }
     try:
         req = HeadRequest(url, None, headers)
