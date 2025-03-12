@@ -255,8 +255,7 @@ def create_url_entry(project, nominator, url_entity, url_attribute, url_value):
                                url_nominator=nominator,
                                entity=url_entity,
                                attribute=url_attribute,
-                               value=url_value,
-                               )
+                               value=url_value)
         except IntegrityError:
             print('Failed to create a new entry for url: %s attribute: %s value: %s'
                   % (url_entity, url_attribute, url_value))
@@ -298,8 +297,7 @@ def create_url_entry_less_db(project, nominator, url_entity, url_attribute, url_
                            url_nominator=nominator,
                            entity=url_entity,
                            attribute=url_attribute,
-                           value=url_value,
-                           )
+                           value=url_value)
     except IntegrityError:
         print('Failed to create a new entry for url: %s attribute: %s value: %s'
               % (url_entity, url_attribute, url_value))
