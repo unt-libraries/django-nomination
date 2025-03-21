@@ -8,6 +8,7 @@ from django.http import Http404
 from django.urls import reverse
 from django.contrib.sites.models import Site
 from django.conf import settings
+from django.utils.html import escape
 
 from nomination import views, models
 from . import factories
@@ -124,6 +125,22 @@ class TestUrlLookup():
         )
         assert len(response.context['url_list']) == 2
         assert https_url in response.context['url_list']
+
+    def test_partial_search_encodes_links(self, rf):
+        project = factories.ProjectFactory()
+        entity = 'http://example.com?q=some&p=thing'
+        url = factories.URLFactory(url_project=project,
+                                   entity=entity,
+                                   attribute='surt')
+        # Do a search for part of the nominated URL.
+        request = rf.post('/', {'search-url-value': url.entity[:-5], 'partial-search': ''})
+        response = views.url_lookup(request, project.project_slug)
+        # Verify the link is escaped correctly in the template.
+        expected = '<a href="/nomination/{0}/url/{1}/">'.format(project.project_slug,
+                                                                escape(url.entity).replace('?',
+                                                                                           '%3F'))
+        assert expected in response.content.decode()
+        assert response.status_code == 200
 
     def test_exact_lookup_prefers_exact_scheme(self, rf):
         project = factories.ProjectFactory()

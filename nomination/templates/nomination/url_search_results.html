@@ -15,7 +15,7 @@
                     <ul class="list-unstyled">
                         {% for url_item in url_list %}
                             <li>
-                                <a href="/nomination/{{ project.project_slug }}/url/{{ url_item.entity }}/">{{ url_item.entity }}</a>
+                                <a href="{% url 'url_listing' project.project_slug url_item.entity %}">{{ url_item.entity }}</a>
                             </li>
                         {% endfor %}
                     </ul>
