@@ -34,10 +34,9 @@ class Command(BaseCommand):
                             help='identifies the nominator id number (required)')
         parser.add_argument('-p', '--project', dest='project_slug', required=True,
                             help='identifies the project slug (required)')
-        parser.add_argument('-c', '--csv', action='store_true', dest='csv_file', default=False,
-                            help='file is csv format')
-        parser.add_argument('-d', '--dict', action='store_true', dest='dict_file', default=False,
-                            help='file is pickled dictionary format')
+        file_type_group = parser.add_mutually_exclusive_group()
+        file_type_group.add_argument('-c', '--csv', action='store_const', dest='ingest_function', const=csv_ingest, default=url_ingest,  help='file is csv format')
+        file_type_group.add_argument('-d', '--dict', action='store_const', dest='ingest_function', const=pydict_ingest, default=url_ingest, help='file is pickled dictionary format')
         parser.add_argument('--verify', action='store_true', dest='verify_url',
                             default=False, help='verify url is valid and available')
 
