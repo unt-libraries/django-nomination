@@ -65,24 +65,24 @@ def url_ingest(file_name, nominator_id, project_slug, verify_url):
     entry_count = 0
     new_entries = 0
     surt_entries = 0
-    f = open(file_name, 'r')
-    for line in f.readlines():
-        if line.isspace():
-            continue
-        url_entity = url_formatter(line)
-        if verify_url:
-            if not verifyURL(url_entity):
+    with open(file_name, 'r') as text_file:
+        for line in text_file.readlines():
+            if line.isspace():
                 continue
-        # Attempt to create new url entry
-        new_url = create_url_entry(project, nominator, url_entity, 'nomination', '1')
-        # Create a SURT if the url doesn't already have one
-        new_surt = create_url_entry(project, system_nominator, url_entity,
-                                    'surt', surtize(url_entity))
-        if new_url:
-            new_entries += 1
-        if new_surt:
-            surt_entries += 1
-        entry_count += 1
+            url_entity = url_formatter(line)
+            if verify_url:
+                if not verifyURL(url_entity):
+                    continue
+            # Attempt to create new url entry
+            new_url = create_url_entry(project, nominator, url_entity, 'nomination', '1')
+            # Create a SURT if the url doesn't already have one
+            new_surt = create_url_entry(project, system_nominator, url_entity,
+                                        'surt', surtize(url_entity))
+            if new_url:
+                new_entries += 1
+            if new_surt:
+                surt_entries += 1
+            entry_count += 1
     print('Created %s new url surt entries.' % (surt_entries))
     print('Created %s new url nomination entries out of %s possible entries.'
           % (new_entries, entry_count))
@@ -108,35 +108,35 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
     surts = [s.lower() for s in surts]
     global surts_set
     surts_set = set(surts)
-    csv_file = open(file_name, 'r', newline='')
     nomination_count = 0
     entry_count = 0
     surt_count = 0
     new_entry = None
-    csv_reader = csv.DictReader(csv_file)
-    for data in csv_reader:
-        url_entity = url_formatter(data['url'])
-        if verify_url:
-            if not verifyURL(url_entity):
-                continue
-        # Attempt to create new url nomination entry
-        new_nomination = create_url_entry_less_db(project, nominator, url_entity, 'nomination',
-                                                  '1')
-        # Create a SURT if the url doesn't already have one
-        new_surt = create_url_entry_less_db(project, system_nominator, url_entity, 'surt',
-                                            surtize(url_entity))
-        for attribute_name in data.keys():
-            if not attribute_name == 'url':
-                if data[attribute_name] != '':
-                    new_entry = create_url_entry_less_db(project, nominator, url_entity,
-                                                         attribute_name, data[attribute_name])
-                if new_entry:
-                    entry_count += 1
+    with open(file_name, 'r', newline='') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for data in csv_reader:
+            url_entity = url_formatter(data['url'])
+            if verify_url:
+                if not verifyURL(url_entity):
+                    continue
+            # Attempt to create new url nomination entry
+            new_nomination = create_url_entry_less_db(project, nominator, url_entity, 'nomination',
+                                                      '1')
+            # Create a SURT if the url doesn't already have one
+            new_surt = create_url_entry_less_db(project, system_nominator, url_entity, 'surt',
+                                                surtize(url_entity))
+            for attribute_name in data.keys():
+                if not attribute_name == 'url':
+                    if data[attribute_name] != '':
+                        new_entry = create_url_entry_less_db(project, nominator, url_entity,
+                                                             attribute_name, data[attribute_name])
+                    if new_entry:
+                        entry_count += 1
 
-        if new_nomination:
-            nomination_count += 1
-        if new_surt:
-            surt_count += 1
+            if new_nomination:
+                nomination_count += 1
+            if new_surt:
+                surt_count += 1
     print('Created %s new SURT entries.' % (surt_count))
     print('Created %s new nomination entries.' % (nomination_count))
     print('Created %s other attribute entries.' % (entry_count))
