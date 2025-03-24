@@ -289,16 +289,16 @@ def create_url_entry_less_db(project, nominator, url_entity, url_attribute, url_
                            entity=url_entity,
                            attribute=url_attribute,
                            value=url_value)
-        if url_attribute == 'surt':
-            # Add entity for future lookups to surts_set.
-            surts_set.add(url_entity.lower())
-        else:
-            # Add key for future value lookups.
-            nominator_urls_set.add(key)
     except IntegrityError:
         print('Failed to create a new entry for url: %s attribute: %s value: %s'
               % (url_entity, url_attribute, url_value))
         return False
+    if url_attribute == 'surt':
+        # Add entity for future lookups to surts_set.
+        surts_set.add(url_entity.lower())
+    else:
+        # Add key for future value lookups.
+        nominator_urls_set.add(key)
     return True
 
 
