@@ -20,12 +20,12 @@ nominator_urls_set = set()
 
 class Command(BaseCommand):
 
-    help = """fielded_batch_ingest - Adds urls from a text file into the URL table
-
-    example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename
+    help = """fielded_batch_ingest - Adds urls from a text file into the URL table.
 
     Takes a list of urls from a text file (with a required project and nominator specified)
-    and adds the urls to the URL table, adding a surt attribute if none exists."""
+    and adds the urls to the URL table, adding a surt attribute if none exists.
+
+    example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename"""
 
     def add_arguments(self, parser):
         """Set command-line arguments."""
