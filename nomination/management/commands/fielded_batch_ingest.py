@@ -35,20 +35,19 @@ class Command(BaseCommand):
         parser.add_argument('-p', '--project', dest='project_slug', required=True,
                             help='identifies the project slug (required)')
         file_type_group = parser.add_mutually_exclusive_group()
-        file_type_group.add_argument('-c', '--csv', action='store_const', dest='ingest_function', const=csv_ingest, default=url_ingest,  help='file is csv format')
-        file_type_group.add_argument('-d', '--dict', action='store_const', dest='ingest_function', const=pydict_ingest, default=url_ingest, help='file is pickled dictionary format')
+        file_type_group.add_argument('-c', '--csv', action='store_const', dest='ingest_function',
+                                     const=csv_ingest, default=url_ingest,
+                                     help='file is csv format')
+        file_type_group.add_argument('-d', '--dict', action='store_const', dest='ingest_function',
+                                     const=pydict_ingest, default=url_ingest,
+                                     help='file is pickled dictionary format')
         parser.add_argument('--verify', action='store_true', dest='verify_url',
                             default=False, help='verify url is valid and available')
 
     def handle(self, *args, **options):
         """Ingest URLs from plain text, CSV, or pickled dictionary format file."""
-        ingest_function = url_ingest
-        if options['csv_file']:
-            ingest_function = csv_ingest
-        elif options['dict_file']:
-            ingest_function = pydict_ingest
-        ingest_function(options['file_name'], options['nominator_id'],
-                        options['project_slug'], options['verify_url'])
+        options['ingest_function'](options['file_name'], options['nominator_id'],
+                                   options['project_slug'], options['verify_url'])
 
 
 def url_ingest(file_name, nominator_id, project_slug, verify_url):
