@@ -77,19 +77,19 @@ Developing
 
 4. Start the container as a daemon.
     ```sh
-        $ docker-compose up -d
-        # Use 'docker-compose stop' to stop the container.
+        $ docker compose up -d
+        # Use 'docker compose stop' to stop the container.
     ```
     At this point you should be able to access your local instance of the site by visiting `<dockerhost>:8000/nomination/`.
 
 5. Create a superuser for access to the admin sites.
     ```sh
-        $ docker-compose run --rm web python manage.py createsuperuser
+        $ docker compose run --rm web python manage.py createsuperuser
     ```
 
 6. If desired, run the tests.
     ```sh
-        $ docker-compose run --rm web tox
+        $ docker compose run --rm web tox
     ```
 
 If you are on RHEL, your installation and commands may be different.
