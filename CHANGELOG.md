@@ -9,6 +9,7 @@ Change Log
 * Fixed nominating URLs of length 255-300 chars by ensuring `value` is big enough to hold the URL's SURT value. [#114](https://github.com/unt-libraries/django-nomination/issues/114)
 * Fixed browsing from listing page to top-level domain SURT URLs. [#115](https://github.com/unt-libraries/django-nomination/issues/115)
 * Fixed links in URL lookup search results that needed encoding. [#118](https://github.com/unt-libraries/django-nomination/issues/118)
+* Converted fielded_batch_ingest.py script to a Django management command and improved speed.
 
 
 4.0.0
