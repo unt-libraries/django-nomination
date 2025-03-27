@@ -1,32 +1,53 @@
-import sys
-import re
 import csv
-import optparse
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError, URLError
 import pickle
+import re
+import sys
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.management.base import BaseCommand
 from django.db import IntegrityError
+
 from nomination.models import URL, Nominator, Project
 
 
-def usage():
-    """Print usage statement describing how to use the script."""
-    print("""fielded_batch_ingest - Adds urls from a text file into the URL table
+# Global vars to speed up checking for existing records
+surts_set = set()
+nominator_urls_set = set()
 
-    example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename
+
+class Command(BaseCommand):
+
+    help = """fielded_batch_ingest - Adds urls from a text file into the URL table.
 
     Takes a list of urls from a text file (with a required project and nominator specified)
     and adds the urls to the URL table, adding a surt attribute if none exists.
 
-    Optional arguments are:
-    -p, specifies the project slug (required)
-    -n, specifies the nominator id (required)
-    -c, import the file as a csv file
-    -d, import file is pickled dictionary format
-    -h, --help, display help
-    -v, --verify, verify url is valid and available""")
+    example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename"""
+
+    def add_arguments(self, parser):
+        """Set command-line arguments."""
+        parser.add_argument('file_name', help='input file')
+        parser.add_argument('-n', '--nominator', dest='nominator_id', type=int, required=True,
+                            help='identifies the nominator id number (required)')
+        parser.add_argument('-p', '--project', dest='project_slug', required=True,
+                            help='identifies the project slug (required)')
+        file_type_group = parser.add_mutually_exclusive_group()
+        file_type_group.add_argument('-c', '--csv', action='store_const', dest='ingest_function',
+                                     const=csv_ingest, default=url_ingest,
+                                     help='file is csv format')
+        file_type_group.add_argument('-d', '--dict', action='store_const', dest='ingest_function',
+                                     const=pydict_ingest, default=url_ingest,
+                                     help='file is pickled dictionary format')
+        parser.add_argument('--verify', action='store_true', dest='verify_url',
+                            default=False, help='verify url is valid and available')
+
+    def handle(self, *args, **options):
+        """Ingest URLs from plain text, CSV, or pickled dictionary format file."""
+        options['ingest_function'](options['file_name'], options['nominator_id'],
+                                   options['project_slug'], options['verify_url'])
 
 
 def url_ingest(file_name, nominator_id, project_slug, verify_url):
@@ -44,26 +65,26 @@ def url_ingest(file_name, nominator_id, project_slug, verify_url):
     entry_count = 0
     new_entries = 0
     surt_entries = 0
-    f = open(file_name, 'r')
-    for line in f.readlines():
-        if line.isspace():
-            continue
-        url_entity = url_formatter(line)
-        if verify_url:
-            if not verifyURL(url_entity):
+    with open(file_name, 'r') as text_file:
+        for line in text_file.readlines():
+            if line.isspace():
                 continue
-        # Attempt to create new url entry
-        new_url = create_url_entry(project, nominator, url_entity, 'nomination', '1')
-        # Create a SURT if the url doesn't already have one
-        new_surt = create_url_entry(project, system_nominator, url_entity,
-                                    'surt', surtize(url_entity))
-        if new_url:
-            new_entries += 1
-        if new_surt:
-            surt_entries += 1
-        entry_count += 1
-    print("Created %s new url surt entries." % (surt_entries))
-    print("Created %s new url nomination entries out of %s possible entries."
+            url_entity = url_formatter(line)
+            if verify_url:
+                if not verifyURL(url_entity):
+                    continue
+            # Attempt to create new url entry
+            new_url = create_url_entry(project, nominator, url_entity, 'nomination', '1')
+            # Create a SURT if the url doesn't already have one
+            new_surt = create_url_entry(project, system_nominator, url_entity,
+                                        'surt', surtize(url_entity))
+            if new_url:
+                new_entries += 1
+            if new_surt:
+                surt_entries += 1
+            entry_count += 1
+    print('Created %s new url surt entries.' % (surt_entries))
+    print('Created %s new url nomination entries out of %s possible entries.'
           % (new_entries, entry_count))
 
 
@@ -73,48 +94,52 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
     nominator = get_nominator(nominator_id)
     # Get the system nominator
     system_nominator = get_system_nominator()
-    csv_file = open(file_name, 'r')
+    nominator_urls = list(URL.objects.filter(url_project=project,
+                                             url_nominator=nominator).values('entity',
+                                                                             'attribute',
+                                                                             'value'))
+    nominator_urls = ['{}{}{}'.format(i['entity'].lower(),
+                                      i['attribute'].lower(),
+                                      i['value'].lower()) for i in nominator_urls]
+    global nominator_urls_set
+    nominator_urls_set = set(nominator_urls)
+    surts = list(URL.objects.filter(url_project=project,
+                                    attribute='surt').values_list('entity', flat=True))
+    surts = [s.lower() for s in surts]
+    global surts_set
+    surts_set = set(surts)
     nomination_count = 0
     entry_count = 0
     surt_count = 0
     new_entry = None
-    csv_reader = UnicodeDictReader(csv_file)
-    for data in csv_reader:
-        url_entity = url_formatter(data['url'])
-        if verify_url:
-            if not verifyURL(url_entity):
-                continue
-        # Attempt to create new url nomination entry
-        new_nomination = create_url_entry(project, nominator, url_entity, 'nomination', '1')
-        # Create a SURT if the url doesn't already have one
-        new_surt = create_url_entry(project, system_nominator, url_entity, 'surt',
-                                    surtize(url_entity))
-        for attribute_name in data.keys():
-            if not attribute_name == 'url':
-                if data[attribute_name] != '':
-                    new_entry = create_url_entry(project, nominator, url_entity,
-                                                 attribute_name, data[attribute_name])
-                if new_entry:
-                    entry_count += 1
+    with open(file_name, 'r', newline='') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for data in csv_reader:
+            url_entity = url_formatter(data['url'])
+            if verify_url:
+                if not verifyURL(url_entity):
+                    continue
+            # Attempt to create new url nomination entry
+            new_nomination = create_url_entry_less_db(project, nominator, url_entity, 'nomination',
+                                                      '1')
+            # Create a SURT if the url doesn't already have one
+            new_surt = create_url_entry_less_db(project, system_nominator, url_entity, 'surt',
+                                                surtize(url_entity))
+            for attribute_name in data.keys():
+                if not attribute_name == 'url':
+                    if data[attribute_name] != '':
+                        new_entry = create_url_entry_less_db(project, nominator, url_entity,
+                                                             attribute_name, data[attribute_name])
+                    if new_entry:
+                        entry_count += 1
 
-        if new_nomination:
-            nomination_count += 1
-        if new_surt:
-            surt_count += 1
-    print("Created %s new SURT entries." % (surt_count))
-    print("Created %s new nomination entries." % (nomination_count))
-    print("Created %s other attribute entries." % (entry_count))
-
-
-def UnicodeDictReader(utf8_data, **kwargs):
-    """Encode temporarily as UTF-8.
-
-    csv.py doesn't do Unicode. Code from
-    http://stackoverflow.com/questions/5004687/python-csv-dictreader-with-utf-8-data.
-    """
-    csv_reader = csv.DictReader(utf8_data, **kwargs)
-    for row in csv_reader:
-        yield dict((key, value) for key, value in row.items())
+            if new_nomination:
+                nomination_count += 1
+            if new_surt:
+                surt_count += 1
+    print('Created %s new SURT entries.' % (surt_count))
+    print('Created %s new nomination entries.' % (nomination_count))
+    print('Created %s other attribute entries.' % (entry_count))
 
 
 def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
@@ -168,9 +193,9 @@ def pydict_ingest(file_name, nominator_id, project_slug, verify_url):
         except EOFError:
             break
 
-    print("Created %s new SURT entries." % (surt_count))
-    print("Created %s new nomination entries." % (nomination_count))
-    print("Created %s other attribute entries." % (entry_count))
+    print('Created %s new SURT entries.' % (surt_count))
+    print('Created %s new nomination entries.' % (nomination_count))
+    print('Created %s other attribute entries.' % (entry_count))
     rff.close()
 
 
@@ -178,8 +203,8 @@ def get_nominator(nominator_id):
     try:
         nominator = Nominator.objects.get(id=nominator_id)
     except ObjectDoesNotExist:
-        print("Nominator ID:%s was not found in the Nominator table. Please add the nominator,"
-              " or use the correct ID." % (nominator_id))
+        print('Nominator ID:%s was not found in the Nominator table. Please add the nominator,'
+              ' or use the correct ID.' % (nominator_id))
         sys.exit()
 
     return nominator
@@ -189,7 +214,7 @@ def get_system_nominator():
     try:
         system_nominator = Nominator.objects.get(id=settings.SYSTEM_NOMINATOR_ID)
     except ObjectDoesNotExist:
-        print("Could not get the system nominator.")
+        print('Could not get the system nominator.')
         sys.exit()
 
     return system_nominator
@@ -199,8 +224,8 @@ def get_project(slug):
     try:
         project = Project.objects.get(project_slug=slug)
     except ObjectDoesNotExist:
-        print("%s was not found in the Project table. Please add the project to the"
-              " Project table." % (slug))
+        print('%s was not found in the Project table. Please add the project to the'
+              ' Project table.' % (slug))
         sys.exit()
 
     return project
@@ -228,14 +253,13 @@ def create_url_entry(project, nominator, url_entity, url_attribute, url_value):
                                url_nominator=nominator,
                                entity=url_entity,
                                attribute=url_attribute,
-                               value=url_value,
-                               )
+                               value=url_value)
         except IntegrityError:
-            print("Failed to create a new entry for url: %s attribute: %s value: %s"
+            print('Failed to create a new entry for url: %s attribute: %s value: %s'
                   % (url_entity, url_attribute, url_value))
             return False
     except MultipleObjectsReturned:
-        print("Failed to create a new entry for url: %s attribute: %s value: %s"
+        print('Failed to create a new entry for url: %s attribute: %s value: %s'
               % (url_entity, url_attribute, url_value))
         return False
     else:
@@ -243,11 +267,44 @@ def create_url_entry(project, nominator, url_entity, url_attribute, url_value):
     return True
 
 
+def create_url_entry_less_db(project, nominator, url_entity, url_attribute, url_value):
+    """Create a new url entry if it doesn't already exist.
+
+    This version of create_url_entry is much faster for large batches because
+    of the reduction in database lookups, but to retain data integrity,
+    do not process more than one file with this script per project at a time.
+    """
+    global surts_set
+    global nominator_urls_set
+    if url_attribute == 'surt':
+        if url_entity.lower() in surts_set:
+            return False
+    else:
+        key = '{}{}{}'.format(url_entity.lower(), url_attribute.lower(), url_value.lower())
+        if key in nominator_urls_set:
+            return False
+    try:
+        URL.objects.create(url_project=project,
+                           url_nominator=nominator,
+                           entity=url_entity,
+                           attribute=url_attribute,
+                           value=url_value)
+    except IntegrityError:
+        print('Failed to create a new entry for url: %s attribute: %s value: %s'
+              % (url_entity, url_attribute, url_value))
+        return False
+    if url_attribute == 'surt':
+        # Add entity for future lookups to surts_set.
+        surts_set.add(url_entity.lower())
+    else:
+        # Add key for future value lookups.
+        nominator_urls_set.add(key)
+    return True
+
+
 def url_formatter(line):
     """Format the given url into the proper url format."""
-    url = line.strip()
-    if url.startswith('https://'):
-        url = url.replace('https://', 'http://', 1)
+    url = line.strip().replace(' ', '%20')
     url = addImpliedHttpIfNecessary(url)
     url = url.rstrip('/')
     return url
@@ -324,7 +381,7 @@ def addImpliedHttpIfNecessary(uri):
 
 class HeadRequest(Request):
     def get_method(self):
-        return "HEAD"
+        return 'HEAD'
 
 
 def verifyURL(url):
@@ -335,16 +392,16 @@ def verifyURL(url):
         print(str(e) + '; skipping URL ' + url)
         return False
     headers = {
-        "Accept": "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,"
-                  "text/plain;q=0.8,image/png,*/*;q=0.5",
-        "Accept-Language": "en-us,en;q=0.5",
-        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
-        "Connection": "close",
-        "User-Agent": "Mozilla/5.0 (X11; Linux i686)",
+        'Accept': 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,'
+                  'text/plain;q=0.8,image/png,*/*;q=0.5',
+        'Accept-Language': 'en-us,en;q=0.5',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+        'Connection': 'close',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux i686)',
     }
     try:
         req = HeadRequest(url, None, headers)
-        urlopen(req)
+        urlopen(req, timeout=5)
     except ValueError as e:
         print(str(e) + '; skipping invalid URL ' + url)
         return False
@@ -354,7 +411,7 @@ def verifyURL(url):
             # See also: http://www.w3.org/Protocols/rfc2616/rfc2616.html
             try:
                 req = Request(url, None, headers)
-                urlopen(req)
+                urlopen(req, timeout=5)
             except (URLError, HTTPError):
                 print(str(e) + '; Response: ' + str(e.code) + '; skipping URL ' + url)
                 return False
@@ -365,48 +422,3 @@ def verifyURL(url):
         print('Failed HTTP response/broken link; skipping URL ' + url)
         return False
     return True
-
-
-if __name__ == "__main__":
-
-    # Create option parser
-    parser = optparse.OptionParser(
-        """fielded_batch_ingest - Adds urls from a text file into the URL table
-
-    example: fielded_batch_ingest.py -p <PROJECT_SLUG> -n <NOMINATOR_ID> filename
-
-    Takes a list of urls from a text file (with a required project and nominator specified)
-    and adds the urls to the URL table, adding a surt attribute if none exists.""")
-    parser.add_option("-n", "--nominator", dest="nominator_id",
-                      help="identifies the nominator id number (required)")
-    parser.add_option("-p", "--project", dest="project_slug",
-                      help="identifies the project slug (required)")
-    parser.add_option("-c", "--csv", action="store_const", const=1, dest="csv_file",
-                      help="file is csv format")
-    parser.add_option("-d", "--dict", action="store_const", const=1, dest="dict_file",
-                      help="file is pickled dictionary format")
-    parser.add_option("-v", "--verify", action="store_true", dest="verify_url",
-                      default=False, help="verify url is valid and available")
-    try:
-        (opt_dict, other_args) = parser.parse_args()
-    except optparse.OptionError:
-        usage()
-        sys.exit()
-
-    # Options
-    # project and nominator options
-    if opt_dict.nominator_id is not None and opt_dict.project_slug is not None:
-        nominator_id = int(opt_dict.nominator_id)
-        project_slug = opt_dict.project_slug
-    else:
-        usage()
-        sys.exit()
-
-    if not len(other_args) > 1:
-        file_name = other_args[0]
-        if opt_dict.csv_file == 1:
-            csv_ingest(file_name, nominator_id, project_slug, opt_dict.verify_url)
-        elif opt_dict.dict_file == 1:
-            pydict_ingest(file_name, nominator_id, project_slug, opt_dict.verify_url)
-        else:
-            url_ingest(file_name, nominator_id, project_slug, opt_dict.verify_url)

@@ -77,19 +77,19 @@ Developing
 
 4. Start the container as a daemon.
     ```sh
-        $ docker-compose up -d
-        # Use 'docker-compose stop' to stop the container.
+        $ docker compose up -d
+        # Use 'docker compose stop' to stop the container.
     ```
     At this point you should be able to access your local instance of the site by visiting `<dockerhost>:8000/nomination/`.
 
 5. Create a superuser for access to the admin sites.
     ```sh
-        $ docker-compose run --rm web python manage.py createsuperuser
+        $ docker compose run --rm web python manage.py createsuperuser
     ```
 
 6. If desired, run the tests.
     ```sh
-        $ docker-compose run --rm web tox
+        $ docker compose run --rm web tox
     ```
 
 If you are on RHEL, your installation and commands may be different.
@@ -125,20 +125,40 @@ If you are on RHEL, your installation and commands may be different.
         $ sudo podman-compose run --rm web tox
     ```
 
+Batch Ingest Management Command
+-------------------------------
+
+For bulk loading of URL nominations into a Nomination Tool instance,
+there is a `fielded_batch_ingest` management command. Input file formats
+include:
+
+* text file - one URL per line
+* CSV - lines contain a `url` field as well as additional arbitrary metadata fields that must be named on the first line (e.g. the first line of the CSV might look like `url,Title,List_Name`)
+* pickled dictionary - serialized Python object in pickle format. This allows multivalued attributes that can be stored in a Python dictionary as lists.
+
+To view details on this bulk loading tool, run:
+```sh
+    $ python manage.py fielded_batch_ingest -h
+```
+
+For example, to load a CSV file:
+```sh
+    $ python manage.py fielded_batch_ingest tests/data/test.csv --nominator 2 --project project1 --csv
+```
+
+
 Helper Scripts
 --------------
 
-There are three scripts made available with this app that can help with batch
+There are two scripts made available with this app that can help with batch
 uploading of project information, such as project metadata and URL nominations.
 They are located in the user_scripts subdirectory and are intended to be run
 from the machine serving the app. They require access to the settings file used
 by the Django project hosting the app. If you are serving the app using a virtual
 environment, the script will need to be run from within that same environment.
-The three scripts are well-commented and designed to be used from the
+The scripts are well-commented and designed to be used from the
 command-line. Invoke them with the `-h` flag to see their help documentation.
 
-Further documentation is available for [running the fielded_batch_ingest.py script](https://github.com/unt-libraries/django-nomination/wiki/Fielded-Batch-Ingest-Helper-Script)
-to upload bulk URL data.
 
 License
 -------
