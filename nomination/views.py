@@ -1,6 +1,5 @@
 import json
 import datetime
-import os
 import re
 
 from urllib.parse import quote, unquote
@@ -553,8 +552,10 @@ def project_about(request, slug):
         host = request.META.get('HTTP_HOST', '')
         if not host:
             host = get_object_or_404(Site, id=settings.SITE_ID)
-        base_path = os.path.join(reverse('project_urls', args=[project.project_slug]),
-                                 'url/')
+        # get path for url_listing view without the last argument and end slash
+        rm_arg = 'url_arg_to_remove'
+        url_path = reverse('url_listing', args=[project.project_slug, rm_arg])
+        base_path = url_path.rstrip('/')[:-len(rm_arg)]
         url_base = '{}{}{}'.format(scheme, host, base_path)
 
     return render(
