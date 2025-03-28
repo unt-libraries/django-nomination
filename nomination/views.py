@@ -1,5 +1,6 @@
 import json
 import datetime
+import os
 import re
 
 from urllib.parse import quote, unquote
@@ -13,6 +14,7 @@ from django import forms
 from django.views.decorators.csrf import csrf_protect
 from django.utils.encoding import iri_to_uri
 from django.contrib.sites.models import Site
+from django.urls import reverse
 
 from nomination.models import Project, URL, Nominator
 from nomination.url_handler import (
@@ -542,9 +544,19 @@ def project_about(request, slug):
     urls = URL.objects.filter(url_project__project_slug__exact=slug)
     url_count = get_project_url_count(urls)
     nominator_count = get_project_nominator_count(urls)
-    current_host = get_object_or_404(Site, id=settings.SITE_ID)
     # figure out if we need to show bookmarklets
     show_bookmarklets = datetime.datetime.now() < project.nomination_end
+    url_base = ''
+    if show_bookmarklets:
+        # construct the bookmarklet nomination URL, if using
+        scheme = getattr(settings, 'SITE_SCHEME', 'http://')
+        host = request.META.get('HTTP_HOST', '')
+        if not host:
+            host = get_object_or_404(Site, id=settings.SITE_ID)
+        base_path = os.path.join(reverse('project_urls', args=[project.project_slug]),
+                                 'url/')
+        url_base = '{}{}{}'.format(scheme, host, base_path)
+
     return render(
         request,
         'nomination/project_about.html',
@@ -552,7 +564,7 @@ def project_about(request, slug):
          'project': project,
          'url_count': url_count,
          'nominator_count': nominator_count,
-         'current_host': current_host,
+         'url_base': url_base,
          'show_bookmarklets': show_bookmarklets,
         },
         )
