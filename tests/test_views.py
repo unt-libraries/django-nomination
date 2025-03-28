@@ -684,22 +684,35 @@ class TestProjectAbout():
         response = client.get(reverse('project_about', args=[project.project_slug]))
         assert response.templates[0].name == 'nomination/project_about.html'
 
-    @pytest.mark.parametrize('nomination_end, show_bookmarklets', [
-        (datetime.now() - timedelta(days=1), False),
-        (datetime.now() + timedelta(days=1), True)
-    ])
-    def test_context(self, client, nomination_end, show_bookmarklets):
+    def test_context_bookmarklet(self, client):
+        # nomination_end is in the future; project is active
+        nomination_end = datetime.now() + timedelta(days=1)
         project = factories.ProjectFactory(nomination_end=nomination_end)
+        host = Site.objects.get(id=settings.SITE_ID)
+        url = 'http://{}/nomination/{}/url/'.format(host, project.project_slug)
         factories.URLFactory(url_project=project, attribute='surt')
         factories.NominatedURLFactory.create_batch(2, url_project=project, value=1)
-        current_host = Site.objects.get(id=settings.SITE_ID)
         response = client.get(reverse('project_about', args=[project.project_slug]))
 
         assert response.context['project'] == project
         assert response.context['url_count'] == 1
         assert response.context['nominator_count'] == 2
-        assert response.context['current_host'] == current_host
-        assert response.context['show_bookmarklets'] == show_bookmarklets
+        assert response.context['url_base'] == url
+        assert response.context['show_bookmarklets']
+
+    def test_context_no_bookmarklet(self, client):
+        # nomination_end is in the past; project is not active
+        nomination_end = datetime.now() - timedelta(days=1)
+        project = factories.ProjectFactory(nomination_end=nomination_end)
+        factories.URLFactory(url_project=project, attribute='surt')
+        factories.NominatedURLFactory.create_batch(2, url_project=project, value=1)
+        response = client.get(reverse('project_about', args=[project.project_slug]))
+
+        assert response.context['project'] == project
+        assert response.context['url_count'] == 1
+        assert response.context['nominator_count'] == 2
+        assert response.context['url_base'] == ''
+        assert not response.context['show_bookmarklets']
 
 
 class TestBrowseJson():

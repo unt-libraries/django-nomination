@@ -68,39 +68,16 @@
                 </div>
                 <div class="panel-body">
                     <p>
-                        A bookmarklet is a brief javascript program that can be stored as a bookmark
+                        A bookmarklet is a brief JavaScript program that can be stored as a bookmark
                         or favorite in your browser. By following the instructions below you may add
                         a bookmarklet to your toolbar that allows you to easily nominate URLs to
                         this project while you browse the Web.
                     </p>
-                    <dl>
-                        <dt>Firefox</dt>
-                        <dd>
-                            If your Bookmarks Toolbar is not visible, navigate to menu View-&gt;Toolbars,
-                            and select "Bookmarks Toolbar." Drag this link
-                            <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
-                                {{project.project_slug}} Nominator
-                            </a> to the Bookmarks Toolbar.
-                        </dd>
-                        <dt>Google Chrome</dt>
-                        <dd>
-                            If your Bookmarks Bar is not visible, use the keyboard command
-                            <kbd>Shift+Ctrl+B</kbd> to make it so, or navigate to menu Tools and select
-                            "Always Show Bookmarks Bar." Drag this link
-                            <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
-                                {{project.project_slug}} Nominator
-                            </a> to the Bookmarks Toolbar.
-                        </dd>
-                        <dt>Internet Explorer</dt>
-                        <dd>
-                            If your Links Toolbar is not visible, right click on the menu bar and select
-                            "Links." Right click on this link
-                            <a href="javascript:window.open('http://{{current_host}}/nomination/{{project.project_slug}}/url/'+escape(location.href.replace(/\/$/, '')+'/')).focus();">
-                                {{project.project_slug}} Nominator
-                            </a>, and select "Add to Favorites..." For the "Create in" field, select
-                            "Links" then click "Add."
-                        </dd>
-                    </dl>
+                    <p>
+                        In Chrome, Edge, or Firefox, if your Bookmarks or Favorites Bar is not visible, use the keyboard command
+                        <kbd>Shift+Ctrl+B</kbd> to make it so. Then drag this link
+                        <a href="javascript:window.open('{{ url_base }}'+escape(location.href.replace(/\/$/, '')+'/')).focus();">{{project.project_slug}} Nominator</a> to the Bookmarks/Favorites Toolbar.
+                    </p>
                 </div>
             </div>
         {% endif %} 
