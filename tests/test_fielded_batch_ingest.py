@@ -188,12 +188,13 @@ class TestCreateURLEntryLessDB:
         url = 'https://example1.com'
         attribute = 'surt'
         value = 'http://(com,example1,)'
+        surts_set = set()
         result = fielded_batch_ingest.create_url_entry_less_db(project,
                                                                nominator,
                                                                url,
                                                                attribute,
                                                                value,
-                                                               surts_set=set())
+                                                               surts_set=surts_set)
         assert result
         assert list(URL.objects.all().values()) == [{'id': 1,
                                                      'url_project_id': project.id,
@@ -202,6 +203,7 @@ class TestCreateURLEntryLessDB:
                                                      'attribute': attribute,
                                                      'value': value,
                                                      'date': MOCKED_DATETIME}]
+        assert surts_set == {'https://example1.com'}
 
     def test_create_url_entry_less_db_surt_exists(self):
         """Verify we don't create another SURT for an already-nominated URL."""
@@ -225,11 +227,13 @@ class TestCreateURLEntryLessDB:
         url = 'https://example4.com'
         attribute = 'nomination'
         value = '1'
+        nominator_urls = set()
         result = fielded_batch_ingest.create_url_entry_less_db(project,
                                                                nominator,
                                                                url,
                                                                attribute,
-                                                               value)
+                                                               value,
+                                                               nominator_urls_set=nominator_urls)
         assert result
         assert list(URL.objects.all().values()) == [{'id': 1,
                                                      'url_project_id': project.id,
@@ -238,6 +242,7 @@ class TestCreateURLEntryLessDB:
                                                      'attribute': attribute,
                                                      'value': value,
                                                      'date': MOCKED_DATETIME}]
+        assert f'{url}{attribute}{value}' in nominator_urls
 
     @patch('django.utils.timezone.now', Mock(return_value=MOCKED_DATETIME))
     def test_create_url_entry_less_db_non_surt_duplicate_nomination(self):
