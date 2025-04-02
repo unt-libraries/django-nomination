@@ -13,11 +13,6 @@ from django.db import IntegrityError
 from nomination.models import URL, Nominator, Project
 
 
-# Global vars to speed up checking for existing records
-surts_set = set()
-nominator_urls_set = set()
-
-
 class Command(BaseCommand):
 
     help = """fielded_batch_ingest - Adds urls from a text file into the URL table.
@@ -101,12 +96,10 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
     nominator_urls = ['{}{}{}'.format(i['entity'].lower(),
                                       i['attribute'].lower(),
                                       i['value'].lower()) for i in nominator_urls]
-    global nominator_urls_set
     nominator_urls_set = set(nominator_urls)
     surts = list(URL.objects.filter(url_project=project,
                                     attribute='surt').values_list('entity', flat=True))
     surts = [s.lower() for s in surts]
-    global surts_set
     surts_set = set(surts)
     nomination_count = 0
     entry_count = 0
@@ -121,15 +114,16 @@ def csv_ingest(file_name, nominator_id, project_slug, verify_url):
                     continue
             # Attempt to create new url nomination entry
             new_nomination = create_url_entry_less_db(project, nominator, url_entity, 'nomination',
-                                                      '1')
+                                                      '1', nominator_urls_set=nominator_urls_set)
             # Create a SURT if the url doesn't already have one
             new_surt = create_url_entry_less_db(project, system_nominator, url_entity, 'surt',
-                                                surtize(url_entity))
+                                                surtize(url_entity), surts_set=surts_set)
             for attribute_name in data.keys():
                 if not attribute_name == 'url':
                     if data[attribute_name] != '':
                         new_entry = create_url_entry_less_db(project, nominator, url_entity,
-                                                             attribute_name, data[attribute_name])
+                                                             attribute_name, data[attribute_name],
+                                                             nominator_urls_set=nominator_urls_set)
                     if new_entry:
                         entry_count += 1
 
@@ -267,15 +261,14 @@ def create_url_entry(project, nominator, url_entity, url_attribute, url_value):
     return True
 
 
-def create_url_entry_less_db(project, nominator, url_entity, url_attribute, url_value):
+def create_url_entry_less_db(project, nominator, url_entity, url_attribute, url_value,
+                             surts_set=set(), nominator_urls_set=set()):
     """Create a new url entry if it doesn't already exist.
 
     This version of create_url_entry is much faster for large batches because
     of the reduction in database lookups, but to retain data integrity,
     do not process more than one file with this script per project at a time.
     """
-    global surts_set
-    global nominator_urls_set
     if url_attribute == 'surt':
         if url_entity.lower() in surts_set:
             return False
