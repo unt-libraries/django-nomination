@@ -11,7 +11,6 @@ Change Log
 * Fixed links in URL lookup search results that needed encoding. [#118](https://github.com/unt-libraries/django-nomination/issues/118)
 * Converted fielded_batch_ingest.py script to a Django management command and improved speed.
 * Updated info about bookmarklets. [#120](https://github.com/unt-libraries/django-nomination/issues/120)
-* Remove use of global variables for tracking batch nominations.
 
 
 4.0.0
