@@ -67,8 +67,8 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-# Need to set USE_TZ to False for tests to pass 
-# because the test data is in UTC 
+# Need to set USE_TZ to False for tests to pass
+# because the test data is in UTC
 # and the test runner converts it to local time.
 USE_TZ = False
 
