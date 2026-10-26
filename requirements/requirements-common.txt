@@ -1,2 +1,0 @@
-markdown~=3.0.1
-django-widget-tweaks~=1.4.1

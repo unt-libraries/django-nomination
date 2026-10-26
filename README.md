@@ -24,8 +24,8 @@ crawls for certain archival projects.
 Requirements
 ------------
 
-* Python 3.8-3.10
-* Django 4.2
+* Python 3.12-3.14
+* Django 6.1
 
 
 Installation
@@ -33,14 +33,15 @@ Installation
 
 1. Install from GitHub.
     ```sh
-        $ pip install git+git://github.com/unt-libraries/django-nomination.git
+        $ pip install git+https://github.com/unt-libraries/django-nomination.git
     ```
 
-2. Add nomination to INSTALLED_APPS.
+2. Add nomination and widget_tweaks to INSTALLED_APPS.
     ```python
         INSTALLED_APPS = (
             'django.contrib.admin',
             'nomination',
+            'widget_tweaks',
         )
     ```
 
@@ -65,9 +66,10 @@ Developing
 
 1. [Install Docker](http://docs.docker.com/installation/).
 
-2. Install Docker Compose.
+2. Make sure Docker Compose is available. It is included with Docker Desktop and the
+   `docker-compose-plugin` package.
     ```sh
-        $ pip install docker-compose
+        $ docker compose version
     ```
 
 3. Clone the repository.
@@ -91,6 +93,16 @@ Developing
     ```sh
         $ docker compose run --rm web tox
     ```
+
+To develop without Docker, install the package in editable mode with the
+test extras, then run the tests with pytest. To run the full test matrix and
+linting, install and run tox.
+```sh
+    $ pip install -e ".[test]"
+    $ pytest
+    $ pip install tox
+    $ tox
+```
 
 If you are on RHEL, your installation and commands may be different.
 
