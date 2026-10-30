@@ -505,45 +505,6 @@ class TestUrlSurt():
         assert response.context['browse_domain'] == 'com'
         assert len(response.context['browse_dict']) == 1
 
-    @pytest.mark.parametrize('page, expected_count, expected_number', [
-        (None, 100, 1),
-        ('2', 1, 2),
-        ('3', 1, 2),
-        ('abc', 100, 1),
-    ])
-    def test_url_list_paginated(self, client, page, expected_count, expected_number):
-        project = factories.ProjectFactory()
-        factories.URLFactory.create_batch(
-            views.URLS_PER_PAGE + 1,
-            url_project=project,
-            attribute='surt',
-            value='http://(com,example,)',
-        )
-        params = {'page': page} if page else {}
-        response = client.get(
-            reverse('url_surt', args=[project.project_slug, 'http://(com,']), params)
-
-        assert len(response.context['url_list']) == expected_count
-        assert response.context['url_list'].number == expected_number
-
-    def test_pager_shown_only_with_multiple_pages(self, client):
-        project = factories.ProjectFactory()
-        factories.URLFactory(url_project=project, attribute='surt', value='http://(com,a,)')
-        url = reverse('url_surt', args=[project.project_slug, 'http://(com,'])
-
-        assert 'class="pager"' not in client.get(url).content.decode()
-
-        factories.URLFactory.create_batch(
-            views.URLS_PER_PAGE,
-            url_project=project,
-            attribute='surt',
-            value='http://(com,example,)',
-        )
-        content = client.get(url).content.decode()
-
-        assert 'class="pager"' in content
-        assert 'href="?page=2"' in content
-
 
 class TestUrlAdd():
 

@@ -98,7 +98,7 @@ To develop without Docker, install the package in editable mode with the
 test extras, then run the tests with pytest. To run the full test matrix and
 linting, install and run tox.
 ```sh
-    $ pip install -e .'[test]'
+    $ pip install -e ".[test]"
     $ pytest
     $ pip install tox
     $ tox
@@ -189,4 +189,3 @@ Contributors
 * [Jason Ellis](https://github.com/jason-ellis)
 * [Madhulika Bayyavarapu](https://github.com/madhulika95b)
 * [Gracie Flores-Hays](https://github.com/gracieflores)
-* [Trey Clark](https://github.com/clarktr1)

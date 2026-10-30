@@ -8,7 +8,6 @@ from django.shortcuts import render, get_object_or_404
 from django import http
 from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
-from django.core.paginator import Paginator
 from django.db.models import Sum, Count, Max
 from django import forms
 from django.views.decorators.csrf import csrf_protect
@@ -24,8 +23,6 @@ from nomination.url_handler import (
     create_url_dump, strip_scheme
 )
 
-
-URLS_PER_PAGE = 100
 
 SCOPE_CHOICES = (('1', 'In Scope',),
                  ('-1', 'Out of Scope',),)
@@ -362,11 +359,6 @@ def url_surt(request, slug, surt):
     project = get_object_or_404(Project, project_slug=slug)
     # Create the SURT dictionary containing url_list and single_letter.
     surt_dict = create_surt_dict(project, surt)
-    # Paginate the URL list.
-    url_list = surt_dict['url_list']
-    if url_list is None:
-        url_list = []
-    url_list = Paginator(url_list, URLS_PER_PAGE).get_page(request.GET.get('page'))
     # Create the alphabetical browse dictionary.
     browse_dict = alphabetical_browse(project)
     # Add Browse by if browsing surts by letter.
@@ -381,7 +373,7 @@ def url_surt(request, slug, surt):
         {
             'surt': surt,
             'project': project,
-            'url_list': url_list,
+            'url_list': surt_dict['url_list'],
             'letter': surt_dict['letter'],
             'browse_domain': top_domain,
             'browse_dict': browse_dict,
