@@ -67,6 +67,11 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
+# Need to set USE_TZ to False for tests to pass
+# because the test data is in UTC
+# and the test runner converts it to local time.
+USE_TZ = False
+
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')

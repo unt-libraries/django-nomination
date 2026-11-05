@@ -433,7 +433,7 @@ def create_json_browse(slug, url_attribute, root=''):
             name_search = re.compile(r'^[^:]+://\('+root+'([A-Za-z0-9]{1})').search(
                 url_item.value, 0)
             if name_search:
-                if not name_search.group(1) in category_list:
+                if name_search.group(1) not in category_list:
                     category_list.append(name_search.group(1))
         for category in category_list:
             category_dict = {'text': category,

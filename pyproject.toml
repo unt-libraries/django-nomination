@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-nomination"
+description = "Django app for nominating URLs to harvest in web archiving crawls."
+readme = "README.md"
+version = "6.0.0"
+license = "BSD-3-Clause"
+license-files = ["LICENSE.txt"]
+keywords = ["django", "app", "UNT", "url", "surt", "nomination", "web archiving"]
+requires-python = ">=3.12,<3.15"
+authors = [
+  { name = "University of North Texas Libraries", email = "mark.phillips@unt.edu" }
+]
+classifiers = [
+    "Environment :: Web Environment",
+    "Framework :: Django :: 6.1",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "Django~=6.1.0",
+    "markdown~=3.11",
+    "django-widget-tweaks~=1.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/unt-libraries/django-nomination"
+Repository = "https://github.com/unt-libraries/django-nomination.git"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9.1",
+    "pytest-django>=4.14",
+    "pytest-cov>=7.1",
+    "factory-boy>=3.3.3",
+    "python-dateutil>=2.9.0",
+    "ruff~=0.17.2",
+]
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ["nomination*"]
+
+[tool.pytest.ini_options]
+addopts = "--reuse-db"
+DJANGO_SETTINGS_MODULE = "tests.settings"
+
+[tool.ruff]
+line-length = 99
+extend-exclude = ["migrations"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+
+[tool.tox]
+legacy_tox_ini = """
+    [tox]
+    envlist =
+        py3{12,13,14}
+        py314-ruff
+    skip_missing_interpreters = true
+
+    [testenv]
+    extras =
+        test
+    commands = pytest --cov-config .coveragerc --cov-report term-missing --cov nomination
+
+    [testenv:py314-ruff]
+    commands = ruff check nomination user_scripts tests
+"""
